@@ -21,20 +21,6 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
-        val vkIDClientId = project.findProperty("VKIDClientID") as String
-        val vkIDClientSecret = project.findProperty("VKIDClientSecret") as String
-        val vkIDRedirectHost = project.findProperty("VKIDRedirectHost") as String
-        val vkIDRedirectScheme = project.findProperty("VKIDRedirectScheme") as String
-
-        addManifestPlaceholders(
-            mapOf(
-                "VKIDClientID" to vkIDClientId, // ID вашего приложения (app_id).
-                "VKIDClientSecret" to vkIDClientSecret, // Ваш защищенный ключ (client_secret).
-                "VKIDRedirectHost" to vkIDRedirectHost, // Обычно используется vk.com.
-                "VKIDRedirectScheme" to vkIDRedirectScheme, // Обычно используется vk{ID приложения}.
-            )
-        )
     }
 
     buildTypes {
@@ -47,7 +33,6 @@ android {
         }
     }
     compileOptions {
-        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
@@ -81,9 +66,5 @@ dependencies {
     implementation(platform(libs.okhttp3.bom))
     implementation(libs.okhttp3)
     implementation(libs.okhttp3.logging.interceptor)
-
-    //VK
-    implementation(libs.vk.id.sdk)
-    implementation(libs.vk.id.onetap)
 
 }

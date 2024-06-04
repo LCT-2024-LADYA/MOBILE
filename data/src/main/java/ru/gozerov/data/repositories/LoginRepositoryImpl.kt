@@ -1,9 +1,6 @@
 package ru.gozerov.data.repositories
 
 import android.content.Context
-import com.vk.id.AccessToken
-import com.vk.id.VKID
-import com.vk.id.VKIDAuthFail
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
@@ -22,27 +19,6 @@ class LoginRepositoryImpl @Inject constructor(
 ) : LoginRepository {
     override suspend fun loginThroughVk(): Flow<Result<VKLoginResponse>> {
         val flow = MutableSharedFlow<Result<VKLoginResponse>>(1, 0, BufferOverflow.DROP_OLDEST)
-        val vkid = VKID(context)
-        val vkAuthCallback = object : VKID.AuthCallback {
-
-            override fun onSuccess(accessToken: AccessToken) {
-                flow.tryEmit(Result.success(VKLoginResponse(accessToken.token, accessToken.userID)))
-            }
-
-            override fun onFail(fail: VKIDAuthFail) {
-                when (fail) {
-                    is VKIDAuthFail.Canceled -> {
-                        flow.tryEmit(Result.failure(IllegalStateException()))
-                    }
-
-                    else -> {
-                        flow.tryEmit(Result.failure(IllegalStateException()))
-                    }
-                }
-            }
-
-        }
-        vkid.authorize(vkAuthCallback)
         return flow.asSharedFlow()
     }
 
