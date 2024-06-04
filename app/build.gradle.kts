@@ -22,14 +22,10 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        val localPropertiesFile = rootProject.file("gradle.properties")
-        val localProperties = Properties()
-        localProperties.load(FileInputStream(localPropertiesFile))
-
-        val vkIDClientId = localProperties.getProperty("VKIDClientID")
-        val vkIDClientSecret = localProperties.getProperty("VKIDClientSecret")
-        val vkIDRedirectHost = localProperties.getProperty("VKIDRedirectHost")
-        val vkIDRedirectScheme = localProperties.getProperty("VKIDRedirectScheme")
+        val vkIDClientId = project.findProperty("VKIDClientID") as String
+        val vkIDClientSecret = project.findProperty("VKIDClientSecret") as String
+        val vkIDRedirectHost = project.findProperty("VKIDRedirectHost") as String
+        val vkIDRedirectScheme = project.findProperty("VKIDRedirectScheme") as String
 
         addManifestPlaceholders(
             mapOf(
