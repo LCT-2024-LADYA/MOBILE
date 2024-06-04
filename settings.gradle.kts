@@ -1,3 +1,5 @@
+import java.net.URI
+
 pluginManagement {
     repositories {
         google {
@@ -16,9 +18,14 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven {
+            url = URI("https://artifactory-external.vkpartner.ru/artifactory/vkid-sdk-andorid/")
+        }
     }
 }
 
 rootProject.name = "Fit Ladya"
 include(":app")
- 
+include(":presentation")
+include(":data")
+include(":domain")
