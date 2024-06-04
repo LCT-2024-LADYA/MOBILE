@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Fit Ladya</string>
+    <string name="working_weight_is">Рабочий вес</string>
+    <string name="sets_and_reps">Подходы x Повторения</string>
+    <string name="exercise_pos_is">#%1$d</string>
+    <string name="x">x</string>
+    <string name="login_as_trainer">Войти как тренер</string>
+    <string name="error">Error</string>
+    <string name="ladyafit">LadyaFit</string>
+    <string name="login">Войти</string>
+    <integer name="com_vk_sdk_AppId">51938469</integer>
+</resources>
