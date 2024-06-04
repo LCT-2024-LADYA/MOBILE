@@ -1,9 +1,11 @@
 package ru.gozerov.domain.repositories
 
-import androidx.activity.ComponentActivity
 import kotlinx.coroutines.flow.Flow
+import ru.gozerov.domain.models.VKLoginResponse
 
 interface LoginRepository {
+
+    suspend fun loginThroughVk(): Flow<Result<VKLoginResponse>>
 
     suspend fun loginAsTrainee(accessToken: String, id: Long, email: String?): Flow<Result<Unit>>
 

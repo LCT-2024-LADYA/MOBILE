@@ -1,4 +1,4 @@
-package ru.gozerov.presentation.screens.login
+package ru.gozerov.presentation.screens.login.login_choice
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.BorderStroke
@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
@@ -20,6 +21,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -31,9 +33,10 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.vk.id.onetap.common.OneTapStyle
-import com.vk.id.onetap.compose.onetap.OneTap
 import ru.gozerov.presentation.R
+import ru.gozerov.presentation.navigation.Screen
+import ru.gozerov.presentation.screens.login.login_choice.models.LoginEffect
+import ru.gozerov.presentation.screens.login.login_choice.models.LoginIntent
 import ru.gozerov.presentation.shared.utils.showError
 import ru.gozerov.presentation.ui.theme.FitLadyaTheme
 
@@ -43,11 +46,22 @@ fun LoginScreen(
     viewModel: LoginViewModel,
     navController: NavController
 ) {
+    val effect = viewModel.effect.collectAsState().value
     val coroutineScope = rememberCoroutineScope()
     val errorMessage = stringResource(id = R.string.error)
-
     val snackbarHostState = remember { SnackbarHostState() }
 
+    when (effect) {
+        is LoginEffect.None -> {}
+        is LoginEffect.SuccessLogin -> {
+            viewModel.handleIntent(LoginIntent.Navigate)
+            navController.navigate(Screen.VerifyEmail.route + "/${effect.token}/${effect.vkId}")
+        }
+
+        is LoginEffect.Error -> {
+            snackbarHostState.showError(coroutineScope, errorMessage)
+        }
+    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -102,27 +116,13 @@ fun LoginScreen(
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    OneTap(
-                        style = OneTapStyle.Light(),
-                        modifier = Modifier.padding(horizontal = 48.dp),
-                        onAuth = { token ->
-                            viewModel.login(
-                                token.token,
-                                token.userID,
-                                token.userData.email
-                            )
-                        },
-                        onFail = {
-                            snackbarHostState.showError(
-                                coroutineScope = coroutineScope,
-                                errorMessage
-                            )
-                        })
-                    /*Button(
+
+                    Button(
                         modifier = Modifier.size(200.dp, 48.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = FitLadyaTheme.colors.primary),
-                        onClick = {
 
+                        onClick = {
+                            viewModel.handleIntent(LoginIntent.LoginThroughVK)
                         }
                     ) {
                         Text(
@@ -137,7 +137,7 @@ fun LoginScreen(
                             contentDescription = null,
                             tint = FitLadyaTheme.colors.secondary
                         )
-                    }*/
+                    }
                     Spacer(modifier = Modifier.height(16.dp))
                     OutlinedButton(
                         modifier = Modifier
@@ -145,7 +145,7 @@ fun LoginScreen(
                         border = BorderStroke(2.dp, FitLadyaTheme.colors.primary),
                         colors = ButtonDefaults.buttonColors(containerColor = FitLadyaTheme.colors.primaryBackground),
                         onClick = {
-
+                            navController.navigate(Screen.LoginTrainer.route)
                         }
                     ) {
                         Text(

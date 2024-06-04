@@ -86,8 +86,4 @@ dependencies {
     //Permissions
     implementation(libs.permissions)
 
-    //VK
-    implementation(libs.vk.id.sdk)
-    implementation(libs.vk.id.onetap)
-
 }

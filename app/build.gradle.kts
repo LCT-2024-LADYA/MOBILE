@@ -1,3 +1,7 @@
+import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
@@ -18,12 +22,21 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
+        val localPropertiesFile = rootProject.file("gradle.properties")
+        val localProperties = Properties()
+        localProperties.load(FileInputStream(localPropertiesFile))
+
+        val vkIDClientId = localProperties.getProperty("VKIDClientID")
+        val vkIDClientSecret = localProperties.getProperty("VKIDClientSecret")
+        val vkIDRedirectHost = localProperties.getProperty("VKIDRedirectHost")
+        val vkIDRedirectScheme = localProperties.getProperty("VKIDRedirectScheme")
+
         addManifestPlaceholders(
             mapOf(
-                "VKIDClientID" to "51938469", // ID вашего приложения (app_id).
-                "VKIDClientSecret" to "FmfRmjPkkQW4Hba5iQxZ", // Ваш защищенный ключ (client_secret).
-                "VKIDRedirectHost" to "vk.com", // Обычно используется vk.com.
-                "VKIDRedirectScheme" to "vk51938469", // Обычно используется vk{ID приложения}.
+                "VKIDClientID" to vkIDClientId, // ID вашего приложения (app_id).
+                "VKIDClientSecret" to vkIDClientSecret, // Ваш защищенный ключ (client_secret).
+                "VKIDRedirectHost" to vkIDRedirectHost, // Обычно используется vk.com.
+                "VKIDRedirectScheme" to vkIDRedirectScheme, // Обычно используется vk{ID приложения}.
             )
         )
     }
@@ -38,9 +51,7 @@ android {
         }
     }
     compileOptions {
-
         isCoreLibraryDesugaringEnabled = true
-
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
@@ -50,8 +61,8 @@ android {
 }
 
 dependencies {
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
     implementation(project(path = ":presentation"))
     implementation(project(path = ":domain"))
     implementation(project(path = ":data"))
