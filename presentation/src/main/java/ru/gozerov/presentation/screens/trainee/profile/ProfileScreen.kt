@@ -1,0 +1,142 @@
+package ru.gozerov.presentation.screens.trainee.profile
+
+import android.annotation.SuppressLint
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowLeft
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import ru.gozerov.presentation.R
+import ru.gozerov.presentation.screens.login.login_trainer.models.LoginTrainerIntent
+import ru.gozerov.presentation.shared.utils.isValidEmail
+import ru.gozerov.presentation.shared.utils.isValidPassword
+import ru.gozerov.presentation.shared.utils.showError
+import ru.gozerov.presentation.shared.views.CustomTextField
+import ru.gozerov.presentation.shared.views.Footer
+import ru.gozerov.presentation.ui.theme.FitLadyaTheme
+
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@Composable
+fun ProfileScreen() {
+    // val effect = viewModel.effect.collectAsState().value
+
+    val emailState = remember { mutableStateOf("") }
+    val passwordState = remember { mutableStateOf("") }
+    var isPasswordVisible: Boolean by remember { mutableStateOf(true) }
+
+    val isEmailError = if (emailState.value.isBlank()) false else !isValidEmail(emailState.value)
+
+    val visibilityImage = if (isPasswordVisible)
+        painterResource(id = R.drawable.ic_visibility_24)
+    else
+        painterResource(id = R.drawable.ic_visibility_off_24)
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+
+    /*
+        when (effect) {
+            is LoginTrainerEffect.None -> {}
+            is LoginTrainerEffect.SuccessLogin -> {
+                viewModel.handleIntent(LoginTrainerIntent.Navigate)
+            }
+
+            is LoginTrainerEffect.Error -> {
+                snackbarHostState.showError(coroutineScope, effect.message)
+            }
+
+        }*/
+
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        containerColor = FitLadyaTheme.colors.primaryBackground
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+
+            Row {
+                Icon(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .padding(12.dp),
+                    imageVector = Icons.AutoMirrored.Outlined.KeyboardArrowLeft,
+                    contentDescription = null,
+                    tint = FitLadyaTheme.colors.text
+                )
+                Text(
+                    text = stringResource(id = R.string.profile),
+                    modifier = Modifier.padding(start = 8.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(64.dp))
+            Text(
+                text = stringResource(id = R.string.log_in_account),
+                fontSize = 24.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = FitLadyaTheme.colors.text
+            )
+            Spacer(modifier = Modifier.height(32.dp))
+
+            CustomTextField(
+                labelText = stringResource(id = R.string.input_mail),
+                textState = emailState,
+                modifier = Modifier.width(260.dp),
+                isError = isEmailError
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            CustomTextField(
+                textState = passwordState,
+                labelText = stringResource(id = R.string.input_password),
+                modifier = Modifier.width(260.dp),
+                visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                trailingIcon = {
+                    IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
+                        Icon(painter = visibilityImage, null, tint = FitLadyaTheme.colors.text)
+                    }
+                }
+            )
+            Spacer(modifier = Modifier.height(48.dp))
+
+            Footer()
+        }
+    }
+}

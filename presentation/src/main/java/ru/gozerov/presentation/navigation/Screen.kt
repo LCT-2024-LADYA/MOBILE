@@ -9,8 +9,11 @@ sealed class Screen(
 
     object Login : Screen("login")
 
-    object VerifyEmail : Screen("verifyEmail")
-
     object LoginTrainer : Screen("loginTrainer")
+
+    object Register : Screen("register")
+
+    object LoginTrainee : Screen("loginTrainee")
+
 
 }

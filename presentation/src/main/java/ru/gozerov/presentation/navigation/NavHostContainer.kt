@@ -6,12 +6,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import ru.gozerov.presentation.screens.login.login_choice.LoginScreen
-import ru.gozerov.presentation.screens.login.login_choice.LoginViewModel
+import ru.gozerov.presentation.screens.login.login_choice.ChoiceLoginScreen
+import ru.gozerov.presentation.screens.login.login_trainee.LoginTraineeScreen
+import ru.gozerov.presentation.screens.login.login_trainee.LoginTraineeViewModel
+import ru.gozerov.presentation.screens.login.register_trainee.RegisterScreen
+import ru.gozerov.presentation.screens.login.register_trainee.RegisterViewModel
 import ru.gozerov.presentation.screens.login.login_trainer.LoginTrainerScreen
 import ru.gozerov.presentation.screens.login.login_trainer.LoginTrainerViewModel
-import ru.gozerov.presentation.screens.login.verify_email.VerifyEmailScreen
-import ru.gozerov.presentation.screens.login.verify_email.VerifyEmailViewModel
 
 @Composable
 fun NavHostContainer(
@@ -30,20 +31,7 @@ fun NavHostContainer(
             composable(
                 route = Screen.Login.route
             ) {
-                val loginViewModel = hiltViewModel<LoginViewModel>()
-                LoginScreen(
-                    navController = navController,
-                    viewModel = loginViewModel
-                )
-            }
-
-            composable(
-                route = Screen.VerifyEmail.route + "/{token}/{vkId}"
-            ) { backStackEntry ->
-                val token = backStackEntry.arguments?.getString("token") ?: ""
-                val vkId = backStackEntry.arguments?.getString("vkId")?.toLong() ?: 0L
-                val viewModel = hiltViewModel<VerifyEmailViewModel>()
-                VerifyEmailScreen(accessToken = token, vkId = vkId, viewModel = viewModel)
+                ChoiceLoginScreen(navController = navController)
             }
 
             composable(
@@ -51,6 +39,20 @@ fun NavHostContainer(
             ) {
                 val viewModel = hiltViewModel<LoginTrainerViewModel>()
                 LoginTrainerScreen(viewModel = viewModel)
+            }
+
+            composable(
+                route = Screen.Register.route
+            ) {
+                val viewModel = hiltViewModel<RegisterViewModel>()
+                RegisterScreen(navController = navController, viewModel = viewModel)
+            }
+
+            composable(
+                route = Screen.LoginTrainee.route
+            ) {
+                val viewModel = hiltViewModel<LoginTraineeViewModel>()
+                LoginTraineeScreen(navController, viewModel)
             }
             /* composable(
                  route = Screen.MainSection.route,

@@ -5,12 +5,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import ru.gozerov.presentation.R
 
 @Composable
 fun FitLadyaTheme(
@@ -22,10 +19,6 @@ fun FitLadyaTheme(
 ) {
     val colors = if (darkTheme) baseDarkPalette else baseLightPalette
 
-    val mPlusFontFamily = FontFamily(
-        Font(R.font.mplus)
-    )
-
     val typography = FitLadyaTypography(
         heading = TextStyle(
             fontSize = when (textSize) {
@@ -33,8 +26,7 @@ fun FitLadyaTheme(
                 FitLadyaSize.Medium -> 24.sp
                 FitLadyaSize.Big -> 28.sp
             },
-            fontWeight = FontWeight.Bold,
-            fontFamily = mPlusFontFamily
+            fontWeight = FontWeight.Bold
         ),
         body = TextStyle(
             fontSize = when (textSize) {
@@ -42,8 +34,7 @@ fun FitLadyaTheme(
                 FitLadyaSize.Medium -> 16.sp
                 FitLadyaSize.Big -> 18.sp
             },
-            fontWeight = FontWeight.Normal,
-            fontFamily = mPlusFontFamily
+            fontWeight = FontWeight.Normal
         ),
         toolbar = TextStyle(
             fontSize = when (textSize) {
@@ -51,16 +42,14 @@ fun FitLadyaTheme(
                 FitLadyaSize.Medium -> 16.sp
                 FitLadyaSize.Big -> 18.sp
             },
-            fontWeight = FontWeight.Medium,
-            fontFamily = mPlusFontFamily
+            fontWeight = FontWeight.Medium
         ),
         caption = TextStyle(
             fontSize = when (textSize) {
                 FitLadyaSize.Small -> 10.sp
                 FitLadyaSize.Medium -> 12.sp
                 FitLadyaSize.Big -> 14.sp
-            },
-            fontFamily = mPlusFontFamily
+            }
         )
     )
 

@@ -10,9 +10,9 @@ class LoginAsTraineeUseCase @Inject constructor(
     private val loginRepository: LoginRepository
 ) {
 
-    suspend operator fun invoke(accessToken: String, id: Long, email: String): Flow<Result<Unit>> =
+    suspend operator fun invoke(email: String, password: String): Flow<Result<Unit>> =
         withContext(Dispatchers.IO) {
-            loginRepository.loginAsTrainee(accessToken, id, email)
+            loginRepository.loginAsTrainee(email, password)
         }
 
 }

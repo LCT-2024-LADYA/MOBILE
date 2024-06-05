@@ -25,6 +25,10 @@ class LoginTrainerViewModel @Inject constructor(
     fun handleIntent(intent: LoginTrainerIntent) {
         viewModelScope.launch {
             when (intent) {
+                is LoginTrainerIntent.Reset -> {
+                    _effect.emit(LoginTrainerEffect.None)
+                }
+
                 is LoginTrainerIntent.Login -> {
                     runCatchingNonCancellation {
                         loginAsTrainerUseCase.invoke(intent.email, intent.password)
@@ -35,8 +39,10 @@ class LoginTrainerViewModel @Inject constructor(
                                     .onSuccess {
                                         _effect.emit(LoginTrainerEffect.SuccessLogin)
                                     }
-                                    .map {
-                                        _effect.emit(LoginTrainerEffect.Error())
+                                    .onFailure { throwable ->
+                                        _effect.emit(
+                                            LoginTrainerEffect.Error(throwable.message ?: "Error")
+                                        )
                                     }
                             }
                         }

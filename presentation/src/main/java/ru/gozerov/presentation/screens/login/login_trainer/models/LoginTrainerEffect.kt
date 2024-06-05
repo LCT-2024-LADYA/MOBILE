@@ -6,6 +6,6 @@ sealed interface LoginTrainerEffect {
 
     object SuccessLogin : LoginTrainerEffect
 
-    class Error : LoginTrainerEffect
+    data class Error(val message: String) : LoginTrainerEffect
 
 }

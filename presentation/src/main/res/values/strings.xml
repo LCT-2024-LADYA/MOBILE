@@ -8,5 +8,21 @@
     <string name="error">Error</string>
     <string name="ladyafit">LadyaFit</string>
     <string name="login">Войти</string>
+    <string name="authorization">Авторизация</string>
+    <string name="input_mail">Введите почту</string>
+    <string name="input_password">Введите пароль</string>
+    <string name="repeat_password">Повторите пароль</string>
+    <string name="passwords_should_be_equal">пароли должны совпадать</string>
+    <string name="sign_up">Зарегистрироваться</string>
+    <string name="have_account_already">"Уже есть аккаунт? "</string>
+    <string name="made_by">"made by "</string>
+    <string name="mirea_service_ladya">MIREA SERVICE LADYA</string>
+    <string name="i_am_trainee">Я тренируюсь</string>
+    <string name="i_am_trainer">Я тренер</string>
+    <string name="log_in_account">Вход в аккаунт</string>
+    <string name="no_account">"Нет аккаунта? "</string>
+    <string name="incorrect_email">Некорректный email</string>
+    <string name="incorrect_password">Некорректный пароль</string>
+    <string name="profile">Профиль</string>
     <integer name="com_vk_sdk_AppId">51938469</integer>
 </resources>
