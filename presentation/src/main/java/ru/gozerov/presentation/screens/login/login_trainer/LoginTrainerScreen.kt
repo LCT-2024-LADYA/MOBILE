@@ -34,7 +34,9 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import ru.gozerov.presentation.R
+import ru.gozerov.presentation.navigation.Screen
 import ru.gozerov.presentation.screens.login.login_trainer.models.LoginTrainerEffect
 import ru.gozerov.presentation.screens.login.login_trainer.models.LoginTrainerIntent
 import ru.gozerov.presentation.shared.utils.isValidEmail
@@ -47,7 +49,10 @@ import ru.gozerov.presentation.ui.theme.FitLadyaTheme
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun LoginTrainerScreen(viewModel: LoginTrainerViewModel) {
+fun LoginTrainerScreen(
+    navController: NavController,
+    viewModel: LoginTrainerViewModel
+) {
     val effect = viewModel.effect.collectAsState().value
 
     val emailState = remember { mutableStateOf("") }
@@ -71,6 +76,7 @@ fun LoginTrainerScreen(viewModel: LoginTrainerViewModel) {
         is LoginTrainerEffect.None -> {}
         is LoginTrainerEffect.SuccessLogin -> {
             viewModel.handleIntent(LoginTrainerIntent.Reset)
+            navController.navigate(Screen.TrainerProfile.route)
         }
 
         is LoginTrainerEffect.Error -> {

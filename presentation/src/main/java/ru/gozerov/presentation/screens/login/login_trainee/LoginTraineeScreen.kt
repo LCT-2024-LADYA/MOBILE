@@ -1,5 +1,6 @@
 package ru.gozerov.presentation.screens.login.login_trainee
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -50,6 +51,7 @@ import ru.gozerov.presentation.shared.views.Footer
 import ru.gozerov.presentation.shared.views.LadyaLogo
 import ru.gozerov.presentation.ui.theme.FitLadyaTheme
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun LoginTraineeScreen(
     navController: NavController,
@@ -76,6 +78,7 @@ fun LoginTraineeScreen(
     when (effect) {
         is LoginTraineeEffect.None -> {}
         is LoginTraineeEffect.SuccessLogin -> {
+            navController.navigate(Screen.ClientProfile.route)
             viewModel.handleIntent(LoginTraineeIntent.Reset)
         }
 
@@ -89,7 +92,7 @@ fun LoginTraineeScreen(
         modifier = Modifier.fillMaxSize(),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = FitLadyaTheme.colors.primaryBackground
-    ) {
+    ) { contentPadding ->
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,

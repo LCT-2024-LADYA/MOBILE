@@ -1,5 +1,6 @@
 package ru.gozerov.presentation.screens.login.register_trainee
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -18,11 +19,11 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,11 +38,10 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.os.bundleOf
 import androidx.navigation.NavController
 import ru.gozerov.presentation.R
 import ru.gozerov.presentation.navigation.Screen
-import ru.gozerov.presentation.screens.login.register_trainee.models.RegisterEffect
-import ru.gozerov.presentation.screens.login.register_trainee.models.RegisterIntent
 import ru.gozerov.presentation.shared.utils.isValidEmail
 import ru.gozerov.presentation.shared.utils.isValidPassword
 import ru.gozerov.presentation.shared.utils.showError
@@ -50,16 +50,14 @@ import ru.gozerov.presentation.shared.views.Footer
 import ru.gozerov.presentation.shared.views.LadyaLogo
 import ru.gozerov.presentation.ui.theme.FitLadyaTheme
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun RegisterScreen(
-    viewModel: RegisterViewModel,
     navController: NavController
 ) {
-    val effect = viewModel.effect.collectAsState().value
-
-    val emailState = remember { mutableStateOf("") }
-    val passwordState = remember { mutableStateOf("") }
-    val repeatPasswordState = remember { mutableStateOf("") }
+    val emailState = rememberSaveable { mutableStateOf("") }
+    val passwordState = rememberSaveable { mutableStateOf("") }
+    val repeatPasswordState = rememberSaveable { mutableStateOf("") }
     var isPasswordVisible: Boolean by remember { mutableStateOf(true) }
 
     val isEmailError = if (emailState.value.isBlank()) false else !isValidEmail(emailState.value)
@@ -77,25 +75,11 @@ fun RegisterScreen(
     val incorrectEmailMessage = stringResource(id = R.string.incorrect_email)
     val incorrectPasswordMessage = stringResource(id = R.string.incorrect_password)
 
-    when (effect) {
-        is RegisterEffect.None -> {
-
-        }
-
-        is RegisterEffect.SuccessLoginTrainee -> {
-            viewModel.handleIntent(RegisterIntent.Navigate)
-        }
-
-        is RegisterEffect.Error -> {
-            snackbarHostState.showError(coroutineScope, effect.message)
-        }
-    }
-
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = FitLadyaTheme.colors.primaryBackground
-    ) {
+    ) { contentPadding ->
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -107,7 +91,7 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(64.dp))
             Text(
-                text = stringResource(id = R.string.authorization),
+                text = stringResource(id = R.string.registration),
                 fontSize = 24.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = FitLadyaTheme.colors.text
@@ -167,17 +151,12 @@ fun RegisterScreen(
                     } else if (!isValidPassword(passwordState.value)) {
                         snackbarHostState.showError(coroutineScope, incorrectPasswordMessage)
                     } else if (!isRepeatError) {
-                        viewModel.handleIntent(
-                            RegisterIntent.Register(
-                                emailState.value,
-                                passwordState.value
-                            )
-                        )
+                        navController.navigate(Screen.RegisterProfile.route + "/${emailState.value}/${passwordState.value}")
                     }
                 }
             ) {
                 Text(
-                    text = stringResource(id = R.string.sign_up),
+                    text = stringResource(id = R.string.next),
                     color = FitLadyaTheme.colors.secondaryText
                 )
             }

@@ -7,13 +7,18 @@ sealed class Screen(
     @DrawableRes val icon: Int? = null
 ) {
 
-    object Login : Screen("login")
+    object ChoiceLogin : Screen("choiceLogin")
 
     object LoginTrainer : Screen("loginTrainer")
 
     object Register : Screen("register")
 
+    object RegisterProfile : Screen("registerProfile")
+
     object LoginTrainee : Screen("loginTrainee")
 
+    object ClientProfile : Screen("clientProfile")
+
+    object TrainerProfile : Screen("trainerProfile")
 
 }

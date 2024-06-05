@@ -81,4 +81,7 @@ dependencies {
     //Permissions
     implementation(libs.permissions)
 
+    //SystemUiController
+    implementation(libs.ui.controller)
+
 }

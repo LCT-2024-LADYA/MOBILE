@@ -10,7 +10,7 @@ import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import ru.gozerov.data.api.LoginApi
-import ru.gozerov.fitladya.app.ApiConstants.BASE_URL
+import ru.gozerov.data.api.ApiConstants.BASE_URL
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)

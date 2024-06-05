@@ -24,6 +24,7 @@ compose-material = "1.6.5"
 permissions = "0.35.0-alpha"
 navigation = "2.7.7"
 hilt-navigation = "1.2.0"
+ui-controller = "0.35.1-alpha"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -69,6 +70,8 @@ androidx-compose-material3 = { group = "androidx.compose.material3", name = "mat
 androidx-compose-ui-viewbinding = { group = "androidx.compose.ui", name = "ui-viewbinding" }
 
 permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "permissions" }
+
+ui-controller = { group = "com.google.accompanist", name = "accompanist-systemuicontroller", version.ref = "ui-controller"}
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

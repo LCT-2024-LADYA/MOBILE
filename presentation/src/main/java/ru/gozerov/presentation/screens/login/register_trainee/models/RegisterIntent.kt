@@ -6,7 +6,11 @@ sealed interface RegisterIntent {
 
     data class Register(
         val email: String,
-        val password: String
+        val password: String,
+        val firstName: String,
+        val lastName: String,
+        val age: Int,
+        val sex: Int
     ) : RegisterIntent
 
 }

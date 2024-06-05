@@ -3,7 +3,6 @@ package ru.gozerov.presentation.shared.views
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -15,15 +14,14 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.unit.dp
 import ru.gozerov.presentation.R
 import ru.gozerov.presentation.ui.theme.FitLadyaTheme
 
 @Composable
-fun ColumnScope.Footer(modifier: Modifier = Modifier) {
+fun ColumnScope.Footer(weightNeeded: Boolean = true) {
     val alpha = if (isSystemInDarkTheme()) 0.72f else 0.4f
     Box(
-        modifier = Modifier.weight(1f),
+        modifier = if (weightNeeded) Modifier.weight(1f) else Modifier,
         contentAlignment = Alignment.BottomCenter
     ) {
         val footerText = buildAnnotatedString {
@@ -47,9 +45,6 @@ fun ColumnScope.Footer(modifier: Modifier = Modifier) {
             }
         }
 
-        Text(
-            text = footerText,
-            modifier = Modifier.padding(bottom = 32.dp)
-        )
+        Text(text = footerText)
     }
 }

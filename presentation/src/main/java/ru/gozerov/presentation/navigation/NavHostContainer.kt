@@ -9,27 +9,29 @@ import androidx.navigation.compose.composable
 import ru.gozerov.presentation.screens.login.login_choice.ChoiceLoginScreen
 import ru.gozerov.presentation.screens.login.login_trainee.LoginTraineeScreen
 import ru.gozerov.presentation.screens.login.login_trainee.LoginTraineeViewModel
-import ru.gozerov.presentation.screens.login.register_trainee.RegisterScreen
-import ru.gozerov.presentation.screens.login.register_trainee.RegisterViewModel
 import ru.gozerov.presentation.screens.login.login_trainer.LoginTrainerScreen
 import ru.gozerov.presentation.screens.login.login_trainer.LoginTrainerViewModel
+import ru.gozerov.presentation.screens.login.register_trainee.RegisterProfileScreen
+import ru.gozerov.presentation.screens.login.register_trainee.RegisterScreen
+import ru.gozerov.presentation.screens.login.register_trainee.RegisterViewModel
+import ru.gozerov.presentation.screens.trainee.profile.ClientProfileScreen
+import ru.gozerov.presentation.screens.trainer.TrainerProfileScreen
 
 @Composable
 fun NavHostContainer(
+    startDestination: String,
     navController: NavHostController,
     padding: PaddingValues,
-    isLoginNeeded: Boolean
 ) {
     /*val startDestination =
         if (isLoginNeeded) Screen.ChooseAccount.route else Screen.MainSection.route*/
 
-    val startDestination = Screen.Login.route
     NavHost(
         navController = navController,
         startDestination = startDestination,
         builder = {
             composable(
-                route = Screen.Login.route
+                route = Screen.ChoiceLogin.route
             ) {
                 ChoiceLoginScreen(navController = navController)
             }
@@ -38,14 +40,13 @@ fun NavHostContainer(
                 route = Screen.LoginTrainer.route
             ) {
                 val viewModel = hiltViewModel<LoginTrainerViewModel>()
-                LoginTrainerScreen(viewModel = viewModel)
+                LoginTrainerScreen(navController = navController, viewModel = viewModel)
             }
 
             composable(
                 route = Screen.Register.route
             ) {
-                val viewModel = hiltViewModel<RegisterViewModel>()
-                RegisterScreen(navController = navController, viewModel = viewModel)
+                RegisterScreen(navController = navController)
             }
 
             composable(
@@ -53,6 +54,34 @@ fun NavHostContainer(
             ) {
                 val viewModel = hiltViewModel<LoginTraineeViewModel>()
                 LoginTraineeScreen(navController, viewModel)
+            }
+
+            composable(
+                route = Screen.ClientProfile.route
+            ) {
+                ClientProfileScreen(navController)
+            }
+
+            composable(
+                route = Screen.RegisterProfile.route + "/{email}/{password}"
+            ) { backStackEntry ->
+                val email = backStackEntry.arguments?.getString("email")
+                    ?: throw IllegalArgumentException("no args")
+                val password = backStackEntry.arguments?.getString("password")
+                    ?: throw IllegalArgumentException("no args")
+                val viewModel = hiltViewModel<RegisterViewModel>()
+                RegisterProfileScreen(
+                    navController = navController,
+                    viewModel = viewModel,
+                    email,
+                    password
+                )
+            }
+
+            composable(
+                route = Screen.TrainerProfile.route
+            ) {
+                TrainerProfileScreen(navController)
             }
             /* composable(
                  route = Screen.MainSection.route,

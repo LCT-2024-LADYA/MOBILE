@@ -19,6 +19,7 @@ data class FitLadyaColors(
     val fieldPrimaryText: Color,
     val secondaryText: Color,
     val buttonText: Color,
+    val primaryBorder: Color,
     val card0: Color,
     val card1: Color,
     val card2: Color,

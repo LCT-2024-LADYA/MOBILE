@@ -24,5 +24,27 @@
     <string name="incorrect_email">Некорректный email</string>
     <string name="incorrect_password">Некорректный пароль</string>
     <string name="profile">Профиль</string>
+    <string name="registration">Регистрация</string>
+    <string name="age">Возраст</string>
+    <string name="favorites">Избранное</string>
+    <string name="progress">Прогресс</string>
+    <string name="input_sex">Пол</string>
+    <string name="sex">Пол</string>
+    <string name="sex_man">Мужской</string>
+    <string name="sex_woman">Женский</string>
+    <string name="email">Почта</string>
+    <string name="incorrect_age">Некорректный возраст</string>
+    <string name="save_changes">Сохранить изменения</string>
+    <string name="logout">Выйти</string>
+    <string name="data_changing">Изменение данных</string>
+    <string name="change_photo">Изменить фото</string>
+    <string name="remove_photo">удалить фото</string>
+    <string name="name">Имя</string>
+    <string name="lastname">Фамилия</string>
+    <string name="fit_profile">Заполните профиль</string>
+    <string name="next">Далее</string>
+    <string name="not_enough_data">Не хватает данных</string>
+    <string name="role">Роль</string>
+    <string name="specializations">Специализации</string>
     <integer name="com_vk_sdk_AppId">51938469</integer>
 </resources>

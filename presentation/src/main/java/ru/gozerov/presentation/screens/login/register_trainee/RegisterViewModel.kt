@@ -31,7 +31,7 @@ class RegisterViewModel @Inject constructor(
 
                 is RegisterIntent.Register -> {
                     runCatchingNonCancellation {
-                        registerUseCase.invoke(intent.email, intent.password)
+                        registerUseCase.invoke(intent.email, intent.password, intent.firstName, intent.lastName, intent.age, intent.sex)
                     }
                         .map { flow ->
                             flow.collect { result ->

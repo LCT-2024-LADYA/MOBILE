@@ -7,7 +7,17 @@ fun isValidEmail(email: String): Boolean {
 }
 
 fun isValidPassword(password: String): Boolean {
-    val passwordRegex = """^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_+{}\[\]:;<>,.?/~`-]).{8,64}$"""
+    val passwordRegex =
+        """^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_+{}\[\]:;<>,.?/~`-]).{8,64}$"""
 
     return password.matches(passwordRegex.toRegex())
+}
+
+fun isValidAge(value: String): Boolean {
+    return try {
+        val age = value.toInt()
+        age in 14..150
+    } catch (e: NumberFormatException) {
+        false
+    }
 }
