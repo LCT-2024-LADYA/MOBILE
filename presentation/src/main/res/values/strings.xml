@@ -46,5 +46,25 @@
     <string name="not_enough_data">Не хватает данных</string>
     <string name="role">Роль</string>
     <string name="specializations">Специализации</string>
+    <string name="sport_achievements">Спортивные достижения</string>
+    <string name="send_at_moderation">Отправить на модерацию</string>
+    <string name="achievement">Достижение</string>
+    <string name="schedule">Расписание</string>
+    <string name="services">Услуги</string>
+    <string name="add_service">Добавить услугу</string>
+    <string name="price">Цена</string>
+    <string name="vertical_slash">|</string>
+    <string name="add">Добавить</string>
+    <string name="success_info_update">Информация успешно обновлена!</string>
+    <string name="success_photo_update">Успешно</string>
+    <string name="incorrect_data">Некорректно введенные данные</string>
+    <string name="favorite_quote">Любимая цитата</string>
+    <string name="experience">Стаж</string>
+    <string name="next_training">Следующая тренировка</string>
+    <string name="kg">кг</string>
+    <string name="start_training">Начать тренировку</string>
+    <string name="no_trainings">Тренировок нет</string>
+    <string name="chill_out">Оторвись от отжиманий и сделай 20 компов</string>
+    <string name="new_training">Новая тренировка</string>
     <integer name="com_vk_sdk_AppId">51938469</integer>
 </resources>

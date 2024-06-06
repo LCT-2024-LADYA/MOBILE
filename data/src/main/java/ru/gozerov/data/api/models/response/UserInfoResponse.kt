@@ -6,5 +6,6 @@ data class UserInfoResponse(
     val last_name: String,
     val age: Int,
     val email: String,
-    val photo_url: String?
+    val photo_url: String?,
+    val sex: Int
 )

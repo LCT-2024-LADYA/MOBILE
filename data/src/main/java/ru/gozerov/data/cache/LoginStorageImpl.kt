@@ -38,6 +38,14 @@ class LoginStorageImpl @Inject constructor(
     override fun getRole(): Int = sharedPrefs
         .getInt(KEY_LAST_LOGGED_USER_TYPE, 0)
 
+    override fun clearClientTokens() {
+        sharedPrefs
+            .edit()
+            .remove(KEY_CLIENT_ACCESS_TOKEN)
+            .remove(KEY_CLIENT_REFRESH_TOKEN)
+            .apply()
+    }
+
     companion object {
 
         private const val KEY_CLIENT_ACCESS_TOKEN = "clientAccessToken"

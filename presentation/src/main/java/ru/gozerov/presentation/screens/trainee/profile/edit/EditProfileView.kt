@@ -20,6 +20,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -38,18 +39,19 @@ import ru.gozerov.presentation.ui.theme.FitLadyaTheme
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun EditProfileView(
+    firstNameState: MutableState<String>,
+    lastNameState: MutableState<String>,
+    photo: Any?,
+    onPhotoSelected: (uri: Uri?) -> Unit,
+    onSaveClicked: () -> Unit
 ) {
-
-    val firstNameState = remember { mutableStateOf("Василий") }
-    val lastNameState = remember { mutableStateOf("Иванов") }
-
-    val imageUri = remember { mutableStateOf<Uri?>(null) }
+    val launchStoragePermissionState = remember { mutableStateOf(false) }
 
     val launcher =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri ->
-            imageUri.value = uri
+            onPhotoSelected(uri)
+            launchStoragePermissionState.value = false
         }
-    val launchStoragePermissionState = remember { mutableStateOf(false) }
 
     if (launchStoragePermissionState.value) {
         RequestImageStorage {
@@ -90,7 +92,7 @@ fun EditProfileView(
                 .padding(horizontal = 48.dp)
                 .fillMaxWidth()
         ) {
-            UserAvatar(size = 68.dp, padding = 8.dp)
+            UserAvatar(size = 68.dp, photo, padding = 8.dp)
             Column(
                 modifier = Modifier.padding(start = 20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -128,9 +130,7 @@ fun EditProfileView(
         Button(
             modifier = Modifier.size(284.dp, 40.dp),
             colors = ButtonDefaults.buttonColors(containerColor = FitLadyaTheme.colors.primary),
-            onClick = {
-
-            }
+            onClick = onSaveClicked
         ) {
             Text(
                 text = stringResource(id = R.string.save_changes),

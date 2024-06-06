@@ -1,24 +1,39 @@
 package ru.gozerov.data.repositories
 
+import android.content.Context
+import android.net.Uri
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.HttpException
 import ru.gozerov.data.api.LoginApi
 import ru.gozerov.data.api.models.request.LoginRequestBody
+import ru.gozerov.data.api.models.response.CreateAchievementRequestBody
+import ru.gozerov.data.api.models.response.MainInfoRequestBody
+import ru.gozerov.data.api.models.response.TrainerServiceRequestBody
 import ru.gozerov.data.api.models.toClientInfo
 import ru.gozerov.data.api.models.toRegisterRequestBody
 import ru.gozerov.data.api.models.toTrainerInfo
+import ru.gozerov.data.api.models.toTrainerMainInfoRequestBody
 import ru.gozerov.data.cache.LoginStorage
 import ru.gozerov.domain.models.CheckTokenResult
 import ru.gozerov.domain.models.ClientInfo
 import ru.gozerov.domain.models.RegisterModel
+import ru.gozerov.domain.models.Role
+import ru.gozerov.domain.models.Specialization
 import ru.gozerov.domain.models.TrainerInfo
+import ru.gozerov.domain.models.TrainerMainInfoDTO
 import ru.gozerov.domain.repositories.LoginRepository
+import java.io.InputStream
 import javax.inject.Inject
 
 class LoginRepositoryImpl @Inject constructor(
     private val loginApi: LoginApi,
-    private val loginStorage: LoginStorage
+    private val loginStorage: LoginStorage,
+    @ApplicationContext private val context: Context
 ) : LoginRepository {
     override suspend fun register(registerModel: RegisterModel): Flow<Result<Unit>> = flow {
         loginApi.register(registerModel.toRegisterRequestBody())
@@ -83,7 +98,11 @@ class LoginRepositoryImpl @Inject constructor(
         val userType = loginStorage.getRole()
         if (userType == 0) return CheckTokenResult(isAuth = false, isClient = false)
         if (userType == 1) {
-            clientMe()
+            val token = loginStorage.getClientAccessToken() ?: return CheckTokenResult(
+                isAuth = false,
+                isClient = false
+            )
+            loginApi.getClientMe(token)
                 .onSuccess {
                     return CheckTokenResult(isAuth = true, isClient = true)
                 }
@@ -108,12 +127,16 @@ class LoginRepositoryImpl @Inject constructor(
                         throw IllegalStateException()
                 }
         } else if (userType == 2) {
-            trainerMe()
+            val token = loginStorage.getTrainerAccessToken() ?: return CheckTokenResult(
+                isAuth = false,
+                isClient = false
+            )
+            loginApi.getTrainerMe(token)
                 .onSuccess {
                     return CheckTokenResult(isAuth = true, isClient = false)
                 }
                 .onFailure { throwable ->
-                    if ((throwable as? HttpException)?.code() == 400) {
+                    if ((throwable as? HttpException)?.code() == 401) {
                         val refreshToken = loginStorage.getTrainerRefreshToken()
                             ?: return CheckTokenResult(isAuth = false, isClient = false)
                         val response = loginApi.refreshTrainerToken(refreshToken)
@@ -136,5 +159,123 @@ class LoginRepositoryImpl @Inject constructor(
 
         throw IllegalArgumentException("Unknown userType")
     }
+
+    override suspend fun updateClientInfo(
+        age: Int,
+        email: String,
+        firstName: String,
+        lastName: String,
+        sex: Int
+    ): Result<Unit> {
+        val token =
+            loginStorage.getClientAccessToken()
+                ?: return Result.failure(IllegalStateException("not authorized"))
+        val dto = MainInfoRequestBody(age, email, firstName, lastName, sex)
+        return loginApi.updateClientMainInfo(token, dto)
+    }
+
+    override suspend fun updateClientPhoto(uri: Uri): Result<Unit> {
+        val token =
+            loginStorage.getClientAccessToken()
+                ?: return Result.failure(IllegalStateException("not authorized"))
+        val part = getImagePart(uri)
+        return loginApi.uploadClientPhoto(token, part)
+    }
+
+    override suspend fun updateTrainerPhoto(uri: Uri): Result<Unit> {
+        val token =
+            loginStorage.getTrainerAccessToken()
+                ?: return Result.failure(IllegalStateException("not authorized"))
+        val part = getImagePart(uri)
+        return loginApi.uploadTrainerPhoto(token, part)
+    }
+
+    override suspend fun createTrainerService(name: String, price: Int): Result<Int> {
+        val token =
+            loginStorage.getTrainerAccessToken()
+                ?: return Result.failure(IllegalStateException("not authorized"))
+        return loginApi.createTrainerService(token, TrainerServiceRequestBody(name, price))
+            .map { it.id }
+    }
+
+    override suspend fun deleteTrainerService(id: Int): Result<Unit> {
+        val token =
+            loginStorage.getTrainerAccessToken()
+                ?: return Result.failure(IllegalStateException("not authorized"))
+        return loginApi.deleteTrainerService(token, id)
+    }
+
+    override suspend fun createAchievement(achievement: String): Result<Int> {
+        val token =
+            loginStorage.getTrainerAccessToken()
+                ?: return Result.failure(IllegalStateException("not authorized"))
+        val result = loginApi.createAchievement(token, CreateAchievementRequestBody(achievement))
+            .map { it.id }
+        if (result.isFailure && (result.exceptionOrNull() as? HttpException)?.code() == 400) {
+            checkToken()
+            val newToken = loginStorage.getTrainerAccessToken() ?: return Result.failure(
+                IllegalStateException("not authorized")
+            )
+            return loginApi.createAchievement(newToken, CreateAchievementRequestBody(achievement))
+                .map { it.id }
+        } else {
+            return result
+        }
+    }
+
+    override suspend fun deleteAchievement(id: Int): Result<Unit> {
+        val token =
+            loginStorage.getTrainerAccessToken()
+                ?: return Result.failure(IllegalStateException("not authorized"))
+        val result = loginApi.deleteAchievement(token, id)
+        if (result.isFailure && (result.exceptionOrNull() as? HttpException)?.code() == 400) {
+            checkToken()
+            val newToken = loginStorage.getTrainerAccessToken() ?: return Result.failure(
+                IllegalStateException("not authorized")
+            )
+            return loginApi.deleteAchievement(newToken, id)
+        } else {
+            return result
+        }
+    }
+
+    override suspend fun getSpecializations(): Result<List<Specialization>> =
+        loginApi.getSpecializations()
+
+    override suspend fun getRoles(): Result<List<Role>> = loginApi.getRoles()
+    override suspend fun updateTrainerProfile(
+        trainerMainInfoDTO: TrainerMainInfoDTO,
+        roles: List<Int>,
+        specializations: List<Int>
+    ): Flow<Result<Unit>> = flow {
+        val token = loginStorage.getTrainerAccessToken()
+        token?.let {
+            val dto = trainerMainInfoDTO.toTrainerMainInfoRequestBody()
+
+            loginApi.updateTrainerMainInfo(token, dto)
+            loginApi.updateTrainerRoles(token, roles)
+            loginApi.updateTrainerSpecializations(token, specializations)
+
+            emit(Result.success(Unit))
+        } ?: emit(Result.failure(IllegalStateException("not authorized")))
+    }
+
+    override suspend fun logoutAsClient() {
+        loginStorage.clearClientTokens()
+    }
+
+    private fun getImagePart(imageUri: Uri?): MultipartBody.Part? {
+        var part: MultipartBody.Part? = null
+        imageUri?.let { uri ->
+            val mimeType = context.contentResolver.getType(uri)
+            val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
+            val bytes = inputStream?.readBytes() ?: return null
+            inputStream.close()
+            val requestBody = bytes.toRequestBody(mimeType?.toMediaTypeOrNull())
+            part = MultipartBody.Part.createFormData("photo", "photo.jpeg", requestBody)
+        }
+        return part
+    }
+
 
 }

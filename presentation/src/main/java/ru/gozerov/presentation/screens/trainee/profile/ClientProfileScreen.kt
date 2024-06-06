@@ -1,12 +1,14 @@
 package ru.gozerov.presentation.screens.trainee.profile
 
 import android.annotation.SuppressLint
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -35,6 +37,8 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,7 +57,11 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import ru.gozerov.presentation.R
+import ru.gozerov.presentation.navigation.Screen
+import ru.gozerov.presentation.navigation.trainee.TraineeBottomNavBarItem
 import ru.gozerov.presentation.screens.trainee.profile.edit.EditProfileView
+import ru.gozerov.presentation.screens.trainee.profile.models.ClientProfileEffect
+import ru.gozerov.presentation.screens.trainee.profile.models.ClientProfileIntent
 import ru.gozerov.presentation.shared.utils.isValidAge
 import ru.gozerov.presentation.shared.utils.isValidEmail
 import ru.gozerov.presentation.shared.utils.showError
@@ -65,15 +73,30 @@ import ru.gozerov.presentation.ui.theme.FitLadyaTheme
 @OptIn(ExperimentalMaterialApi::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun ClientProfileScreen(navController: NavController) {
+fun ClientProfileScreen(
+    parentNavController: NavController,
+    navController: NavController,
+    viewModel: ClientProfileViewModel,
+    contentPaddingValues: PaddingValues
+) {
+
+    LaunchedEffect(null) {
+        viewModel.handleIntent(ClientProfileIntent.GetInfo)
+    }
+
     val availableSex =
         listOf(stringResource(id = R.string.sex_man), stringResource(id = R.string.sex_woman))
-    // val effect = viewModel.effect.collectAsState().value
+    val effect = viewModel.effect.collectAsState().value
 
-    val ageState = remember { mutableStateOf("18") }
-    val sexState = remember { mutableStateOf("Мужской") }
+    val firstNameState = remember { mutableStateOf("") }
+    val lastNameState = remember { mutableStateOf("") }
+    val photoState = remember { mutableStateOf<Any?>(null) }
+    val newPhotoState = remember { mutableStateOf<Uri?>(null) }
 
-    val emailState = remember { mutableStateOf("ozeroffgrisha@gmail.com") }
+    val ageState = remember { mutableStateOf("") }
+    val sexState = remember { mutableStateOf("") }
+
+    val emailState = remember { mutableStateOf("") }
     val isEmailError = if (emailState.value.isBlank()) false else !isValidEmail(emailState.value)
 
 
@@ -84,21 +107,53 @@ fun ClientProfileScreen(navController: NavController) {
 
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
+    val errorMessage = stringResource(id = R.string.incorrect_data)
     val incorrectEmailMessage = stringResource(id = R.string.incorrect_email)
     val incorrectAgeMessage = stringResource(id = R.string.incorrect_age)
 
-    /*
-        when (effect) {
-            is LoginTrainerEffect.None -> {}
-            is LoginTrainerEffect.SuccessLogin -> {
-                viewModel.handleIntent(LoginTrainerIntent.Navigate)
-            }
+    when (effect) {
+        is ClientProfileEffect.None -> {}
+        is ClientProfileEffect.LoadedProfile -> {
+            photoState.value = effect.clientInfo.photoUrl
+            firstNameState.value = effect.clientInfo.firstName
+            lastNameState.value = effect.clientInfo.lastName
+            emailState.value = effect.clientInfo.email
+            ageState.value = effect.clientInfo.age.toString()
+            sexState.value = availableSex[effect.clientInfo.sex - 1]
+            viewModel.handleIntent(ClientProfileIntent.Reset)
+        }
 
-            is LoginTrainerEffect.Error -> {
-                snackbarHostState.showError(coroutineScope, effect.message)
-            }
+        is ClientProfileEffect.SuccessfulInfoUpdate -> {
+            viewModel.handleIntent(ClientProfileIntent.Reset)
+            snackbarHostState.showError(
+                coroutineScope,
+                stringResource(R.string.success_info_update)
+            )
+        }
 
-        }*/
+        is ClientProfileEffect.SuccessfulPhotoUpdate -> {
+            viewModel.handleIntent(ClientProfileIntent.Reset)
+            photoState.value = newPhotoState.value
+            snackbarHostState.showError(
+                coroutineScope,
+                stringResource(R.string.success_photo_update)
+            )
+        }
+
+        is ClientProfileEffect.Error -> {
+            viewModel.handleIntent(ClientProfileIntent.Reset)
+            snackbarHostState.showError(coroutineScope, effect.message)
+        }
+
+        ClientProfileEffect.Logout -> {
+            viewModel.handleIntent(ClientProfileIntent.Reset)
+            parentNavController.navigate(Screen.ChoiceLogin.route) {
+                popUpTo(Screen.TraineeTabs.route) {
+                    inclusive = true
+                }
+            }
+        }
+    }
 
     val sheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
 
@@ -106,9 +161,42 @@ fun ClientProfileScreen(navController: NavController) {
         sheetState = sheetState,
         sheetBackgroundColor = Color.Transparent,
         sheetElevation = 0.dp,
+        modifier = Modifier.padding(contentPaddingValues),
         sheetShape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
         sheetContent = {
-            EditProfileView()
+            EditProfileView(
+                firstNameState = firstNameState,
+                lastNameState = lastNameState,
+                photo = photoState.value,
+                onPhotoSelected = { uri ->
+                    uri?.let { notNullUri ->
+                        newPhotoState.value = uri
+                        viewModel.handleIntent(ClientProfileIntent.UpdatePhoto(notNullUri))
+                    }
+                },
+                onSaveClicked = {
+                    if (!isValidEmail(emailState.value)) {
+                        snackbarHostState.showError(coroutineScope, incorrectEmailMessage)
+                    } else if (!isValidAge(ageState.value)) {
+                        snackbarHostState.showError(coroutineScope, incorrectAgeMessage)
+                    } else if (firstNameState.value.isNotBlank() && lastNameState.value.isNotBlank()) {
+                        coroutineScope.launch {
+                            sheetState.hide()
+                        }
+                        viewModel.handleIntent(
+                            ClientProfileIntent.UpdateInfo(
+                                ageState.value.toInt(),
+                                availableSex.indexOf(sexState.value) + 1,
+                                emailState.value,
+                                firstNameState.value,
+                                lastNameState.value
+                            )
+                        )
+                    } else {
+                        snackbarHostState.showError(coroutineScope, errorMessage)
+                    }
+                }
+            )
         }
     ) {
         Scaffold(
@@ -127,7 +215,7 @@ fun ClientProfileScreen(navController: NavController) {
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
-                UserAvatar(size = 128.dp)
+                UserAvatar(size = 128.dp, photoState.value)
 
                 Spacer(modifier = Modifier.height(24.dp))
                 Row(
@@ -135,7 +223,7 @@ fun ClientProfileScreen(navController: NavController) {
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = "Самара Бутсович",
+                        text = "${firstNameState.value} ${lastNameState.value}",
                         fontSize = 24.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = FitLadyaTheme.colors.text
@@ -253,8 +341,18 @@ fun ClientProfileScreen(navController: NavController) {
                             snackbarHostState.showError(coroutineScope, incorrectEmailMessage)
                         } else if (!isValidAge(ageState.value)) {
                             snackbarHostState.showError(coroutineScope, incorrectAgeMessage)
+                        } else if (firstNameState.value.isNotBlank() && lastNameState.value.isNotBlank()) {
+                            viewModel.handleIntent(
+                                ClientProfileIntent.UpdateInfo(
+                                    ageState.value.toInt(),
+                                    availableSex.indexOf(sexState.value) + 1,
+                                    emailState.value,
+                                    firstNameState.value,
+                                    lastNameState.value
+                                )
+                            )
                         } else {
-                            // viewModel.handleIntent()
+                            snackbarHostState.showError(coroutineScope, errorMessage)
                         }
                     }
                 ) {
@@ -283,11 +381,18 @@ fun ClientProfileScreen(navController: NavController) {
                     modifier = Modifier.weight(1f),
                     contentAlignment = Alignment.Center
                 ) {
-                    Row {
+                    Row(
+                        modifier = Modifier.clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) {
+                            viewModel.handleIntent(ClientProfileIntent.Logout)
+                        }
+                    ) {
                         Text(
                             text = stringResource(id = R.string.logout),
                             fontWeight = FontWeight.Medium,
-                            color = FitLadyaTheme.colors.text
+                            color = FitLadyaTheme.colors.text,
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Icon(

@@ -8,18 +8,18 @@ sealed interface ClientProfileIntent {
 
     object GetInfo : ClientProfileIntent
 
-    data class FillProfile(
-        val id: Int,
+    data class UpdateInfo(
         val age: Int,
         val sex: Int,
-        val email: String
-    ) : ClientProfileIntent
-
-    data class UpdateInfo(
-        val id: Int,
+        val email: String,
         val firstName: String,
         val lastName: String,
-        val photoUri: Uri?
     ) : ClientProfileIntent
+
+    data class UpdatePhoto(
+        val photoUri: Uri
+    ) : ClientProfileIntent
+
+    object Logout : ClientProfileIntent
 
 }

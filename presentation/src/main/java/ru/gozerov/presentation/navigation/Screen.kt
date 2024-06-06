@@ -17,8 +17,8 @@ sealed class Screen(
 
     object LoginTrainee : Screen("loginTrainee")
 
-    object ClientProfile : Screen("clientProfile")
-
     object TrainerProfile : Screen("trainerProfile")
+
+    object TraineeTabs : Screen("traineeTabs")
 
 }

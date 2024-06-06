@@ -8,6 +8,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import ru.gozerov.domain.usecases.GetClientInfoUseCase
+import ru.gozerov.domain.usecases.LogoutAsClientUseCase
+import ru.gozerov.domain.usecases.UpdateClientInfoUseCase
+import ru.gozerov.domain.usecases.UpdateClientPhotoUseCase
 import ru.gozerov.presentation.screens.trainee.profile.models.ClientProfileEffect
 import ru.gozerov.presentation.screens.trainee.profile.models.ClientProfileIntent
 import ru.gozerov.presentation.shared.utils.runCatchingNonCancellation
@@ -15,7 +18,10 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ClientProfileViewModel @Inject constructor(
-    private val getClientInfoUseCase: GetClientInfoUseCase
+    private val getClientInfoUseCase: GetClientInfoUseCase,
+    private val updateClientInfoUseCase: UpdateClientInfoUseCase,
+    private val updateClientPhotoUseCase: UpdateClientPhotoUseCase,
+    private val logoutAsClientUseCase: LogoutAsClientUseCase
 ) : ViewModel() {
 
     private val _effect = MutableStateFlow<ClientProfileEffect>(ClientProfileEffect.None)
@@ -46,8 +52,53 @@ class ClientProfileViewModel @Inject constructor(
 
                 }
 
-                is ClientProfileIntent.FillProfile -> {}
-                is ClientProfileIntent.UpdateInfo -> {}
+                is ClientProfileIntent.UpdateInfo -> {
+                    runCatchingNonCancellation {
+                        updateClientInfoUseCase.invoke(
+                            intent.age,
+                            intent.email,
+                            intent.firstName,
+                            intent.lastName,
+                            intent.sex
+                        )
+                    }
+                        .map { result ->
+                            result
+                                .onSuccess {
+                                    _effect.emit(ClientProfileEffect.SuccessfulInfoUpdate)
+                                }
+                                .onFailure { throwable ->
+                                    _effect.emit(ClientProfileEffect.Error(throwable.message.toString()))
+                                }
+                        }
+                }
+
+                is ClientProfileIntent.UpdatePhoto -> {
+                    runCatchingNonCancellation {
+                        updateClientPhotoUseCase.invoke(intent.photoUri)
+                    }
+                        .map { result ->
+                            result
+                                .onSuccess {
+                                    _effect.emit(ClientProfileEffect.SuccessfulPhotoUpdate)
+                                }
+                                .onFailure { throwable ->
+                                    _effect.emit(ClientProfileEffect.Error(throwable.message.toString()))
+                                }
+                        }
+                }
+
+                ClientProfileIntent.Logout -> {
+                    runCatchingNonCancellation {
+                        logoutAsClientUseCase.invoke()
+                    }
+                        .onSuccess {
+                            _effect.emit(ClientProfileEffect.Logout)
+                        }
+                        .onFailure {
+                            _effect.emit(ClientProfileEffect.Error("Unknown error"))
+                        }
+                }
             }
         }
     }

@@ -86,7 +86,11 @@ fun RegisterProfileScreen(
 
         is RegisterEffect.SuccessLoginTrainee -> {
             viewModel.handleIntent(RegisterIntent.Navigate)
-            navController.navigate(Screen.ClientProfile.route)
+            navController.navigate(Screen.TraineeTabs.route) {
+                popUpTo(Screen.RegisterProfile.route) {
+                    inclusive = true
+                }
+            }
         }
 
         is RegisterEffect.Error -> {

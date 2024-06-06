@@ -6,5 +6,6 @@ data class ClientInfo(
     val lastName: String,
     val age: Int,
     val email: String,
-    val photoUrl: String?
+    val photoUrl: String?,
+    val sex: Int
 )

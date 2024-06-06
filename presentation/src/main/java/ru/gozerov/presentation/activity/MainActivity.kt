@@ -45,7 +45,7 @@ class MainActivity : AppCompatActivity() {
                         is MainActivityEffect.AuthResult -> {
                             startDestination.value =
                                 if (effect.navigateToLogin) Screen.ChoiceLogin.route else {
-                                    if (effect.isClient) Screen.ClientProfile.route else Screen.TrainerProfile.route
+                                    if (effect.isClient) Screen.TraineeTabs.route else Screen.TrainerProfile.route
                                 }
                         }
 

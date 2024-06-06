@@ -14,8 +14,9 @@ import ru.gozerov.presentation.screens.login.login_trainer.LoginTrainerViewModel
 import ru.gozerov.presentation.screens.login.register_trainee.RegisterProfileScreen
 import ru.gozerov.presentation.screens.login.register_trainee.RegisterScreen
 import ru.gozerov.presentation.screens.login.register_trainee.RegisterViewModel
-import ru.gozerov.presentation.screens.trainee.profile.ClientProfileScreen
+import ru.gozerov.presentation.screens.trainee.tabs.TraineeTabsScreen
 import ru.gozerov.presentation.screens.trainer.TrainerProfileScreen
+import ru.gozerov.presentation.screens.trainer.TrainerProfileViewModel
 
 @Composable
 fun NavHostContainer(
@@ -57,12 +58,6 @@ fun NavHostContainer(
             }
 
             composable(
-                route = Screen.ClientProfile.route
-            ) {
-                ClientProfileScreen(navController)
-            }
-
-            composable(
                 route = Screen.RegisterProfile.route + "/{email}/{password}"
             ) { backStackEntry ->
                 val email = backStackEntry.arguments?.getString("email")
@@ -81,15 +76,15 @@ fun NavHostContainer(
             composable(
                 route = Screen.TrainerProfile.route
             ) {
-                TrainerProfileScreen(navController)
+                val viewModel = hiltViewModel<TrainerProfileViewModel>()
+                TrainerProfileScreen(navController, viewModel)
             }
-            /* composable(
-                 route = Screen.MainSection.route,
-                 enterTransition = { enterAnimation() },
-                 exitTransition = { exitAnimation() }
-             ) {
-                 MainSection(rootNavController = navController, padding)
-             }*/
+
+            composable(
+                route = Screen.TraineeTabs.route
+            ) {
+                TraineeTabsScreen(rootNavController = navController, padding)
+            }
         }
     )
 

@@ -20,4 +20,6 @@ interface LoginStorage {
     // 2 - trainer
     fun getRole(): Int
 
+    fun clearClientTokens()
+
 }

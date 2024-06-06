@@ -14,4 +14,10 @@ sealed interface ClientProfileEffect {
         val message: String
     ) : ClientProfileEffect
 
+    data object SuccessfulInfoUpdate : ClientProfileEffect
+
+    data object SuccessfulPhotoUpdate : ClientProfileEffect
+
+    data object Logout : ClientProfileEffect
+
 }
