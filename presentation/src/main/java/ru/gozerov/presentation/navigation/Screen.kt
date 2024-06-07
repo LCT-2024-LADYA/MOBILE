@@ -21,4 +21,9 @@ sealed class Screen(
 
     object TraineeTabs : Screen("traineeTabs")
 
+    object MainTraining : Screen("mainTraining")
+
+    object TrainingProcess : Screen("trainingProcess")
+
+
 }

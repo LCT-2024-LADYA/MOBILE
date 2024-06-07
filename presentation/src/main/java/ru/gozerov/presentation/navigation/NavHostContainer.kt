@@ -24,8 +24,6 @@ fun NavHostContainer(
     navController: NavHostController,
     padding: PaddingValues,
 ) {
-    /*val startDestination =
-        if (isLoginNeeded) Screen.ChooseAccount.route else Screen.MainSection.route*/
 
     NavHost(
         navController = navController,

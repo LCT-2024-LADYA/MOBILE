@@ -8,10 +8,14 @@ import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navigation
+import ru.gozerov.domain.models.Training
 import ru.gozerov.presentation.R
+import ru.gozerov.presentation.navigation.Screen
 import ru.gozerov.presentation.screens.trainee.chat.ChatListScreen
 import ru.gozerov.presentation.screens.trainee.diary.DiaryScreen
 import ru.gozerov.presentation.screens.trainee.main_training.MainTrainingScreen
+import ru.gozerov.presentation.screens.trainee.main_training.process.TrainingProcessScreen
 import ru.gozerov.presentation.screens.trainee.profile.ClientProfileScreen
 import ru.gozerov.presentation.screens.trainee.profile.ClientProfileViewModel
 
@@ -43,11 +47,31 @@ fun TraineeBottomNavHostContainer(
         navController = navController,
         startDestination = TraineeBottomNavBarItem.MainFlow.route,
         builder = {
-            composable(
-                route = TraineeBottomNavBarItem.MainFlow.route
-            ) {
-                MainTrainingScreen(navController = navController)
+
+            navigation(Screen.MainTraining.route, TraineeBottomNavBarItem.MainFlow.route) {
+                composable(
+                    route = Screen.MainTraining.route
+                ) {
+                    MainTrainingScreen(
+                        navController = navController,
+                        contentPaddingValues = padding
+                    )
+                }
+                composable(
+                    route = Screen.TrainingProcess.route
+                ) { _ ->
+                    val training =
+                        navController.previousBackStackEntry?.savedStateHandle?.get<Training>("training")
+                    training?.let {
+                        TrainingProcessScreen(
+                            navController = navController,
+                            contentPaddingValues = padding,
+                            training = training
+                        )
+                    }
+                }
             }
+            
             composable(
                 route = TraineeBottomNavBarItem.ChatFlow.route,
             ) {

@@ -78,21 +78,25 @@ class LoginRepositoryImpl @Inject constructor(
             }
     }
 
-    override suspend fun clientMe(): Result<ClientInfo> {
-        val token =
-            loginStorage.getClientAccessToken() ?: throw IllegalStateException("Not Authorized")
-        return loginApi.getClientMe(token).map { response ->
-            response.toClientInfo()
+    override suspend fun clientMe(): Result<ClientInfo> = runRequestSafely(
+        checkToken = { checkToken() },
+        accessTokenAction = { loginStorage.getClientAccessToken() },
+        action = { token ->
+            loginApi.getClientMe(token).map { response ->
+                response.toClientInfo()
+            }
         }
-    }
+    )
 
-    override suspend fun trainerMe(): Result<TrainerInfo> {
-        val token =
-            loginStorage.getTrainerAccessToken() ?: throw IllegalStateException("Not Authorized")
-        return loginApi.getTrainerMe(token).map { response ->
-            response.toTrainerInfo()
+    override suspend fun trainerMe(): Result<TrainerInfo> = runRequestSafely(
+        checkToken = { checkToken() },
+        accessTokenAction = { loginStorage.getTrainerAccessToken() },
+        action = { token ->
+            loginApi.getTrainerMe(token).map { response ->
+                response.toTrainerInfo()
+            }
         }
-    }
+    )
 
     override suspend fun checkToken(): CheckTokenResult {
         val userType = loginStorage.getRole()
@@ -107,7 +111,7 @@ class LoginRepositoryImpl @Inject constructor(
                     return CheckTokenResult(isAuth = true, isClient = true)
                 }
                 .onFailure { throwable ->
-                    if ((throwable as? HttpException)?.code() == 401) {
+                    if ((throwable as? HttpException)?.code() == 400) {
                         val refreshToken = loginStorage.getClientRefreshToken()
                             ?: return CheckTokenResult(isAuth = false, isClient = false)
                         val response = loginApi.refreshClientToken(refreshToken)
@@ -136,7 +140,7 @@ class LoginRepositoryImpl @Inject constructor(
                     return CheckTokenResult(isAuth = true, isClient = false)
                 }
                 .onFailure { throwable ->
-                    if ((throwable as? HttpException)?.code() == 401) {
+                    if ((throwable as? HttpException)?.code() == 400) {
                         val refreshToken = loginStorage.getTrainerRefreshToken()
                             ?: return CheckTokenResult(isAuth = false, isClient = false)
                         val response = loginApi.refreshTrainerToken(refreshToken)
@@ -166,78 +170,67 @@ class LoginRepositoryImpl @Inject constructor(
         firstName: String,
         lastName: String,
         sex: Int
-    ): Result<Unit> {
-        val token =
-            loginStorage.getClientAccessToken()
-                ?: return Result.failure(IllegalStateException("not authorized"))
-        val dto = MainInfoRequestBody(age, email, firstName, lastName, sex)
-        return loginApi.updateClientMainInfo(token, dto)
-    }
+    ): Result<Unit> = runRequestSafely(
+        checkToken = { checkToken() },
+        accessTokenAction = { loginStorage.getClientAccessToken() },
+        action = { token ->
+            val dto = MainInfoRequestBody(age, email, firstName, lastName, sex)
+            loginApi.updateClientMainInfo(token, dto)
+        }
+    )
 
-    override suspend fun updateClientPhoto(uri: Uri): Result<Unit> {
-        val token =
-            loginStorage.getClientAccessToken()
-                ?: return Result.failure(IllegalStateException("not authorized"))
-        val part = getImagePart(uri)
-        return loginApi.uploadClientPhoto(token, part)
-    }
+    override suspend fun updateClientPhoto(uri: Uri): Result<Unit> = runRequestSafely(
+        checkToken = { checkToken() },
+        accessTokenAction = { loginStorage.getClientAccessToken() },
+        action = { token ->
+            val part = getImagePart(uri)
+            loginApi.uploadClientPhoto(token, part)
+        }
+    )
 
-    override suspend fun updateTrainerPhoto(uri: Uri): Result<Unit> {
-        val token =
-            loginStorage.getTrainerAccessToken()
-                ?: return Result.failure(IllegalStateException("not authorized"))
-        val part = getImagePart(uri)
-        return loginApi.uploadTrainerPhoto(token, part)
-    }
+    override suspend fun updateTrainerPhoto(uri: Uri): Result<Unit> = runRequestSafely(
+        checkToken = { checkToken() },
+        accessTokenAction = { loginStorage.getTrainerAccessToken() },
+        action = { token ->
+            val part = getImagePart(uri)
+            loginApi.uploadTrainerPhoto(token, part)
+        }
+    )
 
-    override suspend fun createTrainerService(name: String, price: Int): Result<Int> {
-        val token =
-            loginStorage.getTrainerAccessToken()
-                ?: return Result.failure(IllegalStateException("not authorized"))
-        return loginApi.createTrainerService(token, TrainerServiceRequestBody(name, price))
-            .map { it.id }
-    }
+    override suspend fun createTrainerService(name: String, price: Int): Result<Int> =
+        runRequestSafely(
+            checkToken = { checkToken() },
+            accessTokenAction = { loginStorage.getTrainerAccessToken() },
+            action = { token ->
+                loginApi.createTrainerService(token, TrainerServiceRequestBody(name, price))
+                    .map { it.id }
+            }
+        )
 
-    override suspend fun deleteTrainerService(id: Int): Result<Unit> {
-        val token =
-            loginStorage.getTrainerAccessToken()
-                ?: return Result.failure(IllegalStateException("not authorized"))
-        return loginApi.deleteTrainerService(token, id)
-    }
+    override suspend fun deleteTrainerService(id: Int): Result<Unit> = runRequestSafely(
+        checkToken = { checkToken() },
+        accessTokenAction = { loginStorage.getTrainerAccessToken() },
+        action = { token ->
+            loginApi.deleteTrainerService(token, id)
+        }
+    )
 
-    override suspend fun createAchievement(achievement: String): Result<Int> {
-        val token =
-            loginStorage.getTrainerAccessToken()
-                ?: return Result.failure(IllegalStateException("not authorized"))
-        val result = loginApi.createAchievement(token, CreateAchievementRequestBody(achievement))
-            .map { it.id }
-        if (result.isFailure && (result.exceptionOrNull() as? HttpException)?.code() == 400) {
-            checkToken()
-            val newToken = loginStorage.getTrainerAccessToken() ?: return Result.failure(
-                IllegalStateException("not authorized")
-            )
-            return loginApi.createAchievement(newToken, CreateAchievementRequestBody(achievement))
+    override suspend fun createAchievement(achievement: String): Result<Int> = runRequestSafely(
+        checkToken = { checkToken() },
+        accessTokenAction = { loginStorage.getTrainerAccessToken() },
+        action = { token ->
+            loginApi.createAchievement(token, CreateAchievementRequestBody(achievement))
                 .map { it.id }
-        } else {
-            return result
         }
-    }
+    )
 
-    override suspend fun deleteAchievement(id: Int): Result<Unit> {
-        val token =
-            loginStorage.getTrainerAccessToken()
-                ?: return Result.failure(IllegalStateException("not authorized"))
-        val result = loginApi.deleteAchievement(token, id)
-        if (result.isFailure && (result.exceptionOrNull() as? HttpException)?.code() == 400) {
-            checkToken()
-            val newToken = loginStorage.getTrainerAccessToken() ?: return Result.failure(
-                IllegalStateException("not authorized")
-            )
-            return loginApi.deleteAchievement(newToken, id)
-        } else {
-            return result
+    override suspend fun deleteAchievement(id: Int): Result<Unit> = runRequestSafely(
+        checkToken = { checkToken() },
+        accessTokenAction = { loginStorage.getTrainerAccessToken() },
+        action = { token ->
+            loginApi.deleteAchievement(token, id)
         }
-    }
+    )
 
     override suspend fun getSpecializations(): Result<List<Specialization>> =
         loginApi.getSpecializations()
@@ -247,18 +240,17 @@ class LoginRepositoryImpl @Inject constructor(
         trainerMainInfoDTO: TrainerMainInfoDTO,
         roles: List<Int>,
         specializations: List<Int>
-    ): Flow<Result<Unit>> = flow {
-        val token = loginStorage.getTrainerAccessToken()
-        token?.let {
+    ): Flow<Result<Unit>> = runFlowRequestSafely(
+        checkToken = { checkToken() },
+        accessTokenAction = { loginStorage.getTrainerAccessToken() },
+        action = { token ->
             val dto = trainerMainInfoDTO.toTrainerMainInfoRequestBody()
 
             loginApi.updateTrainerMainInfo(token, dto)
             loginApi.updateTrainerRoles(token, roles)
             loginApi.updateTrainerSpecializations(token, specializations)
-
-            emit(Result.success(Unit))
-        } ?: emit(Result.failure(IllegalStateException("not authorized")))
-    }
+        }
+    )
 
     override suspend fun logoutAsClient() {
         loginStorage.clearClientTokens()

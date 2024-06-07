@@ -66,5 +66,9 @@
     <string name="no_trainings">Тренировок нет</string>
     <string name="chill_out">Оторвись от отжиманий и сделай 20 компов</string>
     <string name="new_training">Новая тренировка</string>
+    <string name="password_must_be">пароль должен содержать от 8 до 64 символов, заглавные и строчные буквы, цифры и специальные символы</string>
+    <string name="set_is">Подход %1$d/%2$d</string>
+    <string name="next_set">Следующий подход</string>
+    <string name="skip">Пропустить</string>
     <integer name="com_vk_sdk_AppId">51938469</integer>
 </resources>

@@ -1,7 +1,5 @@
 package ru.gozerov.presentation.shared.views
 
-import android.icu.text.DateTimePatternGenerator.DisplayWidth
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -90,7 +88,7 @@ fun ExerciseCard(exercise: Exercise, position: Int) {
                     .padding(horizontal = 16.dp)
                     .clip(RoundedCornerShape(8.dp))
                     .size(140.dp, 96.dp),
-                model = exercise.photoUrl,
+                model = exercise.photos.firstOrNull(),
                 contentScale = ContentScale.Crop,
                 contentDescription = null
             )
@@ -194,7 +192,7 @@ fun ExerciseCard(exercise: Exercise, position: Int) {
 fun ChipItem(text: String) {
     Text(
         modifier = Modifier
-            .border(1.dp, FitLadyaTheme.colors.primaryBorder, RoundedCornerShape(4.dp))
+            .border(1.dp, FitLadyaTheme.colors.primaryBorder, RoundedCornerShape(8.dp))
             .padding(horizontal = 8.dp, vertical = 4.dp),
         text = text,
         color = FitLadyaTheme.colors.text,

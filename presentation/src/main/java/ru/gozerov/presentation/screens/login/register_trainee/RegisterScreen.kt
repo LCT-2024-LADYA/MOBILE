@@ -38,7 +38,6 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.os.bundleOf
 import androidx.navigation.NavController
 import ru.gozerov.presentation.R
 import ru.gozerov.presentation.navigation.Screen
@@ -64,6 +63,9 @@ fun RegisterScreen(
     val isRepeatError =
         if (repeatPasswordState.value.isBlank()) false else passwordState.value != repeatPasswordState.value
 
+    val isPasswordError =
+        if (passwordState.value.isBlank()) false else !isValidPassword(passwordState.value)
+
     val visibilityImage = if (isPasswordVisible)
         painterResource(id = R.drawable.ic_visibility_24)
     else
@@ -86,7 +88,7 @@ fun RegisterScreen(
             verticalArrangement = Arrangement.Center
         ) {
 
-            Spacer(modifier = Modifier.height(120.dp))
+            Spacer(modifier = Modifier.height(64.dp))
             LadyaLogo()
 
             Spacer(modifier = Modifier.height(64.dp))
@@ -109,10 +111,16 @@ fun RegisterScreen(
 
             CustomTextField(
                 textState = passwordState,
+                isError = isPasswordError,
                 labelText = stringResource(id = R.string.input_password),
                 modifier = Modifier.width(260.dp),
                 visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                supportingText = {
+                    if (isPasswordError) {
+                        Text(text = stringResource(id = R.string.password_must_be))
+                    }
+                },
                 trailingIcon = {
                     IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
                         Icon(painter = visibilityImage, null, tint = FitLadyaTheme.colors.text)
