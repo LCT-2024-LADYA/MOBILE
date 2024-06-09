@@ -12,8 +12,8 @@ import androidx.navigation.navigation
 import ru.gozerov.domain.models.Training
 import ru.gozerov.presentation.R
 import ru.gozerov.presentation.navigation.Screen
-import ru.gozerov.presentation.screens.trainee.chat.ChatListScreen
-import ru.gozerov.presentation.screens.trainee.diary.DiaryScreen
+import ru.gozerov.presentation.screens.trainee.chat.list.ChatListScreen
+import ru.gozerov.presentation.screens.trainee.diary.diary.DiaryScreen
 import ru.gozerov.presentation.screens.trainee.main_training.MainTrainingScreen
 import ru.gozerov.presentation.screens.trainee.main_training.process.TrainingProcessScreen
 import ru.gozerov.presentation.screens.trainee.profile.ClientProfileScreen

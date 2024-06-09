@@ -10,6 +10,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -81,7 +82,7 @@ fun ColumnScope.Footer(weightNeeded: Boolean = true) {
                 interactionSource = remember {
                     MutableInteractionSource()
                 }
-            ) { clickCount.intValue += 1 } else Modifier)
+            ) { clickCount.intValue += 1 }.padding(bottom = 16.dp) else Modifier)
     }
 }
 

@@ -83,4 +83,8 @@ dependencies {
     //SystemUiController
     implementation(libs.ui.controller)
 
+    //Calendar
+    implementation(libs.calendar)
+    implementation(libs.calendar.kotlin.datetime)
+
 }
