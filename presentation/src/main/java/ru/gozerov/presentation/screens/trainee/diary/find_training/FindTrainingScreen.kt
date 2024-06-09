@@ -15,33 +15,28 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import ru.gozerov.domain.models.TrainingCard
 import ru.gozerov.presentation.R
 import ru.gozerov.presentation.shared.views.NavUpToolbar
+import ru.gozerov.presentation.shared.views.SearchTextField
 import ru.gozerov.presentation.shared.views.SimpleTrainingCard
 import ru.gozerov.presentation.ui.theme.FitLadyaTheme
 
@@ -61,7 +56,6 @@ fun FindTrainingScreen(navController: NavController) {
         TrainingCard(
             it,
             "Тренировка груди от Евгения Геркулесова",
-            "13:37",
             8,
             "Легендарный тренер Евгений Геркулесов подготовил тренеровку груди состоящую из: бегит, пресс качат, анжуманя, турник, штанга, пресидат, гантелии паднимат, блок палка железо тягат"
         )
@@ -72,7 +66,11 @@ fun FindTrainingScreen(navController: NavController) {
             Column {
                 NavUpToolbar(navController = navController)
 
-                SearchTextField(textState = searchState)
+                SearchTextField(
+                    textState = searchState,
+                    placeholderText = stringResource(R.string.fing_training),
+                    containerColor = FitLadyaTheme.colors.primaryBackground
+                )
 
                 Spacer(modifier = Modifier.height(8.dp))
                 TabRow(selectedTabIndex = selectedTab.intValue, indicator = { tabPositions ->
@@ -138,45 +136,4 @@ fun FindTrainingScreen(navController: NavController) {
             }
         }
     }
-}
-
-@Composable
-fun SearchTextField(
-    textState: MutableState<String>
-) {
-    OutlinedTextField(
-        modifier = Modifier
-            .padding(horizontal = 16.dp)
-            .height(56.dp)
-            .clip(CircleShape)
-            .fillMaxWidth(),
-        value = textState.value,
-        onValueChange = {
-            textState.value = it
-        },
-        singleLine = true,
-        placeholder = {
-            Text(
-                text = stringResource(R.string.fing_training),
-                color = FitLadyaTheme.colors.text.copy(alpha = 0.64f),
-                fontSize = 16.sp,
-
-                )
-        },
-        colors = TextFieldDefaults.colors(
-            focusedLabelColor = FitLadyaTheme.colors.text,
-            unfocusedLabelColor = FitLadyaTheme.colors.text,
-            focusedContainerColor = FitLadyaTheme.colors.primaryBackground,
-            unfocusedContainerColor = FitLadyaTheme.colors.primaryBackground,
-            focusedIndicatorColor = FitLadyaTheme.colors.primaryBackground,
-            unfocusedIndicatorColor = FitLadyaTheme.colors.primaryBackground,
-            cursorColor = FitLadyaTheme.colors.fieldPrimaryText,
-            focusedTextColor = FitLadyaTheme.colors.text,
-            unfocusedTextColor = FitLadyaTheme.colors.text,
-            disabledContainerColor = FitLadyaTheme.colors.primaryBackground,
-            disabledLabelColor = FitLadyaTheme.colors.text,
-            disabledIndicatorColor = FitLadyaTheme.colors.primaryBackground,
-            disabledTextColor = FitLadyaTheme.colors.text,
-        )
-    )
 }

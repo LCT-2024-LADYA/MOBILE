@@ -37,7 +37,6 @@ fun MainTraining(
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
-
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item {

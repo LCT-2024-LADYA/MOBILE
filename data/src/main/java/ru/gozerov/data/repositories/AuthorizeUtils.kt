@@ -46,3 +46,25 @@ suspend fun <E> runFlowRequestSafely(
     } ?: emit(Result.failure(IllegalStateException("not authorized")))
 
 }
+
+suspend fun <E> runRequestSafelyNotResult(
+    checkToken: suspend () -> Unit,
+    accessTokenAction: () -> String?,
+    action: suspend (token: String) -> E
+): E {
+
+    val token = accessTokenAction()
+        ?: throw IllegalStateException("not authorized")
+    try {
+        val result = action(token)
+        return result
+    } catch (e: Exception) {
+        if (e is HttpException && e.code() == 400) {
+            checkToken()
+            val newToken = accessTokenAction() ?: throw IllegalStateException("not authorized")
+            return action(newToken)
+        } else {
+            throw IllegalStateException("not authorized")
+        }
+    }
+}

@@ -9,8 +9,9 @@ import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
-import ru.gozerov.data.api.LoginApi
 import ru.gozerov.data.api.ApiConstants.BASE_URL
+import ru.gozerov.data.api.LoginApi
+import ru.gozerov.data.api.TrainingApi
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -21,15 +22,22 @@ interface RetrofitModule {
 
         @Singleton
         @Provides
-        fun provideLoginApi(okHttpClient: OkHttpClient): LoginApi = Retrofit
+        fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit = Retrofit
             .Builder()
             .baseUrl(BASE_URL)
             .client(okHttpClient)
             .addConverterFactory(MoshiConverterFactory.create(Moshi.Builder().build()))
             .addCallAdapterFactory(ResultCallAdapterFactory.create())
             .build()
-            .create(LoginApi::class.java)
 
+        @Singleton
+        @Provides
+        fun provideLoginApi(retrofit: Retrofit): LoginApi = retrofit.create(LoginApi::class.java)
+
+        @Singleton
+        @Provides
+        fun provideTrainingApi(retrofit: Retrofit): TrainingApi =
+            retrofit.create(TrainingApi::class.java)
     }
 
 

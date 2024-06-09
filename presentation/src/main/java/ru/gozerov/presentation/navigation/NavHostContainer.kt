@@ -6,6 +6,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import ru.gozerov.presentation.screens.login.login_choice.ChoiceLoginScreen
 import ru.gozerov.presentation.screens.login.login_trainee.LoginTraineeScreen
 import ru.gozerov.presentation.screens.login.login_trainee.LoginTraineeViewModel
 import ru.gozerov.presentation.screens.login.login_trainer.LoginTrainerScreen
@@ -13,8 +14,6 @@ import ru.gozerov.presentation.screens.login.login_trainer.LoginTrainerViewModel
 import ru.gozerov.presentation.screens.login.register_trainee.RegisterProfileScreen
 import ru.gozerov.presentation.screens.login.register_trainee.RegisterScreen
 import ru.gozerov.presentation.screens.login.register_trainee.RegisterViewModel
-import ru.gozerov.presentation.screens.trainee.diary.diary.DiaryScreen
-import ru.gozerov.presentation.screens.trainee.diary.find_training.FindTrainingScreen
 import ru.gozerov.presentation.screens.trainee.tabs.TraineeTabsScreen
 import ru.gozerov.presentation.screens.trainer.TrainerProfileScreen
 import ru.gozerov.presentation.screens.trainer.TrainerProfileViewModel
@@ -33,9 +32,7 @@ fun NavHostContainer(
             composable(
                 route = Screen.ChoiceLogin.route
             ) {
-
-                FindTrainingScreen(navController = navController)
-                //ChoiceLoginScreen(navController = navController)
+                ChoiceLoginScreen(navController = navController)
             }
 
             composable(

@@ -8,8 +8,5 @@ data class Exercise(
     val id: Int,
     val photos: List<String>,
     val name: String,
-    val tags: List<String>,
-    val weight: Double,
-    val setsCount: Int,
-    val repsCount: Int
+    val tags: List<String>
 ) : Parcelable

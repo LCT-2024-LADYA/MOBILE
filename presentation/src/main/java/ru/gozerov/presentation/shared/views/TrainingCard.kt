@@ -1,6 +1,7 @@
 package ru.gozerov.presentation.shared.views
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -42,33 +43,35 @@ fun SimpleTrainingCard(trainingCard: TrainingCard) {
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    modifier = Modifier.padding(start = 24.dp, top = 16.dp),
-                    text = trainingCard.date,
-                    color = FitLadyaTheme.colors.accent,
-                    fontWeight = FontWeight.Medium
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    text = trainingCard.name,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 16.sp,
+                    color = FitLadyaTheme.colors.text
                 )
-                Box(modifier = Modifier.weight(1f))
-                Text(
-                    modifier = Modifier.padding(end = 8.dp, top = 16.dp),
-                    text = trainingCard.exerciseCount.toString(),
-                    color = FitLadyaTheme.colors.text,
-                    fontWeight = FontWeight.Medium
-                )
-                Icon(
-                    modifier = Modifier.padding(end = 24.dp, top = 16.dp),
-                    painter = painterResource(id = R.drawable.ic_training),
-                    contentDescription = null,
-                    tint = FitLadyaTheme.colors.fieldPrimaryText
-                )
+                Row(
+                    modifier = Modifier
+                        .padding(4.dp)
+                        .border(
+                            width = 1.dp,
+                            color = FitLadyaTheme.colors.secondaryBorder
+                        )
+                ) {
+                    Text(
+                        modifier = Modifier.padding(end = 8.dp, top = 16.dp),
+                        text = trainingCard.exercises.toString(),
+                        color = FitLadyaTheme.colors.text,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Icon(
+                        modifier = Modifier.padding(end = 24.dp, top = 16.dp),
+                        painter = painterResource(id = R.drawable.ic_training),
+                        contentDescription = null,
+                        tint = FitLadyaTheme.colors.fieldPrimaryText
+                    )
+                }
             }
             Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                text = trainingCard.name,
-                fontWeight = FontWeight.Medium,
-                fontSize = 16.sp,
-                color = FitLadyaTheme.colors.text
-            )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 modifier = Modifier.padding(horizontal = 16.dp),

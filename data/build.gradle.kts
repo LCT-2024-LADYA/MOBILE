@@ -52,4 +52,7 @@ dependencies {
     implementation(libs.okhttp3)
     implementation(libs.okhttp3.logging.interceptor)
 
+    //Paging
+    implementation(libs.paging.runtime)
+
 }

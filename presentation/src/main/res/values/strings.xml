@@ -80,5 +80,10 @@
     <string name="all_trainings">Все тренировки</string>
     <string name="fing_training">Найти тренировку</string>
     <string name="training_name">Название тренировки</string>
+    <string name="date">Дата</string>
+    <string name="time">Время</string>
+    <string name="add_exercise">Добавить упражнение</string>
+    <string name="save">Сохранить</string>
+    <string name="find_exercise">Найти упражнение</string>
     <integer name="com_vk_sdk_AppId">51938469</integer>
 </resources>
