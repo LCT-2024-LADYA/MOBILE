@@ -9,47 +9,81 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
 import ru.gozerov.domain.models.Exercise
 import ru.gozerov.presentation.R
+import ru.gozerov.presentation.screens.trainee.diary.find_exercise.models.FindExerciseEffect
+import ru.gozerov.presentation.screens.trainee.diary.find_exercise.models.FindExerciseIntent
+import ru.gozerov.presentation.shared.utils.showError
 import ru.gozerov.presentation.shared.views.ExerciseCard
-import ru.gozerov.presentation.shared.views.NavUpToolbar
+import ru.gozerov.presentation.shared.views.NavUpWithTitleToolbar
 import ru.gozerov.presentation.shared.views.SearchTextField
 import ru.gozerov.presentation.ui.theme.FitLadyaTheme
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun FindExerciseScreen(navController: NavController) {
+fun FindExerciseScreen(
+    navController: NavController,
+    viewModel: FindExerciseViewModel
+) {
+    val effect = viewModel.effect.collectAsState().value
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
 
     val searchText = remember { mutableStateOf("") }
+    val exercises = remember { mutableStateOf<LazyPagingItems<Exercise>?>(null) }
 
-    val exercises = (0..4).map {
-        Exercise(
-            id = it,
-            photos = listOf(
-                "https://s3-alpha-sig.figma.com/img/2e34/f886/b5a779583ee84526f6e6056df16f49d5?Expires=1718582400&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4&Signature=lBg3M3B5rrJNdzQk0878VyrEb-6tE6mXhAEaJgpBq96WTa31sbg7zVXdt3nNLe51u4BtY-lPHaJQCic~ALImf-kkNRY8q9rbQW3yQ23otrKjT0xTu26tmCyVambij6EhJrPzR~4VV4JyGS5~1B78PeQmzF~LupXVUBke-sNdHCD64Szshbqxc3bKe17PKaON4e6pgukBjj9gfZ0Xe8gF8AbmPsAHdlzwk742makolE2GiMoDdM9-gu8~SLqqTAlmJAqEBDVtfUYtf4NDU0OyLe~b0xCGrJlP6rbJzXtarAAzLDG4hCSDP3hnc8pOV7HRTouc3UUwSRUdvha4Trx61w__",
-                "https://s3-alpha-sig.figma.com/img/2e34/f886/b5a779583ee84526f6e6056df16f49d5?Expires=1718582400&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4&Signature=lBg3M3B5rrJNdzQk0878VyrEb-6tE6mXhAEaJgpBq96WTa31sbg7zVXdt3nNLe51u4BtY-lPHaJQCic~ALImf-kkNRY8q9rbQW3yQ23otrKjT0xTu26tmCyVambij6EhJrPzR~4VV4JyGS5~1B78PeQmzF~LupXVUBke-sNdHCD64Szshbqxc3bKe17PKaON4e6pgukBjj9gfZ0Xe8gF8AbmPsAHdlzwk742makolE2GiMoDdM9-gu8~SLqqTAlmJAqEBDVtfUYtf4NDU0OyLe~b0xCGrJlP6rbJzXtarAAzLDG4hCSDP3hnc8pOV7HRTouc3UUwSRUdvha4Trx61w__"
-            ),
-            name = "Жим штанги лежа",
-            tags = listOf("Начинающий", "Базовое", "Грудь", "Штанга"),
-            weight = 50.0,
-            setsCount = 4,
-            repsCount = 8
-        )
+    when (effect) {
+        is FindExerciseEffect.None -> {}
+        is FindExerciseEffect.Error -> {
+            snackbarHostState.showError(coroutineScope, effect.message)
+            viewModel.handleIntent(FindExerciseIntent.Reset)
+        }
+
+        is FindExerciseEffect.LoadedExercises -> {
+            exercises.value = effect.exercises.collectAsLazyPagingItems()
+        }
+
+        is FindExerciseEffect.Exit -> {
+            navController.popBackStack()
+            viewModel.handleIntent(FindExerciseIntent.Reset)
+        }
     }
 
-    Scaffold(containerColor = FitLadyaTheme.colors.primaryBackground) { _ ->
+    LaunchedEffect(null) {
+        viewModel.handleIntent(FindExerciseIntent.SearchExercise(""))
+    }
+
+    Scaffold(
+        containerColor = FitLadyaTheme.colors.primaryBackground,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+    ) { _ ->
         Column {
-            NavUpToolbar(navController = navController)
+            NavUpWithTitleToolbar(
+                navController = navController,
+                title = stringResource(id = R.string.choose_exercise)
+            )
             Spacer(modifier = Modifier.height(8.dp))
             SearchTextField(
                 textState = searchText,
+                onValueChange = { value ->
+                    searchText.value = value
+                    viewModel.handleIntent(FindExerciseIntent.SearchExercise(value))
+                },
                 placeholderText = stringResource(id = R.string.find_exercise),
                 containerColor = FitLadyaTheme.colors.secondary
             )
@@ -59,12 +93,17 @@ fun FindExerciseScreen(navController: NavController) {
                     .padding(top = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(exercises.size) { index ->
-                    ExerciseCard(exercise = exercises[index], position = index)
+                exercises.value?.let { pagingItems ->
+                    items(pagingItems.itemCount) { index ->
+                        val item = pagingItems[index]
+                        item?.let { exercise ->
+                            ExerciseCard(exercise = exercise) {
+                                viewModel.handleIntent(FindExerciseIntent.AddExercise(exercise))
+                            }
+                        }
+                    }
                 }
             }
         }
-
-
     }
 }

@@ -16,24 +16,31 @@ interface TrainingRepository {
 
     suspend fun getSimpleUserTraining(query: String? = null): Flow<PagingData<TrainingCard>>
 
-    suspend fun createCustomTrainer(createTrainingModel: CreateTrainingModel): Result<CreatedTraining>
+    suspend fun createCustomTraining(createTrainingModel: CreateTrainingModel): Result<CreatedTraining>
 
-    suspend fun getTrainingAtDate(ids: List<Int>): Result<List<CustomTraining>>
+    suspend fun getTrainingAtDate(ids: List<Int>): List<CustomTraining>
 
     suspend fun getExercises(query: String? = null): Flow<PagingData<Exercise>>
 
-    suspend fun getSchedule(month: Int): Result<List<ScheduledTraining>>
+    suspend fun getSchedule(month: Int): List<ScheduledTraining>
 
     suspend fun scheduleTraining(
         id: Int,
         date: String,
         timeStart: String,
         timeEnd: String
-    ): Result<Int>
+    ): Int
 
     suspend fun getTrainingById(id: Int): Result<Training>
 
     suspend fun completeExercise(trainingId: Int, exerciseId: Int)
 
+    suspend fun setLastTrainingId(id: Int)
+
+    suspend fun getLastTrainingId(): Int?
+
+    suspend fun addExerciseToCreating(exercise: Exercise)
+
+    suspend fun getAddedExercises(): List<Exercise>
 
 }

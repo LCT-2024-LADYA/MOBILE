@@ -1,4 +1,4 @@
-package ru.gozerov.presentation.screens.trainee.main_training.views
+package ru.gozerov.presentation.screens.trainee.main_training.main_training.views
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -23,7 +23,9 @@ import ru.gozerov.presentation.R
 import ru.gozerov.presentation.ui.theme.FitLadyaTheme
 
 @Composable
-fun NoTraining() {
+fun NoTraining(
+    onCreateClick: () -> Unit
+) {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -48,7 +50,7 @@ fun NoTraining() {
                 .width(264.dp)
                 .height(48.dp),
             colors = ButtonDefaults.buttonColors(containerColor = FitLadyaTheme.colors.primary),
-            onClick = { }
+            onClick = onCreateClick
         ) {
             Text(
                 text = stringResource(id = R.string.new_training),

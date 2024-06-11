@@ -7,6 +7,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,23 +25,37 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import io.github.boguszpawlowski.composecalendar.SelectableCalendar
 import io.github.boguszpawlowski.composecalendar.header.MonthState
 import io.github.boguszpawlowski.composecalendar.rememberSelectableCalendarState
 import io.github.boguszpawlowski.composecalendar.selection.SelectionMode
-import ru.gozerov.domain.models.TrainingCard
+import ru.gozerov.domain.models.CustomTraining
+import ru.gozerov.domain.models.ScheduledTraining
+import ru.gozerov.domain.utils.compareDates
+import ru.gozerov.domain.utils.convertLocalDateDateToUTC
 import ru.gozerov.presentation.R
+import ru.gozerov.presentation.navigation.Screen
+import ru.gozerov.presentation.screens.trainee.diary.diary.models.DiaryEffect
+import ru.gozerov.presentation.screens.trainee.diary.diary.models.DiaryIntent
+import ru.gozerov.presentation.shared.utils.showError
 import ru.gozerov.presentation.shared.views.SimpleTrainingCard
 import ru.gozerov.presentation.ui.theme.FitLadyaTheme
 import java.time.DayOfWeek
@@ -49,7 +64,16 @@ import java.time.YearMonth
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun DiaryScreen() {
+fun DiaryScreen(
+    viewModel: DiaryViewModel,
+    contentPaddingValues: PaddingValues,
+    navController: NavController
+) {
+    val effect = viewModel.effect.collectAsState().value
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+
     val currentDate = LocalDate.now()
     val monthState = remember {
         mutableStateOf(
@@ -68,20 +92,38 @@ fun DiaryScreen() {
     val todayDateBackgroundState = remember { mutableStateOf(todayDateBackground) }
     val selectedDay = remember { mutableIntStateOf(-1) }
 
-    val dayTrainings = remember { mutableStateOf<List<TrainingCard>>(emptyList()) }
+    val dayTrainings = remember { mutableStateOf<List<CustomTraining>>(emptyList()) }
+    val scheduledTrainings = remember { mutableStateOf<List<ScheduledTraining>>(emptyList()) }
 
-    dayTrainings.value = (0..5).map {
-        TrainingCard(
-            it,
-            "Тренировка груди от Евгения Геркулесова",
-            8,
-            "Легендарный тренер Евгений Геркулесов подготовил тренеровку груди состоящую из: бегит, пресс качат, анжуманя, турник, штанга, пресидат, гантелии паднимат, блок палка железо тягат"
-        )
+    val showEmpty = remember { mutableStateOf(false) }
+
+    LaunchedEffect(null) {
+        viewModel.handleIntent(DiaryIntent.GetSchedule(monthState.value.currentMonth.monthValue))
+    }
+
+    when (effect) {
+        is DiaryEffect.None -> {}
+        is DiaryEffect.LoadedTrainings -> {
+            dayTrainings.value = effect.trainings
+
+        }
+
+        is DiaryEffect.LoadedSchedule -> {
+            scheduledTrainings.value = effect.trainings
+        }
+
+        is DiaryEffect.Error -> {
+            snackbarHostState.showError(coroutineScope, effect.message)
+            viewModel.handleIntent(DiaryIntent.Reset)
+        }
     }
 
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .padding(contentPaddingValues)
+            .fillMaxSize(),
         containerColor = FitLadyaTheme.colors.primaryBackground,
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) {
 
         Column(modifier = Modifier.fillMaxSize()) {
@@ -214,6 +256,20 @@ fun DiaryScreen() {
                                     if (dayState.date.month == monthState.value.currentMonth.month) {
                                         selectedDay.intValue = dayState.date.dayOfMonth
                                         todayDateBackgroundState.value = primaryColor
+                                        val date = convertLocalDateDateToUTC(dayState.date)
+                                        val ids = scheduledTrainings.value.firstOrNull { training ->
+                                            training.date == date
+                                        }
+                                        if (ids != null)
+                                            ids.let { t ->
+                                                showEmpty.value = false
+                                                viewModel.handleIntent(
+                                                    DiaryIntent.GetTrainingsAtDate(t.ids)
+                                                )
+                                            }
+                                        else {
+                                            showEmpty.value = true
+                                        }
                                     }
                                 },
                                 fontSize = 16.sp,
@@ -221,15 +277,27 @@ fun DiaryScreen() {
                                 color = FitLadyaTheme.colors.text.copy(alpha = if (dayState.date.month == monthState.value.currentMonth.month) 1f else 0.32f),
                                 textAlign = TextAlign.Center
                             )
-                            Row(modifier = Modifier.padding(top = 4.dp)) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(4.dp)
-                                        .background(
-                                            color = FitLadyaTheme.colors.accent,
-                                            shape = CircleShape
+                            if (scheduledTrainings.value.filter { training ->
+                                    compareDates(
+                                        training.date,
+                                        convertLocalDateDateToUTC(dayState.date)
+                                    ) == 0
+                                }.size == 1) {
+                                val circleCount = scheduledTrainings.value.first { training ->
+                                    training.date == convertLocalDateDateToUTC(dayState.date)
+                                }.ids.size
+                                (0 until circleCount).forEach { _ ->
+                                    Row(modifier = Modifier.padding(top = 4.dp)) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(4.dp)
+                                                .background(
+                                                    color = FitLadyaTheme.colors.accent,
+                                                    shape = CircleShape
+                                                )
                                         )
-                                )
+                                    }
+                                }
                             }
                         }
                     } else {
@@ -250,6 +318,20 @@ fun DiaryScreen() {
                                     interactionSource = remember { MutableInteractionSource() }) {
                                     if (dayState.date.month == monthState.value.currentMonth.month) {
                                         selectedDay.intValue = dayState.date.dayOfMonth
+                                        val date = convertLocalDateDateToUTC(dayState.date)
+                                        val ids = scheduledTrainings.value.firstOrNull { training ->
+                                            training.date == date
+                                        }
+                                        if (ids != null)
+                                            ids.let { t ->
+                                                showEmpty.value = false
+                                                viewModel.handleIntent(
+                                                    DiaryIntent.GetTrainingsAtDate(t.ids)
+                                                )
+                                            }
+                                        else {
+                                            showEmpty.value = true
+                                        }
                                     }
                                 },
                                 fontSize = 16.sp,
@@ -257,45 +339,83 @@ fun DiaryScreen() {
                                 color = FitLadyaTheme.colors.text.copy(alpha = if (dayState.date.month == monthState.value.currentMonth.month) 1f else 0.32f),
                                 textAlign = TextAlign.Center
                             )
-                            Row(modifier = Modifier.padding(top = 4.dp)) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(4.dp)
-                                        .background(
-                                            color = FitLadyaTheme.colors.accent,
-                                            shape = CircleShape
+                            if (scheduledTrainings.value.any { training ->
+                                    training.date == convertLocalDateDateToUTC(dayState.date)
+                                })
+                                Row(modifier = Modifier.padding(top = 4.dp)) {
+                                    val circleCount = scheduledTrainings.value.first { training ->
+                                        training.date == convertLocalDateDateToUTC(dayState.date)
+                                    }.ids.size
+                                    (0 until circleCount).forEach { _ ->
+                                        Box(
+                                            modifier = Modifier
+                                                .size(4.dp)
+                                                .background(
+                                                    color = FitLadyaTheme.colors.accent,
+                                                    shape = CircleShape
+                                                )
                                         )
-                                )
-                            }
+                                    }
+                                }
                         }
                     }
                 }
             )
             Spacer(modifier = Modifier.height(24.dp))
             Box(modifier = Modifier.weight(1f)) {
-                LazyColumn(
-                    modifier = Modifier.align(Alignment.TopCenter),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(dayTrainings.value.size) { index ->
-                        SimpleTrainingCard(trainingCard = dayTrainings.value[index])
+                if (!showEmpty.value) {
+                    LazyColumn(
+                        modifier = Modifier.align(Alignment.TopCenter),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(dayTrainings.value.size) { index ->
+                            SimpleTrainingCard(trainingCard = dayTrainings.value[index])
+                        }
                     }
-                }
-                Button(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(horizontal = 32.dp, vertical = 16.dp)
-                        .fillMaxWidth()
-                        .height(40.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = FitLadyaTheme.colors.primary),
-                    onClick = {
-
+                    Button(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(horizontal = 32.dp, vertical = 16.dp)
+                            .fillMaxWidth()
+                            .height(40.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = FitLadyaTheme.colors.primary),
+                        onClick = {
+                            navController.navigate(Screen.FindTraining.route)
+                        }
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.change_training),
+                            color = FitLadyaTheme.colors.secondaryText
+                        )
                     }
-                ) {
-                    Text(
-                        text = stringResource(id = R.string.change_training),
-                        color = FitLadyaTheme.colors.secondaryText
-                    )
+                } else {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.no_trainings_today),
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 16.sp,
+                            color = FitLadyaTheme.colors.text
+                        )
+                        Button(
+                            modifier = Modifier
+                                .padding(horizontal = 32.dp, vertical = 24.dp)
+                                .fillMaxWidth()
+                                .height(40.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = FitLadyaTheme.colors.primary),
+                            onClick = {
+                                navController.navigate(Screen.FindTraining.route)
+                            }
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.add_training),
+                                color = FitLadyaTheme.colors.secondaryText
+                            )
+                        }
+                    }
                 }
             }
         }

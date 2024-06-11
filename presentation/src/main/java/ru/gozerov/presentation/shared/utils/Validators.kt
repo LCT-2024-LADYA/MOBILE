@@ -21,3 +21,12 @@ fun isValidAge(value: String): Boolean {
         false
     }
 }
+
+fun isValidInt(value: String): Boolean {
+    return try {
+        value.toInt()
+        return true
+    } catch (e: NumberFormatException) {
+        false
+    }
+}

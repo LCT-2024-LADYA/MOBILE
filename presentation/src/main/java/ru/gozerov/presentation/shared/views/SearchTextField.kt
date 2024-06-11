@@ -15,6 +15,10 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.input.OffsetMapping
+import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.gozerov.presentation.ui.theme.FitLadyaTheme
@@ -23,6 +27,7 @@ import ru.gozerov.presentation.ui.theme.FitLadyaTheme
 @Composable
 fun SearchTextField(
     textState: MutableState<String>,
+    onValueChange: ((String) -> Unit)? = null,
     placeholderText: String,
     containerColor: Color
 ) {
@@ -33,7 +38,7 @@ fun SearchTextField(
             .clip(CircleShape)
             .fillMaxWidth(),
         value = textState.value,
-        onValueChange = {
+        onValueChange = onValueChange ?: {
             textState.value = it
         },
         singleLine = true,
@@ -67,4 +72,29 @@ fun SearchTextField(
             disabledTextColor = FitLadyaTheme.colors.text,
         )
     )
+}
+
+class TimeVisualTransformation : VisualTransformation {
+    override fun filter(text: AnnotatedString): TransformedText {
+        val trimmed = if (text.text.length >= 5) text.text.substring(0, 5) else text.text
+        val annotatedString = AnnotatedString.Builder().apply {
+            append(trimmed.padEnd(5, '_'))
+        }.toAnnotatedString()
+
+        val offsetMapping = object : OffsetMapping {
+            override fun originalToTransformed(offset: Int): Int {
+                if (offset <= 2) return offset
+                if (offset <= 4) return offset + 1
+                return 5
+            }
+
+            override fun transformedToOriginal(offset: Int): Int {
+                if (offset <= 2) return offset
+                if (offset <= 4) return offset - 1
+                return 4
+            }
+        }
+
+        return TransformedText(annotatedString, offsetMapping)
+    }
 }

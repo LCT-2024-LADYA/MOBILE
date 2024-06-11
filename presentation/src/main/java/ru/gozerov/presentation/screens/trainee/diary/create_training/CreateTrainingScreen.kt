@@ -4,109 +4,195 @@ import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import ru.gozerov.domain.models.CreateExerciseModel
+import ru.gozerov.domain.models.CreateTrainingModel
 import ru.gozerov.domain.models.Exercise
 import ru.gozerov.presentation.R
+import ru.gozerov.presentation.navigation.Screen
+import ru.gozerov.presentation.screens.trainee.diary.create_training.models.CreateTrainingEffect
+import ru.gozerov.presentation.screens.trainee.diary.create_training.models.CreateTrainingIntent
+import ru.gozerov.presentation.shared.utils.isValidInt
+import ru.gozerov.presentation.shared.utils.showError
 import ru.gozerov.presentation.shared.views.CustomTextField
-import ru.gozerov.presentation.shared.views.ExerciseCard
-import ru.gozerov.presentation.shared.views.NavUpToolbar
+import ru.gozerov.presentation.shared.views.DateDDMMYYYYTextField
+import ru.gozerov.presentation.shared.views.DateHHMMTextField
+import ru.gozerov.presentation.shared.views.EditableCustomExerciseCard
+import ru.gozerov.presentation.shared.views.NavUpWithTitleToolbar
 import ru.gozerov.presentation.ui.theme.FitLadyaTheme
 
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun CreateTrainingScreen(navController: NavController) {
+fun CreateTrainingScreen(
+    parentNavController: NavController,
+    navController: NavController,
+    contentPaddingValues: PaddingValues,
+    viewModel: CreateTrainingViewModel
+) {
+    val effect = viewModel.effect.collectAsState().value
 
-    val trainingName = remember { mutableStateOf("") }
-    val date = remember { mutableStateOf("") }
-    val time = remember { mutableStateOf("") }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
 
-    val exercises = (0..4).map {
-        Exercise(
-            id = it,
-            photos = listOf(
-                "https://s3-alpha-sig.figma.com/img/2e34/f886/b5a779583ee84526f6e6056df16f49d5?Expires=1718582400&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4&Signature=lBg3M3B5rrJNdzQk0878VyrEb-6tE6mXhAEaJgpBq96WTa31sbg7zVXdt3nNLe51u4BtY-lPHaJQCic~ALImf-kkNRY8q9rbQW3yQ23otrKjT0xTu26tmCyVambij6EhJrPzR~4VV4JyGS5~1B78PeQmzF~LupXVUBke-sNdHCD64Szshbqxc3bKe17PKaON4e6pgukBjj9gfZ0Xe8gF8AbmPsAHdlzwk742makolE2GiMoDdM9-gu8~SLqqTAlmJAqEBDVtfUYtf4NDU0OyLe~b0xCGrJlP6rbJzXtarAAzLDG4hCSDP3hnc8pOV7HRTouc3UUwSRUdvha4Trx61w__",
-                "https://s3-alpha-sig.figma.com/img/2e34/f886/b5a779583ee84526f6e6056df16f49d5?Expires=1718582400&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4&Signature=lBg3M3B5rrJNdzQk0878VyrEb-6tE6mXhAEaJgpBq96WTa31sbg7zVXdt3nNLe51u4BtY-lPHaJQCic~ALImf-kkNRY8q9rbQW3yQ23otrKjT0xTu26tmCyVambij6EhJrPzR~4VV4JyGS5~1B78PeQmzF~LupXVUBke-sNdHCD64Szshbqxc3bKe17PKaON4e6pgukBjj9gfZ0Xe8gF8AbmPsAHdlzwk742makolE2GiMoDdM9-gu8~SLqqTAlmJAqEBDVtfUYtf4NDU0OyLe~b0xCGrJlP6rbJzXtarAAzLDG4hCSDP3hnc8pOV7HRTouc3UUwSRUdvha4Trx61w__"
-            ),
-            name = "Жим штанги лежа",
-            tags = listOf("Начинающий", "Базовое", "Грудь", "Штанга"),
-            weight = 50.0,
-            setsCount = 4,
-            repsCount = 8
-        )
+    val trainingName = rememberSaveable { mutableStateOf("") }
+    val date = rememberSaveable(stateSaver = TextFieldValue.Saver) {
+        mutableStateOf(TextFieldValue(""))
+    }
+    val timeStart =
+        rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
+    val timeEnd =
+        rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
+    val description = rememberSaveable { mutableStateOf("") }
+
+    val exercises = remember { mutableStateOf(listOf<Exercise>()) }
+    val weightsState = mutableListOf<MutableState<String>>()
+    val setsState = mutableListOf<MutableState<String>>()
+    val repsState = mutableListOf<MutableState<String>>()
+
+    val errorMessage = stringResource(id = R.string.incorrect_data)
+
+    SideEffect {
+        viewModel.handleIntent(CreateTrainingIntent.GetAddedExercises)
     }
 
-    Scaffold(containerColor = FitLadyaTheme.colors.primaryBackground) { _ ->
+    when (effect) {
+        is CreateTrainingEffect.None -> {}
+        is CreateTrainingEffect.AddedExercises -> {
+            exercises.value = effect.exercises
+        }
+
+        is CreateTrainingEffect.Error -> {
+            snackbarHostState.showError(coroutineScope, effect.message)
+            viewModel.handleIntent(CreateTrainingIntent.Reset)
+        }
+
+        is CreateTrainingEffect.CreatedTraining -> {
+            navController.popBackStack()
+            viewModel.handleIntent(CreateTrainingIntent.Reset)
+        }
+    }
+
+    Scaffold(
+        modifier = Modifier.padding(contentPaddingValues),
+        containerColor = FitLadyaTheme.colors.primaryBackground,
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { _ ->
         Box(modifier = Modifier.fillMaxSize()) {
-            Column {
-                NavUpToolbar(navController = navController)
-                Spacer(modifier = Modifier.height(8.dp))
-                CustomTextField(
-                    textState = trainingName,
-                    labelText = stringResource(id = R.string.training_name),
-                    modifier = Modifier
-                        .padding(horizontal = 32.dp)
-                        .fillMaxWidth()
+            Column(modifier = Modifier.fillMaxSize()) {
+                NavUpWithTitleToolbar(
+                    navController = navController,
+                    title = stringResource(id = R.string.create_training)
                 )
-                Spacer(modifier = Modifier.height(12.dp))
-                CustomTextField(
-                    textState = date,
-                    labelText = stringResource(id = R.string.date),
-                    modifier = Modifier
-                        .padding(horizontal = 32.dp)
-                        .fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                CustomTextField(
-                    textState = time,
-                    labelText = stringResource(id = R.string.time),
-                    modifier = Modifier
-                        .padding(horizontal = 32.dp)
-                        .fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Button(
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .fillMaxWidth()
-                        .height(40.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = FitLadyaTheme.colors.primary),
-                    onClick = {
-
-                    }
-                ) {
-                    Text(
-                        text = stringResource(id = R.string.add_exercise),
-                        color = FitLadyaTheme.colors.secondaryText
-                    )
-                }
-
                 LazyColumn(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp),
+                        .fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(exercises.size) { index ->
-                        ExerciseCard(exercise = exercises[index], position = index)
+                    item {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        CustomTextField(
+                            textState = trainingName,
+                            labelText = stringResource(id = R.string.training_name),
+                            modifier = Modifier
+                                .padding(horizontal = 32.dp)
+                                .fillMaxWidth()
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        DateDDMMYYYYTextField(
+                            textState = date,
+                            labelText = stringResource(id = R.string.date),
+                            modifier = Modifier
+                                .padding(horizontal = 32.dp)
+                                .fillMaxWidth()
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        DateHHMMTextField(
+                            textState = timeStart,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            labelText = stringResource(id = R.string.time_start),
+                            modifier = Modifier
+                                .padding(horizontal = 32.dp)
+                                .fillMaxWidth()
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        DateHHMMTextField(
+                            textState = timeEnd,
+                            labelText = stringResource(id = R.string.time_end),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier
+                                .padding(horizontal = 32.dp)
+                                .fillMaxWidth()
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        CustomTextField(
+                            textState = description,
+                            labelText = stringResource(id = R.string.training_description),
+                            modifier = Modifier
+                                .padding(horizontal = 32.dp)
+                                .fillMaxWidth()
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Button(
+                            modifier = Modifier
+                                .padding(horizontal = 16.dp)
+                                .fillMaxWidth()
+                                .height(40.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = FitLadyaTheme.colors.primary),
+                            onClick = {
+                                parentNavController.navigate(Screen.FindExercise.route)
+                            }
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.add_exercise),
+                                color = FitLadyaTheme.colors.secondaryText
+                            )
+                        }
+                    }
+                    items(exercises.value.size) { index ->
+                        val weight = rememberSaveable { mutableStateOf("") }
+                        val sets = rememberSaveable { mutableStateOf("") }
+                        val reps = rememberSaveable { mutableStateOf("") }
+
+                        weightsState.add(weight)
+                        setsState.add(sets)
+                        repsState.add(reps)
+
+                        EditableCustomExerciseCard(
+                            exercise = exercises.value[index],
+                            position = index,
+                            weightState = weight,
+                            setsState = sets,
+                            repsState = reps
+                        )
                     }
                     item {
                         Spacer(modifier = Modifier.height(56.dp))
@@ -121,7 +207,47 @@ fun CreateTrainingScreen(navController: NavController) {
                     .height(40.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = FitLadyaTheme.colors.primary),
                 onClick = {
+                    var isEmpty = false
+                    weightsState.forEach { state ->
+                        if (!isValidInt(state.value))
+                            isEmpty = true
+                    }
+                    setsState.forEach { state ->
+                        if (!isValidInt(state.value))
+                            isEmpty = true
+                    }
+                    repsState.forEach { state ->
+                        if (!isValidInt(state.value))
+                            isEmpty = true
+                    }
+                    if (isEmpty) {
+                        snackbarHostState.showError(coroutineScope, errorMessage)
+                    } else if (description.value.isNotBlank() && trainingName.value.isNotBlank() &&
+                        timeStart.value.text.length == 5 && timeEnd.value.text.length == 5
+                        && date.value.text.length == 10
+                    ) {
+                        val createExercisesModels = weightsState.mapIndexed { ind, state ->
+                            CreateExerciseModel(
+                                exercises.value[ind].id,
+                                setsState[ind].value.toInt(),
+                                repsState[ind].value.toInt(),
+                                false,
+                                state.value.toInt()
+                            )
+                        }
 
+                        viewModel.handleIntent(
+                            CreateTrainingIntent.CreateTraining(
+                                CreateTrainingModel(
+                                    description.value,
+                                    createExercisesModels,
+                                    trainingName.value
+                                ), date.value.text, timeStart.value.text, timeEnd.value.text
+                            )
+                        )
+                    } else {
+                        snackbarHostState.showError(coroutineScope, errorMessage)
+                    }
                 }
             ) {
                 Text(
@@ -130,5 +256,6 @@ fun CreateTrainingScreen(navController: NavController) {
                 )
             }
         }
+
     }
 }

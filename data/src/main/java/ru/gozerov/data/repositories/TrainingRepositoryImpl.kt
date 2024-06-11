@@ -20,6 +20,7 @@ import ru.gozerov.data.api.paging.ExercisePagingSource
 import ru.gozerov.data.api.paging.TrainingPagingSource
 import ru.gozerov.data.api.paging.UserTrainingPagingSource
 import ru.gozerov.data.cache.LoginStorage
+import ru.gozerov.data.cache.TrainingStorage
 import ru.gozerov.domain.models.CreateTrainingModel
 import ru.gozerov.domain.models.CreatedTraining
 import ru.gozerov.domain.models.CustomTraining
@@ -37,8 +38,11 @@ class TrainingRepositoryImpl @Inject constructor(
     private val userTrainingPagingSourceFactory: UserTrainingPagingSource.Factory,
     private val exercisePagingSourceFactory: ExercisePagingSource.Factory,
     private val loginRepository: LoginRepository,
-    private val loginStorage: LoginStorage
+    private val loginStorage: LoginStorage,
+    private val trainingStorage: TrainingStorage
 ) : TrainingRepository {
+
+    private val exercises = mutableListOf<Exercise>()
 
     override suspend fun getSimpleTrainings(query: String?): Flow<PagingData<TrainingCard>> =
         withContext(Dispatchers.IO) {
@@ -58,7 +62,7 @@ class TrainingRepositoryImpl @Inject constructor(
             return@withContext pager.flow
         }
 
-    override suspend fun createCustomTrainer(createTrainingModel: CreateTrainingModel): Result<CreatedTraining> =
+    override suspend fun createCustomTraining(createTrainingModel: CreateTrainingModel): Result<CreatedTraining> =
         runRequestSafely(
             checkToken = { loginRepository.checkToken() },
             accessTokenAction = { loginStorage.getClientAccessToken() },
@@ -68,9 +72,9 @@ class TrainingRepositoryImpl @Inject constructor(
             }
         )
 
-    override suspend fun getTrainingAtDate(ids: List<Int>): Result<List<CustomTraining>> =
-        trainingApi.getScheduledTraining(ids.toTypedArray()).map { result ->
-            result.map { training -> training.toCustomTraining() }
+    override suspend fun getTrainingAtDate(ids: List<Int>): List<CustomTraining> =
+        trainingApi.getScheduledTraining(ids.toTypedArray()).map { training ->
+            training.toCustomTraining()
         }
 
 
@@ -85,13 +89,13 @@ class TrainingRepositoryImpl @Inject constructor(
             }
         }
 
-    override suspend fun getSchedule(month: Int): Result<List<ScheduledTraining>> =
-        runRequestSafely(
+    override suspend fun getSchedule(month: Int): List<ScheduledTraining> =
+        runRequestSafelyNotResult(
             checkToken = { loginRepository.checkToken() },
             accessTokenAction = { loginStorage.getClientAccessToken() },
             action = { token ->
                 trainingApi.getSchedule(token, month).map { response ->
-                    response.map { training -> training.toScheduledTraining() }
+                    response.toScheduledTraining()
                 }
             }
         )
@@ -101,14 +105,16 @@ class TrainingRepositoryImpl @Inject constructor(
         date: String,
         timeStart: String,
         timeEnd: String
-    ): Result<Int> = runRequestSafely(
+    ): Int = runRequestSafelyNotResult(
         checkToken = { loginRepository.checkToken() },
         accessTokenAction = { loginStorage.getClientAccessToken() },
         action = { token ->
-            trainingApi.scheduleTraining(
+            val trainingId = trainingApi.scheduleTraining(
                 token,
                 ScheduleTrainingRequestBody(date, id, timeStart, timeEnd)
-            ).map { response -> response.id }
+            ).id
+            exercises.clear()
+            return@runRequestSafelyNotResult trainingId
         }
     )
 
@@ -135,5 +141,20 @@ class TrainingRepositoryImpl @Inject constructor(
                 )
             }
         )
+
+    override suspend fun setLastTrainingId(id: Int) {
+        trainingStorage.saveLastTrainingId(id)
+    }
+
+    override suspend fun getLastTrainingId(): Int? {
+        val id = trainingStorage.getLastTrainingId()
+        return if (id == -1) null else id
+    }
+
+    override suspend fun addExerciseToCreating(exercise: Exercise) {
+        exercises.add(exercise)
+    }
+
+    override suspend fun getAddedExercises(): List<Exercise> = exercises.toList()
 
 }

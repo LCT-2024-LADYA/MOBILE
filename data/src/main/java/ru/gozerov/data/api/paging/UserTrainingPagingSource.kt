@@ -20,6 +20,7 @@ class UserTrainingPagingSource @AssistedInject constructor(
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, TrainingCard> {
         val page = params.key ?: 0
+        val cursor = if (page != 0) (page * 50) + 1 else 0
         return try {
             val response = runRequestSafelyNotResult(
                 checkToken = { loginRepository.checkToken() },
@@ -29,15 +30,15 @@ class UserTrainingPagingSource @AssistedInject constructor(
                         trainingApi.getUserTrainings(
                             token,
                             query,
-                            page
+                            cursor
                         )
-                    } ?: trainingApi.getUserTrainings(token, page)
+                    } ?: trainingApi.getUserTrainings(token, cursor)
                 }
             )
             LoadResult.Page(
                 data = response.objects,
-                prevKey = if (page == 0) null else page - 50,
-                nextKey = if (response.objects.isEmpty()) null else response.cursor
+                prevKey = if (page == 0) null else page - 1,
+                nextKey = if (response.objects.isEmpty() || response.cursor == 0) null else page + 1
             )
 
         } catch (e: Exception) {

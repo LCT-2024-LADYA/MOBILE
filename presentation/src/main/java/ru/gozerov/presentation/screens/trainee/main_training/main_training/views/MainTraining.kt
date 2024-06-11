@@ -1,4 +1,4 @@
-package ru.gozerov.presentation.screens.trainee.main_training.views
+package ru.gozerov.presentation.screens.trainee.main_training.main_training.views
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -25,14 +25,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import ru.gozerov.domain.models.Training
+import ru.gozerov.domain.models.CustomTraining
+import ru.gozerov.domain.utils.parseDateToDDMMYYYY
+import ru.gozerov.domain.utils.parseDateToHoursAndMinutes
 import ru.gozerov.presentation.R
-import ru.gozerov.presentation.shared.views.ExerciseCard
+import ru.gozerov.presentation.shared.views.CustomExerciseCard
 import ru.gozerov.presentation.ui.theme.FitLadyaTheme
 
 @Composable
 fun MainTraining(
-    training: Training,
+    training: CustomTraining,
     onStartClicked: () -> Unit
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
@@ -71,7 +73,7 @@ fun MainTraining(
                     )
                 ) {
                     Text(
-                        text = training.date,
+                        text = parseDateToDDMMYYYY(training.date),
                         modifier = Modifier
                             .border(
                                 1.dp,
@@ -84,7 +86,12 @@ fun MainTraining(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = training.time,
+                        text = "${
+                            parseDateToHoursAndMinutes(
+                                training.date,
+                                training.timeStart
+                            )
+                        } - ${parseDateToHoursAndMinutes(training.date, training.timeEnd)}",
                         modifier = Modifier
                             .border(
                                 1.dp,
@@ -107,7 +114,7 @@ fun MainTraining(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = training.exerciseCount.toString(),
+                            text = training.exercises.size.toString(),
                             fontWeight = FontWeight.Medium,
                             color = FitLadyaTheme.colors.text
                         )
@@ -135,8 +142,8 @@ fun MainTraining(
                 Spacer(modifier = Modifier.height(12.dp))
 
             }
-            items(training.exerciseCount) { index ->
-                ExerciseCard(exercise = training.exercises[index], position = index)
+            items(training.exercises.size) { index ->
+                CustomExerciseCard(exercise = training.exercises[index], position = index)
             }
             item {
                 Spacer(modifier = Modifier.height(72.dp))

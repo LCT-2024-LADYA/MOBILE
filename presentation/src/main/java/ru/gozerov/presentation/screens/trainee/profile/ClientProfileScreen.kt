@@ -214,10 +214,10 @@ fun ClientProfileScreen(
                     navController.popBackStack()
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 UserAvatar(size = 128.dp, photoState.value)
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(12.dp))
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
@@ -244,7 +244,7 @@ fun ClientProfileScreen(
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 CustomTextField(
                     isError = !isValidAge(ageState.value),
@@ -362,7 +362,7 @@ fun ClientProfileScreen(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 Row {
                     ProfileActionCard(

@@ -85,5 +85,15 @@
     <string name="add_exercise">Добавить упражнение</string>
     <string name="save">Сохранить</string>
     <string name="find_exercise">Найти упражнение</string>
+    <string name="training_end">Тренировка закончена</string>
+    <string name="at_main">На главную</string>
+    <string name="chill_out_2">Переставай тренироваться, начинай ныть</string>
+    <string name="create_training">Создать тренировку</string>
+    <string name="time_start">Время начала</string>
+    <string name="time_end">Время окончания</string>
+    <string name="training_description">Описание тренировки</string>
+    <string name="choose_exercise">Выберите упражнение</string>
+    <string name="no_trainings_today">В этот день тренировок нет</string>
+    <string name="add_training">Добавить тренировку</string>
     <integer name="com_vk_sdk_AppId">51938469</integer>
 </resources>

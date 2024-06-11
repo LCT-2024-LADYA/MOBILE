@@ -35,6 +35,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -54,9 +55,15 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import ru.gozerov.domain.models.Exercise
-import ru.gozerov.domain.models.Training
+import ru.gozerov.domain.models.CustomExercise
+import ru.gozerov.domain.models.CustomTraining
+import ru.gozerov.domain.utils.parseDateToDDMMYYYY
+import ru.gozerov.domain.utils.parseDateToHoursAndMinutes
 import ru.gozerov.presentation.R
+import ru.gozerov.presentation.navigation.Screen
+import ru.gozerov.presentation.screens.trainee.main_training.process.models.TrainingProcessEffect
+import ru.gozerov.presentation.screens.trainee.main_training.process.models.TrainingProcessIntent
+import ru.gozerov.presentation.shared.utils.showError
 import ru.gozerov.presentation.shared.views.ChipItem
 import ru.gozerov.presentation.ui.theme.FitLadyaTheme
 
@@ -66,20 +73,39 @@ import ru.gozerov.presentation.ui.theme.FitLadyaTheme
 fun TrainingProcessScreen(
     navController: NavController,
     contentPaddingValues: PaddingValues,
-    training: Training
+    training: CustomTraining,
+    viewModel: TrainingProcessViewModel
 ) {
+    val effect = viewModel.effect.collectAsState().value
+
     val coroutineScope = rememberCoroutineScope()
 
     val currentPosition = remember { mutableIntStateOf(0) }
     val currentSet = remember { mutableIntStateOf(1) }
 
     val snackbarHostState = remember { SnackbarHostState() }
-    val pagerState = rememberPagerState(pageCount = { training.exerciseCount} )
+    val pagerState = rememberPagerState(pageCount = { training.exercises.size })
 
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.currentPage }.collect { page ->
             currentSet.intValue = 1
             currentPosition.intValue = page
+        }
+    }
+
+    if (training.exercises[pagerState.currentPage].isDone) {
+        LaunchedEffect(null) {
+            coroutineScope.launch {
+                pagerState.animateScrollToPage(pagerState.currentPage + 1)
+            }
+        }
+    }
+
+    when (effect) {
+        is TrainingProcessEffect.None -> {}
+        is TrainingProcessEffect.Error -> {
+            snackbarHostState.showError(coroutineScope, effect.message)
+            viewModel.handleIntent(TrainingProcessIntent.Reset)
         }
     }
 
@@ -92,21 +118,21 @@ fun TrainingProcessScreen(
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             Text(
                 modifier = Modifier.padding(horizontal = 32.dp),
                 text = training.name,
                 fontSize = 16.sp,
                 color = FitLadyaTheme.colors.text
             )
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             Row(
                 modifier = Modifier.padding(
                     horizontal = 32.dp
                 )
             ) {
                 Text(
-                    text = training.date,
+                    text = parseDateToDDMMYYYY(training.date),
                     modifier = Modifier
                         .border(
                             1.dp,
@@ -119,7 +145,12 @@ fun TrainingProcessScreen(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = training.time,
+                    text = "${
+                        parseDateToHoursAndMinutes(
+                            training.date,
+                            training.timeStart
+                        )
+                    } - ${parseDateToHoursAndMinutes(training.date, training.timeEnd)}",
                     modifier = Modifier
                         .border(
                             1.dp,
@@ -142,7 +173,7 @@ fun TrainingProcessScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = training.exerciseCount.toString(),
+                        text = training.exercises.size.toString(),
                         fontWeight = FontWeight.Medium,
                         color = FitLadyaTheme.colors.text
                     )
@@ -154,7 +185,7 @@ fun TrainingProcessScreen(
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             HorizontalPager(state = pagerState) { page ->
                 val imagePagerState =
                     rememberPagerState(pageCount = { training.exercises[page].photos.size })
@@ -164,18 +195,38 @@ fun TrainingProcessScreen(
                     set = currentSet.intValue,
                     position = page,
                     onNextSet = {
-                        if (currentSet.intValue < training.exercises[page].setsCount)
+                        if (currentSet.intValue < training.exercises[page].sets)
                             currentSet.intValue += 1
                         else {
                             coroutineScope.launch {
-                                pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                                viewModel.handleIntent(
+                                    TrainingProcessIntent.CompleteExercise(
+                                        training.id,
+                                        training.exercises[page].id
+                                    )
+                                )
+                                if (page == training.exercises.size - 1) {
+                                    viewModel.handleIntent(
+                                        TrainingProcessIntent.EndTraining(
+                                            training.id
+                                        )
+                                    )
+                                    navController.navigate(Screen.EndTraining.route)
+                                } else {
+                                    pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                                }
                             }
                         }
                     },
                     coroutineScope = coroutineScope,
                     onSkip = {
                         coroutineScope.launch {
-                            pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                            if (page == training.exercises.size - 1) {
+                                viewModel.handleIntent(TrainingProcessIntent.EndTraining(training.id))
+                                navController.navigate(Screen.EndTraining.route)
+                            } else {
+                                pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                            }
                         }
                     }
                 )
@@ -211,7 +262,7 @@ fun TrainingProcessScreen(
 @Composable
 fun ProcessExerciseCard(
     imagePagerState: PagerState,
-    exercise: Exercise,
+    exercise: CustomExercise,
     set: Int,
     position: Int,
     onNextSet: () -> Unit,
@@ -278,7 +329,7 @@ fun ProcessExerciseCard(
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
         Column(
             modifier = Modifier
@@ -319,10 +370,10 @@ fun ProcessExerciseCard(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = stringResource(id = R.string.set_is, set, exercise.setsCount),
+                text = stringResource(id = R.string.set_is, set, exercise.sets),
                 color = FitLadyaTheme.colors.fieldPrimaryText,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium
@@ -371,7 +422,7 @@ fun ProcessExerciseCard(
             Row {
 
                 Text(
-                    text = exercise.setsCount.toString(),
+                    text = exercise.sets.toString(),
                     color = FitLadyaTheme.colors.fieldPrimaryText,
                     fontWeight = FontWeight.Medium,
                     modifier = Modifier
@@ -396,7 +447,7 @@ fun ProcessExerciseCard(
                 )
 
                 Text(
-                    text = exercise.repsCount.toString(),
+                    text = exercise.reps.toString(),
                     color = FitLadyaTheme.colors.fieldPrimaryText,
                     fontWeight = FontWeight.Medium,
                     modifier = Modifier

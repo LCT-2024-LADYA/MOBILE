@@ -14,6 +14,8 @@ import ru.gozerov.presentation.screens.login.login_trainer.LoginTrainerViewModel
 import ru.gozerov.presentation.screens.login.register_trainee.RegisterProfileScreen
 import ru.gozerov.presentation.screens.login.register_trainee.RegisterScreen
 import ru.gozerov.presentation.screens.login.register_trainee.RegisterViewModel
+import ru.gozerov.presentation.screens.trainee.diary.find_exercise.FindExerciseScreen
+import ru.gozerov.presentation.screens.trainee.diary.find_exercise.FindExerciseViewModel
 import ru.gozerov.presentation.screens.trainee.tabs.TraineeTabsScreen
 import ru.gozerov.presentation.screens.trainer.TrainerProfileScreen
 import ru.gozerov.presentation.screens.trainer.TrainerProfileViewModel
@@ -82,6 +84,16 @@ fun NavHostContainer(
                 route = Screen.TraineeTabs.route
             ) {
                 TraineeTabsScreen(rootNavController = navController, padding)
+            }
+
+            composable(
+                route = Screen.FindExercise.route
+            ) {
+                val viewModel = hiltViewModel<FindExerciseViewModel>()
+                FindExerciseScreen(
+                    navController = navController,
+                    viewModel = viewModel
+                )
             }
         }
     )

@@ -76,7 +76,9 @@ fun CustomExerciseDTO.toCustomExercise() = CustomExercise(
     id,
     name,
     listOf(difficulty, type, muscle, equipment),
-    photos,
+    photos.map { url ->
+        BASE_URL_FOR_PHOTO + url
+    },
     reps,
     sets,
     weight,
@@ -84,7 +86,14 @@ fun CustomExerciseDTO.toCustomExercise() = CustomExercise(
 )
 
 fun ExerciseDTO.toExercise() =
-    Exercise(id, photos, name, listOf(difficulty, type, muscle, equipment))
+    Exercise(
+        id,
+        photos.map { url ->
+            BASE_URL_FOR_PHOTO + url
+        },
+        name,
+        listOf(difficulty, type, muscle, equipment)
+    )
 
 
 fun GetScheduleResponse.toScheduledTraining() = ScheduledTraining(date, user_training_ids)

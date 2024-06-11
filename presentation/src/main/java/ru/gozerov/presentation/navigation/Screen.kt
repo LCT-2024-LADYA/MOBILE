@@ -25,5 +25,12 @@ sealed class Screen(
 
     object TrainingProcess : Screen("trainingProcess")
 
+    object EndTraining : Screen("endTraining")
+
+    object CreateTraining : Screen("createTraining")
+
+    object FindExercise : Screen("findExercise")
+
+    object FindTraining : Screen("findTraining")
 
 }

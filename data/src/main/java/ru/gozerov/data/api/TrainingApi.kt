@@ -39,7 +39,7 @@ interface TrainingApi {
     ): Result<CreateTrainingResponse>
 
     @GET("api/training/date")
-    suspend fun getScheduledTraining(@Query("user_training_ids") ids: Array<Int>): Result<List<ScheduledTrainingDTO>>
+    suspend fun getScheduledTraining(@Query("user_training_ids") ids: Array<Int>): List<ScheduledTrainingDTO>
 
     @GET("api/training/exercise")
     suspend fun getExercises(
@@ -56,13 +56,13 @@ interface TrainingApi {
     suspend fun getSchedule(
         @Header("access_token") token: String,
         @Query("month") month: Int
-    ): Result<List<GetScheduleResponse>>
+    ): List<GetScheduleResponse>
 
-    @GET("api/training/schedule")
+    @POST("api/training/schedule")
     suspend fun scheduleTraining(
         @Header("access_token") token: String,
         @Body scheduleTrainingRequestBody: ScheduleTrainingRequestBody
-    ): Result<IdResponse>
+    ): IdResponse
 
     @GET("api/training/user")
     suspend fun getUserTrainings(

@@ -1,5 +1,9 @@
 package ru.gozerov.domain.models
 
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
+
+@Parcelize
 data class CustomTraining(
     val id: Int,
     val date: String,
@@ -8,4 +12,4 @@ data class CustomTraining(
     val timeStart: String,
     val timeEnd: String,
     val exercises: List<CustomExercise>
-)
+): Parcelable

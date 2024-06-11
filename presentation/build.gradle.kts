@@ -87,4 +87,8 @@ dependencies {
     implementation(libs.calendar)
     implementation(libs.calendar.kotlin.datetime)
 
+    //Paging
+    implementation(libs.paging.runtime)
+    implementation(libs.paging.compose)
+
 }

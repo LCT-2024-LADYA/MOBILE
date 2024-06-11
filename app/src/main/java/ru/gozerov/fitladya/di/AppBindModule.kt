@@ -6,6 +6,8 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import ru.gozerov.data.cache.LoginStorage
 import ru.gozerov.data.cache.LoginStorageImpl
+import ru.gozerov.data.cache.TrainingStorage
+import ru.gozerov.data.cache.TrainingStorageImpl
 import ru.gozerov.data.repositories.LoginRepositoryImpl
 import ru.gozerov.data.repositories.TrainingRepositoryImpl
 import ru.gozerov.domain.repositories.LoginRepository
@@ -27,5 +29,10 @@ interface AppBindModule {
     @Binds
     @Singleton
     fun bindTrainingRepoImplToTrainingRepo(trainingRepositoryImpl: TrainingRepositoryImpl): TrainingRepository
+
+    @Binds
+    @Singleton
+    fun bindTrainingStorageImplToTrainingRepo(trainingStorageImpl: TrainingStorageImpl): TrainingStorage
+
 
 }

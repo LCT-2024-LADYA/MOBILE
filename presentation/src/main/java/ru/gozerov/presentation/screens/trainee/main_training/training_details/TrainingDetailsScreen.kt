@@ -63,9 +63,6 @@ fun TrainingDetailsScreen(navController: NavController) {
                     ),
                     name = "Жим штанги лежа",
                     tags = listOf("Начинающий", "Базовое", "Грудь", "Штанга"),
-                    weight = 50.0,
-                    setsCount = 4,
-                    repsCount = 8
                 )
             }
         )
@@ -195,7 +192,7 @@ fun TrainingDetailsScreen(navController: NavController) {
 
                 }
                 items(currentExercises.value.size) { index ->
-                    ExerciseCard(exercise = currentExercises.value[index], position = index)
+                   // ExerciseCard(exercise = currentExercises.value[index], position = index)
                 }
                 item {
                     Spacer(modifier = Modifier.height(72.dp))
