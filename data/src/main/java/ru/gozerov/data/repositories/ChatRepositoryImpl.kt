@@ -11,6 +11,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
@@ -113,9 +114,9 @@ class ChatRepositoryImpl @Inject constructor(
                     }
 
                     override fun onMessage(webSocket: WebSocket, text: String) {
-                        Log.e("AAA", text)
                         val message = Json.decodeFromString<ChatMessageDTO>(text).toChatMessage()
                         scope.launch {
+                            Log.e("AAAA", "emit")
                             messageFlow.emit(message)
                             messages.add(message)
                         }
@@ -150,7 +151,7 @@ class ChatRepositoryImpl @Inject constructor(
         currentSocket?.send(Json.encodeToString(body))
     }
 
-    override suspend fun checkNewMessages(): Flow<ChatMessage> {
+    override suspend fun checkNewMessages(): SharedFlow<ChatMessage> {
         return messageFlow
     }
 

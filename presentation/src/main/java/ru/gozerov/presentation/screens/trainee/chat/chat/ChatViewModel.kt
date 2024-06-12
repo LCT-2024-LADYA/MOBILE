@@ -8,6 +8,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import ru.gozerov.domain.models.ChatMessage
@@ -35,19 +36,47 @@ class ChatViewModel @Inject constructor(
         get() = _effect.asStateFlow()
 
     private var trainerId = 0
+        set(value) {
+            if (value != 0)
+                field = value
+        }
     private var clientId = 0
+        set(value) {
+            if (value != 0)
+                field = value
+        }
 
     init {
         viewModelScope.launch {
             runCatchingNonCancellation {
                 runWebSocketUseCase.invoke()
             }
-                .onSuccess {
-                    handleIntent(ChatIntent.CheckNewMessages)
-                }
                 .onFailure { throwable ->
                     _effect.emit(ChatEffect.Error("Can`t load chat"))
                 }
+        }
+    }
+
+    init {
+        viewModelScope.launch {
+            checkNewMessagesUseCase.invoke().collectLatest { newMessage ->
+                if (newMessage.trainerId == trainerId) {
+                    messages = messages?.insertHeaderItem(
+                        item = ChatMessage(
+                            newMessage.id,
+                            newMessage.isToUser,
+                            newMessage.message,
+                            newMessage.serviceId,
+                            newMessage.time,
+                            newMessage.trainerId,
+                            newMessage.userId
+                        )
+                    )
+                    messages?.let { data ->
+                        _effect.emit(ChatEffect.LoadedMessages(flowOf(data)))
+                    }
+                }
+            }
         }
     }
 

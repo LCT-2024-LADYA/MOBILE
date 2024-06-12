@@ -96,10 +96,7 @@ internal fun TrainerChatScreen(
             if (data.itemCount != 0) {
                 val message = data.itemSnapshotList.items.first()
                 viewModel.handleIntent(
-                    TrainerChatIntent.UpdateIds(
-                        message.trainerId,
-                        message.userId
-                    )
+                    TrainerChatIntent.UpdateIds(message.trainerId, message.userId)
                 )
                 messages.value = data
             }

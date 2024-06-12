@@ -2,6 +2,7 @@ package ru.gozerov.domain.repositories
 
 import androidx.paging.PagingData
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharedFlow
 import ru.gozerov.domain.models.ChatCard
 import ru.gozerov.domain.models.ChatMessage
 
@@ -19,6 +20,6 @@ interface ChatRepository {
 
     suspend fun sendMessage(to: Int, message: String)
 
-    suspend fun checkNewMessages(): Flow<ChatMessage>
+    suspend fun checkNewMessages(): SharedFlow<ChatMessage>
 
 }
