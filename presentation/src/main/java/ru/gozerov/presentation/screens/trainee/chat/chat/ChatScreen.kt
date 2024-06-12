@@ -1,10 +1,10 @@
 package ru.gozerov.presentation.screens.trainee.chat.chat
 
 import android.annotation.SuppressLint
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -33,27 +33,32 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.paging.PagingData
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
 import kotlinx.coroutines.launch
-import ru.gozerov.domain.models.Achievement
-import ru.gozerov.domain.models.Role
-import ru.gozerov.domain.models.Specialization
-import ru.gozerov.domain.models.TrainerCard
-import ru.gozerov.domain.models.TrainerService
+import ru.gozerov.domain.models.ChatCard
+import ru.gozerov.domain.models.ChatMessage
+import ru.gozerov.domain.utils.parseDateToHoursAndMinutes
 import ru.gozerov.presentation.R
 import ru.gozerov.presentation.navigation.Screen
-import ru.gozerov.presentation.screens.trainee.chat.chat.views.AttachServiceBottomSheet
+import ru.gozerov.presentation.screens.trainee.chat.chat.models.ChatEffect
+import ru.gozerov.presentation.screens.trainee.chat.chat.models.ChatIntent
+import ru.gozerov.presentation.shared.utils.showError
+import ru.gozerov.presentation.shared.views.AttachServiceBottomSheet
 import ru.gozerov.presentation.shared.views.MessageTextField
 import ru.gozerov.presentation.shared.views.UserAvatar
 import ru.gozerov.presentation.ui.theme.FitLadyaTheme
@@ -61,43 +66,49 @@ import ru.gozerov.presentation.ui.theme.FitLadyaTheme
 @OptIn(ExperimentalMaterialApi::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-internal fun ChatScreen(navController: NavController) {
-    val trainer = TrainerCard(
-        1,
-        null,
-        "Евгений",
-        "Геркулесов",
-        listOf(Role(1, "Персональный тренер")),
-        age = 100,
-        experience = 17,
-        sex = 1,
-        quote = "Если по расписанию день ног - значит сегодня выходной",
-        specializations = listOf(
-            Specialization(0, "Набор мышечной массы"),
-            Specialization(1, "Составление программ тренировок")
-        ),
-        services = listOf(
-            TrainerService(0, "Тренироrfefewrwrwerwerewrewrefsfsfsdfdsfsfswewrwerвка", 1000),
-            TrainerService(1, "План тренировок на неделю", 2000)
-        ),
-        achievements = listOf(
-            Achievement(0, "Набор мышечной массы", true),
-            Achievement(1, "Составление программ тренировок", true)
-        ),
-        workingDays = "пн - пт",
-        workingTime = "8:00 - 19:00"
-    )
+internal fun ChatScreen(
+    navController: NavController,
+    viewModel: ChatViewModel,
+    trainer: ChatCard
+) {
+
+    val effect = viewModel.effect.collectAsState().value
 
     val messageState = remember { mutableStateOf("") }
 
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
-    val messages = (0..10).map { "Я уже месяц поддерживаю свой режим питания" }
     val serviceMessageState = remember { mutableStateOf("") }
     val scaffoldState = rememberBottomSheetScaffoldState(
         bottomSheetState = rememberBottomSheetState(BottomSheetValue.Collapsed)
     )
+
+    val messages = remember { mutableStateOf<LazyPagingItems<ChatMessage>?>(null) }
+
+    LaunchedEffect(null) {
+        viewModel.handleIntent(ChatIntent.GetMessages(trainer.id))
+    }
+
+    when (effect) {
+        is ChatEffect.None -> {}
+        is ChatEffect.LoadedMessages -> {
+            val data = effect.messages.collectAsLazyPagingItems()
+            if (data.itemCount != 0) {
+                val message = data.itemSnapshotList.items.first()
+                viewModel.handleIntent(ChatIntent.UpdateIds(message.trainerId, message.userId))
+                messages.value = data
+            }
+            val pagingData = PagingData.from(data.itemSnapshotList.items)
+            viewModel.handleIntent(ChatIntent.SaveMessages(pagingData))
+        }
+
+        is ChatEffect.Error -> {
+            snackbarHostState.showError(coroutineScope, effect.message)
+            viewModel.handleIntent(ChatIntent.Reset)
+        }
+    }
+
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         sheetPeekHeight = 0.dp,
@@ -153,8 +164,8 @@ internal fun ChatScreen(navController: NavController) {
                             }
                         ) {
                             navController.currentBackStackEntry?.savedStateHandle?.set(
-                                "trainer",
-                                trainer
+                                "trainerId",
+                                trainer.id
                             )
                             navController.navigate(Screen.TrainerCard.route)
                         }
@@ -194,15 +205,21 @@ internal fun ChatScreen(navController: NavController) {
                         .background(color = FitLadyaTheme.colors.primaryBackground)
                 ) {
                     LazyColumn(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .animateContentSize(),
                         reverseLayout = true,
-
-                        ) {
-                        items(messages.size) { index ->
-                            if (index % 2 == 0)
-                                MeMessageCard(text = messages[index])
-                            else
-                                UserMessageCard(text = messages[index])
+                    ) {
+                        messages.value?.itemCount?.let { itemCount ->
+                            items(itemCount) { index ->
+                                val message = messages.value!![index]
+                                message?.let {
+                                    if (message.isToUser)
+                                        UserMessageCard(message = message)
+                                    else
+                                        MeMessageCard(message = message)
+                                }
+                            }
                         }
                     }
                 }
@@ -218,7 +235,15 @@ internal fun ChatScreen(navController: NavController) {
                     MessageTextField(
                         textState = messageState,
                         placeholderText = stringResource(id = R.string.message),
-                        onSend = {},
+                        onSend = {
+                            viewModel.handleIntent(
+                                ChatIntent.SendMessage(
+                                    trainer.id,
+                                    messageState.value
+                                )
+                            )
+                            messageState.value = ""
+                        },
                         onAttach = {
                             coroutineScope.launch {
                                 scaffoldState.bottomSheetState.expand()
@@ -233,7 +258,7 @@ internal fun ChatScreen(navController: NavController) {
 }
 
 @Composable
-fun MeMessageCard(text: String) {
+fun MeMessageCard(message: ChatMessage) {
     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
         Column(
             modifier = Modifier
@@ -247,31 +272,27 @@ fun MeMessageCard(text: String) {
                         bottomStart = 12.dp
                     )
                 )
-                .padding(horizontal = 12.dp, vertical = 6.dp)
+                .padding(horizontal = 12.dp, vertical = 6.dp),
+            horizontalAlignment = Alignment.End
         ) {
-            Text(
-                text = text,
-                color = FitLadyaTheme.colors.text,
-                fontSize = 16.sp
-            )
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+            message.message?.let { text ->
                 Text(
-                    modifier = Modifier.padding(end = 4.dp),
-                    text = "14:48",
-                    color = FitLadyaTheme.colors.text.copy(alpha = 0.36f)
-                )
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_read_message),
-                    contentDescription = null,
-                    tint = FitLadyaTheme.colors.accent
+                    text = text,
+                    color = FitLadyaTheme.colors.text,
+                    fontSize = 16.sp
                 )
             }
+            Text(
+                modifier = Modifier.padding(end = 4.dp),
+                text = parseDateToHoursAndMinutes(message.time),
+                color = FitLadyaTheme.colors.text.copy(alpha = 0.36f)
+            )
         }
     }
 }
 
 @Composable
-fun UserMessageCard(text: String) {
+fun UserMessageCard(message: ChatMessage) {
     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterStart) {
         Column(
             modifier = Modifier
@@ -281,20 +302,21 @@ fun UserMessageCard(text: String) {
                     color = FitLadyaTheme.colors.secondary,
                     shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp, bottomEnd = 12.dp)
                 )
-                .padding(horizontal = 12.dp, vertical = 6.dp)
+                .padding(horizontal = 12.dp, vertical = 6.dp),
+            horizontalAlignment = Alignment.End
         ) {
-            Text(
-                text = text,
-                color = FitLadyaTheme.colors.text,
-                fontSize = 16.sp
-            )
-            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
+            message.message?.let { text ->
                 Text(
-                    modifier = Modifier.padding(end = 4.dp),
-                    text = "14:48",
-                    color = FitLadyaTheme.colors.text.copy(alpha = 0.36f)
+                    text = text,
+                    color = FitLadyaTheme.colors.text,
+                    fontSize = 16.sp
                 )
             }
+            Text(
+                modifier = Modifier.padding(end = 4.dp),
+                text = parseDateToHoursAndMinutes(message.time),
+                color = FitLadyaTheme.colors.text.copy(alpha = 0.36f)
+            )
         }
     }
 }

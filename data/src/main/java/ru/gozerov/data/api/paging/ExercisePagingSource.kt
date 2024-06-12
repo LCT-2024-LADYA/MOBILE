@@ -48,5 +48,4 @@ class ExercisePagingSource @AssistedInject constructor(
 
     }
 
-
 }

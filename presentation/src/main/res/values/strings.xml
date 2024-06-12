@@ -107,5 +107,7 @@
     <string name="trainer_schedule">Расписание тренера</string>
     <string name="show_progress">Показать прогресс</string>
     <string name="update">Обновить</string>
+    <string name="see_profile">Посмотреть профиль</string>
+    <string name="find_trainer">Найти тренера</string>
     <integer name="com_vk_sdk_AppId">51938469</integer>
 </resources>

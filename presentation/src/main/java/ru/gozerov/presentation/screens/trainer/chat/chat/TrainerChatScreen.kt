@@ -1,6 +1,7 @@
 package ru.gozerov.presentation.screens.trainer.chat.chat
 
 import android.annotation.SuppressLint
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -31,6 +32,8 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -42,13 +45,20 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.paging.PagingData
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
 import kotlinx.coroutines.launch
-import ru.gozerov.domain.models.UserCard
+import ru.gozerov.domain.models.ChatCard
+import ru.gozerov.domain.models.ChatMessage
 import ru.gozerov.presentation.R
 import ru.gozerov.presentation.navigation.Screen
 import ru.gozerov.presentation.screens.trainee.chat.chat.MeMessageCard
 import ru.gozerov.presentation.screens.trainee.chat.chat.UserMessageCard
-import ru.gozerov.presentation.screens.trainee.chat.chat.views.AttachServiceBottomSheet
+import ru.gozerov.presentation.screens.trainer.chat.chat.models.TrainerChatEffect
+import ru.gozerov.presentation.screens.trainer.chat.chat.models.TrainerChatIntent
+import ru.gozerov.presentation.shared.utils.showError
+import ru.gozerov.presentation.shared.views.AttachServiceBottomSheet
 import ru.gozerov.presentation.shared.views.MessageTextField
 import ru.gozerov.presentation.shared.views.UserAvatar
 import ru.gozerov.presentation.ui.theme.FitLadyaTheme
@@ -56,26 +66,54 @@ import ru.gozerov.presentation.ui.theme.FitLadyaTheme
 @OptIn(ExperimentalMaterialApi::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-internal fun TrainerChatScreen(navController: NavController) {
-    val user = UserCard(
-        1,
-        null,
-        "Евгений",
-        "Геркулесов",
-        1,
-        18
-    )
+internal fun TrainerChatScreen(
+    navController: NavController,
+    viewModel: TrainerChatViewModel,
+    user: ChatCard
+) {
+    val effect = viewModel.effect.collectAsState().value
 
     val messageState = remember { mutableStateOf("") }
 
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
-    val messages = (0..10).map { "Я уже месяц поддерживаю свой режим питания" }
     val serviceMessageState = remember { mutableStateOf("") }
     val scaffoldState = rememberBottomSheetScaffoldState(
         bottomSheetState = rememberBottomSheetState(BottomSheetValue.Collapsed)
     )
+
+    val messages = remember { mutableStateOf<LazyPagingItems<ChatMessage>?>(null) }
+
+    LaunchedEffect(null) {
+        viewModel.handleIntent(TrainerChatIntent.GetMessages(user.id))
+    }
+
+    when (effect) {
+        is TrainerChatEffect.None -> {}
+        is TrainerChatEffect.LoadedMessages -> {
+            val data = effect.messages.collectAsLazyPagingItems()
+            if (data.itemCount != 0) {
+                val message = data.itemSnapshotList.items.first()
+                viewModel.handleIntent(
+                    TrainerChatIntent.UpdateIds(
+                        message.trainerId,
+                        message.userId
+                    )
+                )
+                messages.value = data
+            }
+            val pagingData = PagingData.from(data.itemSnapshotList.items)
+            viewModel.handleIntent(TrainerChatIntent.SaveMessages(pagingData))
+        }
+
+        is TrainerChatEffect.Error -> {
+            snackbarHostState.showError(coroutineScope, effect.message)
+            viewModel.handleIntent(TrainerChatIntent.Reset)
+        }
+    }
+
+
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         sheetPeekHeight = 0.dp,
@@ -131,7 +169,10 @@ internal fun TrainerChatScreen(navController: NavController) {
                                 MutableInteractionSource()
                             }
                         ) {
-                            navController.currentBackStackEntry?.savedStateHandle?.set("user", user)
+                            navController.currentBackStackEntry?.savedStateHandle?.set(
+                                "clientId",
+                                user.id
+                            )
                             navController.navigate(Screen.ClientCard.route)
                         }
                     ) {
@@ -170,15 +211,22 @@ internal fun TrainerChatScreen(navController: NavController) {
                         .background(color = FitLadyaTheme.colors.primaryBackground)
                 ) {
                     LazyColumn(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .animateContentSize(),
                         reverseLayout = true,
 
                         ) {
-                        items(messages.size) { index ->
-                            if (index % 2 == 0)
-                                MeMessageCard(text = messages[index])
-                            else
-                                UserMessageCard(text = messages[index])
+                        messages.value?.itemCount?.let { itemCount ->
+                            items(itemCount) { index ->
+                                val message = messages.value!![index]
+                                message?.let {
+                                    if (!message.isToUser)
+                                        UserMessageCard(message = message)
+                                    else
+                                        MeMessageCard(message = message)
+                                }
+                            }
                         }
                     }
                 }
@@ -194,7 +242,15 @@ internal fun TrainerChatScreen(navController: NavController) {
                     MessageTextField(
                         textState = messageState,
                         placeholderText = stringResource(id = R.string.message),
-                        onSend = {},
+                        onSend = {
+                            viewModel.handleIntent(
+                                TrainerChatIntent.SendMessage(
+                                    user.id,
+                                    messageState.value
+                                )
+                            )
+                            messageState.value = ""
+                        },
                         onAttach = {
                             coroutineScope.launch {
                                 scaffoldState.bottomSheetState.expand()

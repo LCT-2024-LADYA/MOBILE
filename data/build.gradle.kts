@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.kotlin.kapt)
     alias(libs.plugins.hilt)
+    id("kotlinx-serialization")
 }
 
 android {
@@ -54,5 +55,8 @@ dependencies {
 
     //Paging
     implementation(libs.paging.runtime)
+
+    implementation(libs.kotlinx.serialization.json)
+
 
 }

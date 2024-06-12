@@ -1,7 +1,6 @@
 package ru.gozerov.presentation.screens.trainee.diary.create_training
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -78,15 +77,14 @@ fun CreateTrainingScreen(
     val description = rememberSaveable { mutableStateOf("") }
 
     val exercises = remember { mutableStateOf(listOf<Exercise>()) }
-    val weightsState = mutableListOf<MutableState<String>>()
-    val setsState = mutableListOf<MutableState<String>>()
-    val repsState = mutableListOf<MutableState<String>>()
+    val weightsState = remember { mutableListOf<MutableState<String>>() }
+    val setsState = remember { mutableListOf<MutableState<String>>() }
+    val repsState = remember { mutableListOf<MutableState<String>>() }
 
     val errorMessage = stringResource(id = R.string.incorrect_data)
 
     LaunchedEffect(null) {
         if (exercises.value.isEmpty()) {
-            viewModel.handleIntent(CreateTrainingIntent.Clear)
             trainingId?.let {
                 viewModel.handleIntent(CreateTrainingIntent.GetTraining(trainingId))
             }
@@ -100,13 +98,32 @@ fun CreateTrainingScreen(
     when (effect) {
         is CreateTrainingEffect.None -> {}
         is CreateTrainingEffect.AddedExercises -> {
-            Log.e("AAA", "hu")
+            val diff = effect.exercises.size - exercises.value.size
+            repeat(diff) {
+                val weight = rememberSaveable { mutableStateOf("0") }
+                val sets = rememberSaveable { mutableStateOf("") }
+                val reps = rememberSaveable { mutableStateOf("") }
+                weightsState.add(weight)
+                setsState.add(sets)
+                repsState.add(reps)
+            }
             exercises.value = effect.exercises
+            viewModel.handleIntent(CreateTrainingIntent.Reset)
         }
 
         is CreateTrainingEffect.LoadedTraining -> {
             trainingName.value = effect.training.name
             description.value = effect.training.description
+            val diff = effect.training.exercises.size - exercises.value.size
+            repeat(diff) {
+                val weight = rememberSaveable { mutableStateOf("0") }
+                val sets = rememberSaveable { mutableStateOf("") }
+                val reps = rememberSaveable { mutableStateOf("") }
+
+                weightsState.add(weight)
+                setsState.add(sets)
+                repsState.add(reps)
+            }
             exercises.value = effect.training.exercises.map { exercise -> exercise.toExercise() }
             viewModel.handleIntent(CreateTrainingIntent.Reset)
         }
@@ -151,6 +168,7 @@ fun CreateTrainingScreen(
                         DateDDMMYYYYTextField(
                             textState = date,
                             labelText = stringResource(id = R.string.date),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             modifier = Modifier
                                 .padding(horizontal = 32.dp)
                                 .fillMaxWidth()
@@ -199,20 +217,12 @@ fun CreateTrainingScreen(
                         }
                     }
                     items(exercises.value.size) { index ->
-                        val weight = rememberSaveable { mutableStateOf("") }
-                        val sets = rememberSaveable { mutableStateOf("") }
-                        val reps = rememberSaveable { mutableStateOf("") }
-
-                        weightsState.add(weight)
-                        setsState.add(sets)
-                        repsState.add(reps)
-
                         EditableCustomExerciseCard(
                             exercise = exercises.value[index],
                             position = index,
-                            weightState = weight,
-                            setsState = sets,
-                            repsState = reps
+                            weightState = weightsState[index],
+                            setsState = setsState[index],
+                            repsState = repsState[index]
                         )
                     }
                     item {

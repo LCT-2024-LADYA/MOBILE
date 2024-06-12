@@ -1,10 +1,14 @@
 package ru.gozerov.domain.models
 
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
+
+@Parcelize
 data class ChatCard(
     val id: Int,
-    val userPhoto: String?,
-    val username: String,
+    val firstName: String,
+    val lastName: String,
+    val photoUrl: String?,
     val lastMessage: String,
-    val time: String,
-    val unreadCount: Int
-)
+    val timeLastMessage: String
+) : Parcelable

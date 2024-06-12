@@ -301,6 +301,9 @@ fun DiaryScreen(
                                     }
                                 }
                             }
+                            else {
+                                Box(modifier = Modifier.height(8.dp))
+                            }
                         }
                     } else {
                         Column(
@@ -360,6 +363,9 @@ fun DiaryScreen(
                                         )
                                     }
                                 }
+                            }
+                            else {
+                                Box(modifier = Modifier.height(8.dp))
                             }
                         }
                     }

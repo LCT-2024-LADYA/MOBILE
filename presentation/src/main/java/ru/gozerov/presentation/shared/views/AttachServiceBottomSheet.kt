@@ -1,4 +1,4 @@
-package ru.gozerov.presentation.screens.trainee.chat.chat.views
+package ru.gozerov.presentation.shared.views
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -30,7 +30,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.gozerov.domain.models.TrainerService
 import ru.gozerov.presentation.R
-import ru.gozerov.presentation.shared.views.MessageTextField
 import ru.gozerov.presentation.ui.theme.FitLadyaTheme
 
 @Composable

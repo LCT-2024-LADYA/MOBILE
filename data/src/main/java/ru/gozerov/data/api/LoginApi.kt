@@ -14,11 +14,15 @@ import retrofit2.http.Query
 import ru.gozerov.data.api.models.request.LoginRequestBody
 import ru.gozerov.data.api.models.request.LoginResponse
 import ru.gozerov.data.api.models.request.RegisterRequestBody
+import ru.gozerov.data.api.models.response.ClientProfileDTO
 import ru.gozerov.data.api.models.response.CreateAchievementRequestBody
+import ru.gozerov.data.api.models.response.GetTrainerCoversResponse
+import ru.gozerov.data.api.models.response.GetUserCoversResponse
 import ru.gozerov.data.api.models.response.IdResponse
 import ru.gozerov.data.api.models.response.MainInfoRequestBody
 import ru.gozerov.data.api.models.response.TrainerInfoResponse
 import ru.gozerov.data.api.models.response.TrainerMainInfoRequestBody
+import ru.gozerov.data.api.models.response.TrainerProfileDTO
 import ru.gozerov.data.api.models.response.TrainerServiceRequestBody
 import ru.gozerov.data.api.models.response.UserInfoResponse
 import ru.gozerov.domain.models.Role
@@ -118,5 +122,24 @@ interface LoginApi {
     @GET("api/specialization")
     suspend fun getSpecializations(): Result<List<Specialization>>
 
+    @GET("api/user/{user_id}")
+    suspend fun getUser(@Path("user_id") userId: Int): ClientProfileDTO
+
+    @GET("api/trainer/{trainer_id}")
+    suspend fun getTrainer(@Path("trainer_id") trainerId: Int): TrainerProfileDTO
+
+    @GET("api/trainer")
+    suspend fun getTrainerCovers(
+        @Query("search") query: String,
+        @Query("cursor") cursor: Int,
+        @Query("role_ids") roles: Array<Int>,
+        @Query("specialization_ids") specializations: Array<Int>
+    ): GetTrainerCoversResponse
+
+    @GET("api/user")
+    suspend fun getUserCovers(
+        @Query("search") query: String,
+        @Query("cursor") cursor: Int
+    ): GetUserCoversResponse
 
 }

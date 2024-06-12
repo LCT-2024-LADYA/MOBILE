@@ -52,6 +52,16 @@ fun parseDateToHoursAndMinutes(date: String, time: String): String {
     return String.format("%02d:%02d", hours, minutes)
 }
 
+fun parseDateToHoursAndMinutes(time: String): String {
+    val formatter = DateTimeFormatter.ISO_DATE_TIME
+    val zonedDateTimeUtc =
+        ZonedDateTime.parse(time, formatter.withZone(ZoneOffset.UTC))
+    val zonedDateTimeLocal = zonedDateTimeUtc.withZoneSameInstant(ZoneId.systemDefault())
+    val hours = zonedDateTimeLocal.hour
+    val minutes = zonedDateTimeLocal.minute
+    return String.format("%02d:%02d", hours, minutes)
+}
+
 fun parseDateToDDMMYYYY(timeString: String): String {
     val formatter = DateTimeFormatter.ISO_DATE_TIME
     val zonedDateTimeUtc =

@@ -1,0 +1,30 @@
+package ru.gozerov.presentation.screens.trainer.chat.chat.models
+
+import androidx.paging.PagingData
+import ru.gozerov.domain.models.ChatMessage
+
+sealed interface TrainerChatIntent {
+
+    object Reset : TrainerChatIntent
+
+    data class GetMessages(
+        val userId: Int
+    ) : TrainerChatIntent
+
+    data class SaveMessages(
+        val data: PagingData<ChatMessage>
+    ) : TrainerChatIntent
+
+    class SendMessage(
+        val to: Int,
+        val message: String
+    ) : TrainerChatIntent
+
+    class UpdateIds(
+        val trainerId: Int,
+        val clientId: Int
+    ) : TrainerChatIntent
+
+    object CheckNewMessages : TrainerChatIntent
+
+}

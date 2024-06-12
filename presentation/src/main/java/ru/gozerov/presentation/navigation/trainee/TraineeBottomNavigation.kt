@@ -13,6 +13,7 @@ import ru.gozerov.domain.models.CustomTraining
 import ru.gozerov.presentation.R
 import ru.gozerov.presentation.navigation.Screen
 import ru.gozerov.presentation.screens.trainee.chat.list.ChatListScreen
+import ru.gozerov.presentation.screens.trainee.chat.list.ChatListViewModel
 import ru.gozerov.presentation.screens.trainee.diary.create_training.CreateTrainingScreen
 import ru.gozerov.presentation.screens.trainee.diary.create_training.CreateTrainingViewModel
 import ru.gozerov.presentation.screens.trainee.diary.diary.DiaryScreen
@@ -141,9 +142,11 @@ fun TraineeBottomNavHostContainer(
                 composable(
                     route = Screen.ClientChatList.route,
                 ) {
+                    val viewModel = hiltViewModel<ChatListViewModel>()
                     ChatListScreen(
                         contentPaddingValues = padding,
-                        parentNavController = rootNavController
+                        parentNavController = rootNavController,
+                        viewModel = viewModel
                     )
                 }
 

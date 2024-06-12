@@ -1,14 +1,17 @@
 package ru.gozerov.domain.repositories
 
 import android.net.Uri
+import androidx.paging.PagingData
 import kotlinx.coroutines.flow.Flow
 import ru.gozerov.domain.models.CheckTokenResult
 import ru.gozerov.domain.models.ClientInfo
 import ru.gozerov.domain.models.RegisterModel
 import ru.gozerov.domain.models.Role
 import ru.gozerov.domain.models.Specialization
+import ru.gozerov.domain.models.TrainerCard
 import ru.gozerov.domain.models.TrainerInfo
 import ru.gozerov.domain.models.TrainerMainInfoDTO
+import ru.gozerov.domain.models.UserCard
 
 interface LoginRepository {
 
@@ -57,5 +60,17 @@ interface LoginRepository {
     suspend fun logoutAsClient()
 
     suspend fun logoutAsTrainer()
+
+    suspend fun getTrainerById(id: Int): TrainerInfo
+
+    suspend fun getClientById(id: Int): ClientInfo
+
+    suspend fun getTrainerCards(
+        query: String,
+        roles: List<Int>,
+        specializations: List<Int>
+    ): Flow<PagingData<TrainerCard>>
+
+    suspend fun getClientCards(query: String): Flow<PagingData<UserCard>>
 
 }

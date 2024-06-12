@@ -2,6 +2,7 @@ package ru.gozerov.presentation.shared.views
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -43,7 +44,7 @@ fun UserAvatar(
                 .clip(CircleShape)
                 .padding(top = padding)
                 .clip(CircleShape),
-            painter = painterResource(id = R.drawable.ic_profile_man),
+            painter = painterResource(id = if (isSystemInDarkTheme()) R.drawable.ic_person_dark else R.drawable.ic_profile_man),
             contentDescription = null
         )
     }

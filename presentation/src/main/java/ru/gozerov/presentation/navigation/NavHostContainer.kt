@@ -6,8 +6,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import ru.gozerov.domain.models.TrainerCard
-import ru.gozerov.domain.models.UserCard
+import ru.gozerov.domain.models.ChatCard
 import ru.gozerov.presentation.screens.login.login_choice.ChoiceLoginScreen
 import ru.gozerov.presentation.screens.login.login_trainee.LoginTraineeScreen
 import ru.gozerov.presentation.screens.login.login_trainee.LoginTraineeViewModel
@@ -17,13 +16,17 @@ import ru.gozerov.presentation.screens.login.register_trainee.RegisterProfileScr
 import ru.gozerov.presentation.screens.login.register_trainee.RegisterScreen
 import ru.gozerov.presentation.screens.login.register_trainee.RegisterViewModel
 import ru.gozerov.presentation.screens.trainee.chat.chat.ChatScreen
+import ru.gozerov.presentation.screens.trainee.chat.chat.ChatViewModel
 import ru.gozerov.presentation.screens.trainee.diary.find_exercise.FindExerciseScreen
 import ru.gozerov.presentation.screens.trainee.diary.find_exercise.FindExerciseViewModel
 import ru.gozerov.presentation.screens.trainee.tabs.TraineeTabsScreen
 import ru.gozerov.presentation.screens.trainer.chat.chat.TrainerChatScreen
+import ru.gozerov.presentation.screens.trainer.chat.chat.TrainerChatViewModel
 import ru.gozerov.presentation.screens.trainer.tabs.TrainerTabsScreen
 import ru.gozerov.presentation.shared.screens.client_card.ClientCardScreen
+import ru.gozerov.presentation.shared.screens.client_card.ClientCardViewModel
 import ru.gozerov.presentation.shared.screens.trainer_card.TrainerCardScreen
+import ru.gozerov.presentation.shared.screens.trainer_card.TrainerCardViewModel
 
 @Composable
 fun NavHostContainer(
@@ -103,27 +106,46 @@ fun NavHostContainer(
             composable(
                 route = Screen.ClientChat.route,
             ) {
-                ChatScreen(navController = navController)
+                val viewModel = hiltViewModel<ChatViewModel>()
+                val trainer =
+                    navController.previousBackStackEntry?.savedStateHandle?.get<ChatCard>("trainer")
+                trainer?.let {
+                    ChatScreen(
+                        navController = navController,
+                        viewModel = viewModel,
+                        trainer = trainer
+                    )
+                }
             }
 
             composable(
                 route = Screen.TrainerChat.route,
             ) {
-                TrainerChatScreen(navController = navController)
+                val viewModel = hiltViewModel<TrainerChatViewModel>()
+                val client =
+                    navController.previousBackStackEntry?.savedStateHandle?.get<ChatCard>("client")
+                client?.let {
+                    TrainerChatScreen(
+                        navController = navController,
+                        viewModel = viewModel,
+                        user = client
+                    )
+                }
             }
 
             composable(
                 route = Screen.ClientCard.route,
             ) {
-                val user =
-                    navController.previousBackStackEntry?.savedStateHandle?.get<UserCard>(
-                        "user"
+                val clientId =
+                    navController.previousBackStackEntry?.savedStateHandle?.get<Int>(
+                        "clientId"
                     )
-                user?.let {
+                val viewModel = hiltViewModel<ClientCardViewModel>()
+                clientId?.let {
                     ClientCardScreen(
-                        contentPaddingValues = padding,
+                        clientId = clientId,
                         navController = navController,
-                        userCard = user
+                        viewModel = viewModel
                     )
                 }
             }
@@ -131,14 +153,17 @@ fun NavHostContainer(
             composable(
                 route = Screen.TrainerCard.route,
             ) {
-                val trainer =
-                    navController.previousBackStackEntry?.savedStateHandle?.get<TrainerCard>(
-                        "trainer"
+                val trainerId =
+                    navController.previousBackStackEntry?.savedStateHandle?.get<Int>(
+                        "trainerId"
                     )
-                trainer?.let {
+
+                val viewModel = hiltViewModel<TrainerCardViewModel>()
+                trainerId?.let {
                     TrainerCardScreen(
-                        trainer = trainer,
-                        navController = navController
+                        trainerId = trainerId,
+                        navController = navController,
+                        viewModel = viewModel
                     )
                 }
             }

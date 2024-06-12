@@ -237,6 +237,7 @@ fun TrainerProfileScreen(
         sheetState = sheetState,
         sheetBackgroundColor = Color.Transparent,
         sheetElevation = 0.dp,
+        modifier = Modifier.padding(paddingValues),
         sheetShape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
         sheetContent = {
             EditProfileView(
@@ -288,7 +289,6 @@ fun TrainerProfileScreen(
     ) {
         Scaffold(
             modifier = Modifier
-                .padding(paddingValues)
                 .fillMaxSize()
                 .clickable(
                     indication = null,

@@ -3,16 +3,24 @@ package ru.gozerov.data.api.models
 import ru.gozerov.data.api.ApiConstants.BASE_URL_FOR_PHOTO
 import ru.gozerov.data.api.models.request.RegisterRequestBody
 import ru.gozerov.data.api.models.response.AchievementDTO
+import ru.gozerov.data.api.models.response.ChatMessageDTO
+import ru.gozerov.data.api.models.response.ClientCover
+import ru.gozerov.data.api.models.response.ClientProfileDTO
 import ru.gozerov.data.api.models.response.CreateTrainingResponse
 import ru.gozerov.data.api.models.response.CustomExerciseDTO
 import ru.gozerov.data.api.models.response.CustomTrainingDTO
 import ru.gozerov.data.api.models.response.ExerciseDTO
+import ru.gozerov.data.api.models.response.GetChatsResponseBody
 import ru.gozerov.data.api.models.response.GetScheduleResponse
 import ru.gozerov.data.api.models.response.ScheduledTrainingDTO
+import ru.gozerov.data.api.models.response.TrainerCover
 import ru.gozerov.data.api.models.response.TrainerInfoResponse
 import ru.gozerov.data.api.models.response.TrainerMainInfoRequestBody
+import ru.gozerov.data.api.models.response.TrainerProfileDTO
 import ru.gozerov.data.api.models.response.UserInfoResponse
 import ru.gozerov.domain.models.Achievement
+import ru.gozerov.domain.models.ChatCard
+import ru.gozerov.domain.models.ChatMessage
 import ru.gozerov.domain.models.ClientInfo
 import ru.gozerov.domain.models.CreatedTraining
 import ru.gozerov.domain.models.CustomExercise
@@ -20,9 +28,11 @@ import ru.gozerov.domain.models.CustomTraining
 import ru.gozerov.domain.models.Exercise
 import ru.gozerov.domain.models.RegisterModel
 import ru.gozerov.domain.models.ScheduledTraining
+import ru.gozerov.domain.models.TrainerCard
 import ru.gozerov.domain.models.TrainerInfo
 import ru.gozerov.domain.models.TrainerMainInfoDTO
 import ru.gozerov.domain.models.Training
+import ru.gozerov.domain.models.UserCard
 
 fun UserInfoResponse.toClientInfo() =
     ClientInfo(
@@ -100,3 +110,43 @@ fun GetScheduleResponse.toScheduledTraining() = ScheduledTraining(date, user_tra
 
 fun CustomTrainingDTO.toTraining() =
     Training(id, name, description, exercises.map { exercise -> exercise.toCustomExercise() })
+
+fun GetChatsResponseBody.toChatCard() =
+    ChatCard(id, first_name, last_name, photoUrl, last_message, time_last_message)
+
+fun ChatMessageDTO.toChatMessage() =
+    ChatMessage(id, is_to_user, message, service_id, time, trainer_id, user_id)
+
+fun TrainerCover.toTrainerCard() = TrainerCard(
+    id,
+    photo_url,
+    first_name,
+    last_name,
+    roles,
+    age,
+    sex,
+    quote,
+    specializations,
+    experience
+)
+
+fun ClientCover.toUserCard() = UserCard(id, photo_url, first_name, last_name, sex, age)
+
+fun TrainerProfileDTO.toTrainerInfo() = TrainerInfo(
+    id,
+    first_name,
+    last_name,
+    email,
+    photo_url,
+    age,
+    sex,
+    experience,
+    quote,
+    roles,
+    specializations,
+    services,
+    achievements.map { dto -> dto.toAchievement() }
+)
+
+fun ClientProfileDTO.toClientInfo() =
+    ClientInfo(id, first_name, last_name, age, email, photo_url, sex)

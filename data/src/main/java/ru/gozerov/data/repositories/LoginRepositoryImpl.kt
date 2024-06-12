@@ -2,9 +2,14 @@ package ru.gozerov.data.repositories
 
 import android.content.Context
 import android.net.Uri
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.map
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -16,16 +21,22 @@ import ru.gozerov.data.api.models.response.MainInfoRequestBody
 import ru.gozerov.data.api.models.response.TrainerServiceRequestBody
 import ru.gozerov.data.api.models.toClientInfo
 import ru.gozerov.data.api.models.toRegisterRequestBody
+import ru.gozerov.data.api.models.toTrainerCard
 import ru.gozerov.data.api.models.toTrainerInfo
 import ru.gozerov.data.api.models.toTrainerMainInfoRequestBody
+import ru.gozerov.data.api.models.toUserCard
+import ru.gozerov.data.api.paging.ClientCoversPagingSource
+import ru.gozerov.data.api.paging.TrainerCoversPagingSource
 import ru.gozerov.data.cache.LoginStorage
 import ru.gozerov.domain.models.CheckTokenResult
 import ru.gozerov.domain.models.ClientInfo
 import ru.gozerov.domain.models.RegisterModel
 import ru.gozerov.domain.models.Role
 import ru.gozerov.domain.models.Specialization
+import ru.gozerov.domain.models.TrainerCard
 import ru.gozerov.domain.models.TrainerInfo
 import ru.gozerov.domain.models.TrainerMainInfoDTO
+import ru.gozerov.domain.models.UserCard
 import ru.gozerov.domain.repositories.LoginRepository
 import java.io.InputStream
 import javax.inject.Inject
@@ -33,7 +44,9 @@ import javax.inject.Inject
 class LoginRepositoryImpl @Inject constructor(
     private val loginApi: LoginApi,
     private val loginStorage: LoginStorage,
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val trainerCoversPagingSourceFactory: TrainerCoversPagingSource.Factory,
+    private val clientCoversPagingSourceFactory: ClientCoversPagingSource.Factory
 ) : LoginRepository {
     override suspend fun register(registerModel: RegisterModel): Flow<Result<Unit>> = flow {
         loginApi.register(registerModel.toRegisterRequestBody())
@@ -258,6 +271,38 @@ class LoginRepositoryImpl @Inject constructor(
 
     override suspend fun logoutAsTrainer() {
         loginStorage.clearTrainerTokens()
+    }
+
+    override suspend fun getTrainerById(id: Int): TrainerInfo {
+        return loginApi.getTrainer(id).toTrainerInfo()
+    }
+
+    override suspend fun getClientById(id: Int): ClientInfo {
+        return loginApi.getUser(id).toClientInfo()
+    }
+
+    override suspend fun getTrainerCards(
+        query: String,
+        roles: List<Int>,
+        specializations: List<Int>
+    ): Flow<PagingData<TrainerCard>> {
+        val pagingSource = trainerCoversPagingSourceFactory.create(query, roles, specializations)
+        val pager = Pager(PagingConfig(50)) {
+            pagingSource
+        }
+        return pager.flow.map { data ->
+            data.map { cover -> cover.toTrainerCard() }
+        }
+    }
+
+    override suspend fun getClientCards(query: String): Flow<PagingData<UserCard>> {
+        val pagingSource = clientCoversPagingSourceFactory.create(query)
+        val pager = Pager(PagingConfig(50)) {
+            pagingSource
+        }
+        return pager.flow.map { data ->
+            data.map { cover -> cover.toUserCard() }
+        }
     }
 
     private fun getImagePart(imageUri: Uri?): MultipartBody.Part? {

@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -20,82 +22,79 @@ import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import ru.gozerov.domain.models.Achievement
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
+import kotlinx.coroutines.launch
 import ru.gozerov.domain.models.ChatCard
-import ru.gozerov.domain.models.Role
-import ru.gozerov.domain.models.Specialization
 import ru.gozerov.domain.models.TrainerCard
-import ru.gozerov.domain.models.TrainerService
 import ru.gozerov.presentation.R
 import ru.gozerov.presentation.navigation.Screen
-import ru.gozerov.presentation.screens.trainee.chat.list.views.SimpleChatCard
-import ru.gozerov.presentation.screens.trainee.chat.list.views.SimpleChatTrainerCard
+import ru.gozerov.presentation.screens.trainee.chat.list.models.ChatListEffect
+import ru.gozerov.presentation.screens.trainee.chat.list.models.ChatListIntent
+import ru.gozerov.presentation.shared.utils.showError
+import ru.gozerov.presentation.shared.utils.toChatCard
 import ru.gozerov.presentation.shared.views.SearchTextField
+import ru.gozerov.presentation.shared.views.SimpleChatCard
+import ru.gozerov.presentation.shared.views.SimpleChatTrainerCard
 import ru.gozerov.presentation.ui.theme.FitLadyaTheme
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 internal fun ChatListScreen(
     contentPaddingValues: PaddingValues,
-    parentNavController: NavController
+    parentNavController: NavController,
+    viewModel: ChatListViewModel
 ) {
+    val effect = viewModel.effect.collectAsState().value
 
     val searchState = remember { mutableStateOf("") }
     val snackbarHostState = remember { SnackbarHostState() }
 
     val tabs = listOf(stringResource(R.string.chats), stringResource(R.string.trainers))
-    val selectedTab = remember { mutableIntStateOf(0) }
-
-    val chatList = (0..15).map {
-        ChatCard(
-            it,
-            null,
-            "Евгений Геркулесов",
-            "Я уже месяц поддерживаю свою хуй",
-            "14:48",
-            1
-        )
-    }
-
-    val trainerList = (0..15).map {
-        TrainerCard(
-            1,
-            null,
-            "Евгений",
-            "Геркулесов",
-            listOf(Role(1, "Персональный тренер")),
-            age = 100,
-            experience = 17,
-            sex = 1,
-            quote = "Если по расписанию день ног - значит сегодня выходной",
-            specializations = listOf(
-                Specialization(0, "Набор мышечной массы"),
-                Specialization(1, "Составление программ тренировок")
-            ),
-            services = listOf(
-                TrainerService(0, "Тренировка", 1000),
-                TrainerService(1, "План тренировок на неделю", 2000)
-            ),
-            achievements = listOf(
-                Achievement(0, "Набор мышечной массы", true),
-                Achievement(1, "Составление программ тренировок", true)
-            ),
-            workingDays = "пн - пт",
-            workingTime = "8:00 - 19:00"
-        )
-    }
+    val availableSex =
+        listOf(stringResource(id = R.string.sex_man_d), stringResource(id = R.string.sex_woman_d))
 
     val coroutineScope = rememberCoroutineScope()
-    val errorMessage = stringResource(id = R.string.error)
+    val pagerState = rememberPagerState(pageCount = { tabs.size })
+
+    val chats = remember { mutableStateOf<List<ChatCard>>(emptyList()) }
+    val trainers = remember { mutableStateOf<LazyPagingItems<TrainerCard>?>(null) }
+
+    LaunchedEffect(null) {
+        viewModel.handleIntent(ChatListIntent.Init(searchState.value, listOf(), listOf(), ""))
+    }
+
+
+    when (effect) {
+        is ChatListEffect.None -> {}
+        is ChatListEffect.LoadedChatsAndTrainers -> {
+            chats.value = effect.chats
+            trainers.value = effect.trainersFlow.collectAsLazyPagingItems()
+        }
+
+        is ChatListEffect.LoadedChats -> {
+            chats.value = effect.chats
+        }
+
+        is ChatListEffect.LoadedTrainers -> {
+            trainers.value = effect.trainersFlow.collectAsLazyPagingItems()
+        }
+
+        is ChatListEffect.Error -> {
+            snackbarHostState.showError(coroutineScope, effect.message)
+        }
+    }
 
     Scaffold(
         modifier = Modifier
@@ -109,14 +108,25 @@ internal fun ChatListScreen(
                 modifier = Modifier.background(color = FitLadyaTheme.colors.secondary)
             ) {
                 Spacer(modifier = Modifier.height(16.dp))
-                SearchTextField(
-                    textState = searchState,
-                    placeholderText = stringResource(id = R.string.search_in_chats),
-                    containerColor = FitLadyaTheme.colors.primaryBackground
-                )
+                if (pagerState.currentPage == 0) {
+                    SearchTextField(
+                        textState = searchState,
+                        placeholderText = stringResource(id = R.string.search_in_chats),
+                        containerColor = FitLadyaTheme.colors.primaryBackground
+                    )
+                } else {
+                    SearchTextField(
+                        textState = searchState,
+                        placeholderText = stringResource(id = R.string.find_trainer),
+                        containerColor = FitLadyaTheme.colors.primaryBackground,
+                        onFilter = {
 
-                TabRow(selectedTabIndex = selectedTab.intValue, indicator = { tabPositions ->
-                    val currentTabPosition = tabPositions[selectedTab.intValue]
+                        }
+                    )
+                }
+
+                TabRow(selectedTabIndex = pagerState.currentPage, indicator = { tabPositions ->
+                    val currentTabPosition = tabPositions[pagerState.currentPage]
                     Box(
                         Modifier
                             .tabIndicatorOffset(currentTabPosition)
@@ -131,16 +141,18 @@ internal fun ChatListScreen(
                     tabs.forEach { tab ->
                         Tab(
                             modifier = Modifier.background(FitLadyaTheme.colors.secondary),
-                            selected = tabs.indexOf(tab) == selectedTab.intValue,
+                            selected = tabs.indexOf(tab) == pagerState.currentPage,
                             onClick = {
-                                selectedTab.intValue = tabs.indexOf(tab)
+                                coroutineScope.launch {
+                                    pagerState.animateScrollToPage(tabs.indexOf(tab))
+                                }
                             }
                         ) {
                             Text(
                                 modifier = Modifier.padding(vertical = 16.dp),
                                 text = tab,
                                 fontWeight = FontWeight.Medium,
-                                color = if (tabs[selectedTab.intValue] == tab) FitLadyaTheme.colors.fieldPrimaryText else FitLadyaTheme.colors.text.copy(
+                                color = if (tabs[pagerState.currentPage] == tab) FitLadyaTheme.colors.fieldPrimaryText else FitLadyaTheme.colors.text.copy(
                                     alpha = 0.48f
                                 )
                             )
@@ -148,28 +160,56 @@ internal fun ChatListScreen(
                     }
                 }
             }
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(20.dp)
-            ) {
-                item {
-                    Spacer(modifier = Modifier.height(0.dp))
-                }
-                if (selectedTab.intValue == 0) {
-                    items(chatList.size) { index ->
-                        SimpleChatCard(chatList[index]) {
-                            parentNavController.navigate(Screen.ClientChat.route)
+            HorizontalPager(state = pagerState, verticalAlignment = Alignment.Top) { page ->
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                ) {
+                    item {
+                        Spacer(modifier = Modifier.height(0.dp))
+                    }
+                    if (page == 0) {
+                        items(chats.value.size) { index ->
+                            SimpleChatCard(chats.value[index]) {
+                                parentNavController.currentBackStackEntry?.savedStateHandle?.set(
+                                    "trainer",
+                                    chats.value[index]
+                                )
+                                parentNavController.navigate(Screen.ClientChat.route)
+                            }
+                        }
+                    } else {
+                        trainers.value?.let { data ->
+                            items(data.itemCount) { index ->
+                                val trainer = data[index]
+                                trainer?.let {
+                                    SimpleChatTrainerCard(
+                                        trainer = trainer,
+                                        sex = availableSex[trainer.sex - 1],
+                                        onProfileClick = {
+                                            parentNavController.currentBackStackEntry?.savedStateHandle?.set(
+                                                "trainerId",
+                                                trainer.id
+                                            )
+                                            parentNavController.navigate(Screen.TrainerCard.route)
+                                        },
+                                        onTextClick = {
+                                            parentNavController.currentBackStackEntry?.savedStateHandle?.set(
+                                                "trainer",
+                                                trainer.toChatCard()
+                                            )
+                                            parentNavController.navigate(Screen.ClientChat.route)
+                                        }
+                                    )
+                                }
+                            }
                         }
                     }
-                } else {
-                    items(trainerList.size) { index ->
-                        SimpleChatTrainerCard(trainer = trainerList[index])
+                    item {
+                        Spacer(modifier = Modifier.height(8.dp))
                     }
                 }
-                item {
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
-            }
 
+            }
         }
 
     }

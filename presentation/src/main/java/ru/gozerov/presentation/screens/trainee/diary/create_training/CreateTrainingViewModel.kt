@@ -1,6 +1,5 @@
 package ru.gozerov.presentation.screens.trainee.diary.create_training
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -26,6 +25,10 @@ class CreateTrainingViewModel @Inject constructor(
     private val addExercisesToCreatingUseCase: AddExercisesToCreatingUseCase,
     private val clearAddedTrainingUseCase: ClearAddedTrainingUseCase
 ) : ViewModel() {
+
+    init {
+        handleIntent(CreateTrainingIntent.Clear)
+    }
 
     private val _effect = MutableStateFlow<CreateTrainingEffect>(CreateTrainingEffect.None)
     val effect: StateFlow<CreateTrainingEffect>

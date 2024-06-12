@@ -9,14 +9,13 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
-import ru.gozerov.domain.models.UserCard
 import ru.gozerov.presentation.R
 import ru.gozerov.presentation.navigation.Screen
 import ru.gozerov.presentation.screens.trainer.chat.list.TrainerChatListScreen
+import ru.gozerov.presentation.screens.trainer.chat.list.TrainerChatListViewModel
 import ru.gozerov.presentation.screens.trainer.diary.diary.TrainerDiaryScreen
 import ru.gozerov.presentation.screens.trainer.profile.TrainerProfileScreen
 import ru.gozerov.presentation.screens.trainer.profile.TrainerProfileViewModel
-import ru.gozerov.presentation.shared.screens.client_card.ClientCardScreen
 
 sealed class TrainerBottomNavBarItem(
     val route: String,
@@ -51,9 +50,11 @@ fun TrainerBottomNavHostContainer(
                 composable(
                     route = Screen.TrainerChatList.route,
                 ) {
+                    val viewModel = hiltViewModel<TrainerChatListViewModel>()
                     TrainerChatListScreen(
                         contentPaddingValues = padding,
-                        parentNavController = rootNavController
+                        parentNavController = rootNavController,
+                        viewModel = viewModel
                     )
                 }
 

@@ -84,6 +84,73 @@ fun SearchTextField(
     )
 }
 
+
+@Composable
+fun SearchTextField(
+    textState: MutableState<String>,
+    onValueChange: ((String) -> Unit)? = null,
+    onFilter: () -> Unit,
+    placeholderText: String,
+    containerColor: Color
+) {
+    OutlinedTextField(
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .height(56.dp)
+            .clip(CircleShape)
+            .fillMaxWidth(),
+        value = textState.value,
+        onValueChange = onValueChange ?: {
+            textState.value = it
+        },
+        singleLine = true,
+        placeholder = {
+            Text(
+                text = placeholderText,
+                color = FitLadyaTheme.colors.text.copy(alpha = 0.64f),
+                fontSize = 16.sp
+            )
+        },
+        trailingIcon = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    modifier = Modifier.clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }) { onFilter() }
+                        .padding(end = 8.dp),
+                    painter = painterResource(id = R.drawable.ic_filter),
+                    contentDescription = null,
+                    tint = FitLadyaTheme.colors.text
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Icon(
+                    modifier = Modifier.padding(end = 16.dp),
+                    imageVector = Icons.Default.Search,
+                    contentDescription = null,
+                    tint = FitLadyaTheme.colors.text
+                )
+            }
+        },
+        colors = TextFieldDefaults.colors(
+            focusedLabelColor = FitLadyaTheme.colors.text,
+            unfocusedLabelColor = FitLadyaTheme.colors.text,
+            focusedContainerColor = containerColor,
+            unfocusedContainerColor = containerColor,
+            focusedIndicatorColor = containerColor,
+            unfocusedIndicatorColor = containerColor,
+            cursorColor = FitLadyaTheme.colors.fieldPrimaryText,
+            focusedTextColor = FitLadyaTheme.colors.text,
+            unfocusedTextColor = FitLadyaTheme.colors.text,
+            disabledContainerColor = containerColor,
+            disabledLabelColor = FitLadyaTheme.colors.text,
+            disabledIndicatorColor = containerColor,
+            disabledTextColor = FitLadyaTheme.colors.text,
+        )
+    )
+}
+
+
 @Composable
 fun MessageTextField(
     textState: MutableState<String>,
