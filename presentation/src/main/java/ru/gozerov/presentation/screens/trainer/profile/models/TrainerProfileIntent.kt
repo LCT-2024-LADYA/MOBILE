@@ -1,4 +1,4 @@
-package ru.gozerov.presentation.screens.trainer.models
+package ru.gozerov.presentation.screens.trainer.profile.models
 
 import android.net.Uri
 import ru.gozerov.domain.models.TrainerMainInfoDTO
@@ -30,5 +30,7 @@ sealed interface TrainerProfileIntent {
     data class CreateAchievement(val name: String) : TrainerProfileIntent
 
     data class RemoveAchievement(val id: Int) : TrainerProfileIntent
+
+    object Logout : TrainerProfileIntent
 
 }

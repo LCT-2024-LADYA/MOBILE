@@ -1,4 +1,4 @@
-package ru.gozerov.presentation.screens.trainer
+package ru.gozerov.presentation.screens.trainer.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,10 +14,11 @@ import ru.gozerov.domain.usecases.DeleteTrainerServiceUseCase
 import ru.gozerov.domain.usecases.GetRolesUseCase
 import ru.gozerov.domain.usecases.GetSpecializationsUseCase
 import ru.gozerov.domain.usecases.GetTrainerInfoUseCase
+import ru.gozerov.domain.usecases.LogoutAsTrainerUseCase
 import ru.gozerov.domain.usecases.UpdateTrainerPhotoUseCase
 import ru.gozerov.domain.usecases.UpdateTrainerProfileUseCase
-import ru.gozerov.presentation.screens.trainer.models.TrainerProfileEffect
-import ru.gozerov.presentation.screens.trainer.models.TrainerProfileIntent
+import ru.gozerov.presentation.screens.trainer.profile.models.TrainerProfileEffect
+import ru.gozerov.presentation.screens.trainer.profile.models.TrainerProfileIntent
 import ru.gozerov.presentation.shared.utils.runCatchingNonCancellation
 import javax.inject.Inject
 
@@ -31,7 +32,8 @@ class TrainerProfileViewModel @Inject constructor(
     private val deleteServiceUseCase: DeleteTrainerServiceUseCase,
     private val getTrainerInfoUseCase: GetTrainerInfoUseCase,
     private val updateTrainerProfileUseCase: UpdateTrainerProfileUseCase,
-    private val updateTrainerPhotoUseCase: UpdateTrainerPhotoUseCase
+    private val updateTrainerPhotoUseCase: UpdateTrainerPhotoUseCase,
+    private val logoutAsTrainerUseCase: LogoutAsTrainerUseCase
 ) : ViewModel() {
 
     private val _effect = MutableStateFlow<TrainerProfileEffect>(TrainerProfileEffect.None)
@@ -192,6 +194,18 @@ class TrainerProfileViewModel @Inject constructor(
                                 .onFailure { throwable ->
                                     _effect.emit(TrainerProfileEffect.Error(throwable.message.toString()))
                                 }
+                        }
+                }
+
+                is TrainerProfileIntent.Logout -> {
+                    runCatchingNonCancellation {
+                        logoutAsTrainerUseCase.invoke()
+                    }
+                        .onSuccess {
+                            _effect.emit(TrainerProfileEffect.Logout)
+                        }
+                        .onFailure {
+                            _effect.emit(TrainerProfileEffect.Error("Unknown error"))
                         }
                 }
 

@@ -1,4 +1,4 @@
-package ru.gozerov.presentation.screens.trainee.profile
+package ru.gozerov.presentation.screens.trainee.profile.profile
 
 import android.annotation.SuppressLint
 import android.net.Uri
@@ -58,10 +58,9 @@ import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import ru.gozerov.presentation.R
 import ru.gozerov.presentation.navigation.Screen
-import ru.gozerov.presentation.navigation.trainee.TraineeBottomNavBarItem
 import ru.gozerov.presentation.screens.trainee.profile.edit.EditProfileView
-import ru.gozerov.presentation.screens.trainee.profile.models.ClientProfileEffect
-import ru.gozerov.presentation.screens.trainee.profile.models.ClientProfileIntent
+import ru.gozerov.presentation.screens.trainee.profile.profile.models.ClientProfileEffect
+import ru.gozerov.presentation.screens.trainee.profile.profile.models.ClientProfileIntent
 import ru.gozerov.presentation.shared.utils.isValidAge
 import ru.gozerov.presentation.shared.utils.isValidEmail
 import ru.gozerov.presentation.shared.utils.showError
@@ -369,13 +368,17 @@ fun ClientProfileScreen(
                         text = stringResource(id = R.string.favorites),
                         painter = painterResource(id = R.drawable.ic_hear_outlined),
                         iconTint = FitLadyaTheme.colors.accent
-                    )
+                    ) {
+
+                    }
                     Spacer(modifier = Modifier.width(8.dp))
                     ProfileActionCard(
                         text = stringResource(id = R.string.progress),
                         painter = painterResource(id = R.drawable.ic_statistics),
                         iconTint = FitLadyaTheme.colors.primary
-                    )
+                    ) {
+                        navController.navigate(Screen.ClientStatisticsScreen.route)
+                    }
                 }
                 Box(
                     modifier = Modifier.weight(1f),
@@ -414,12 +417,17 @@ fun ClientProfileScreen(
 fun ProfileActionCard(
     text: String,
     painter: Painter,
-    iconTint: Color
+    iconTint: Color,
+    onClick: () -> Unit
 ) {
     Column(
         modifier = Modifier
             .size(128.dp, 104.dp)
-            .background(FitLadyaTheme.colors.secondary, RoundedCornerShape(8.dp)),
+            .background(FitLadyaTheme.colors.secondary, RoundedCornerShape(8.dp))
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ) { onClick() },
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {

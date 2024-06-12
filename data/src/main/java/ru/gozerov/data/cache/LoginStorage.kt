@@ -22,4 +22,6 @@ interface LoginStorage {
 
     fun clearClientTokens()
 
+    fun clearTrainerTokens()
+
 }

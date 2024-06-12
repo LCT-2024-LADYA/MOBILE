@@ -45,7 +45,7 @@ class MainActivity : AppCompatActivity() {
                         is MainActivityEffect.AuthResult -> {
                             startDestination.value =
                                 if (effect.navigateToLogin) Screen.ChoiceLogin.route else {
-                                    if (effect.isClient) Screen.TraineeTabs.route else Screen.TrainerProfile.route
+                                    if (effect.isClient) Screen.TraineeTabs.route else Screen.TrainerTabs.route
                                 }
                         }
 
@@ -63,10 +63,11 @@ class MainActivity : AppCompatActivity() {
             RequestNotifications()
 
             FitLadyaTheme {
-                val barColor = FitLadyaTheme.colors.primaryBackground.toArgb()
+                val statusBarColor = FitLadyaTheme.colors.primaryBackground.toArgb()
+                val navBarColor = FitLadyaTheme.colors.secondary.toArgb()
                 SideEffect {
-                    window.statusBarColor = barColor
-                    window.navigationBarColor = barColor
+                    window.statusBarColor = statusBarColor
+                    window.navigationBarColor = navBarColor
                 }
                 Surface(
                     modifier = Modifier.fillMaxSize()

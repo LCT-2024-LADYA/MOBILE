@@ -23,7 +23,7 @@ import ru.gozerov.presentation.ui.theme.FitLadyaTheme
 fun ProfileToolbar(onNavUpClick: () -> Unit) {
     Box(
         modifier = Modifier
-            .padding(horizontal = 8.dp)
+            .padding(all = 8.dp)
             .fillMaxWidth()
     ) {
         IconButton(
@@ -33,8 +33,7 @@ fun ProfileToolbar(onNavUpClick: () -> Unit) {
         ) {
             Icon(
                 modifier = Modifier
-                    .size(48.dp)
-                    .padding(6.dp),
+                    .size(48.dp),
                 imageVector = Icons.AutoMirrored.Outlined.KeyboardArrowLeft,
                 contentDescription = null,
                 tint = FitLadyaTheme.colors.text

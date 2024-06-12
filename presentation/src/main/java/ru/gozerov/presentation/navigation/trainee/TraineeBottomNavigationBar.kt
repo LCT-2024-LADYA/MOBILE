@@ -19,7 +19,7 @@ import ru.gozerov.presentation.ui.theme.FitLadyaTheme
 fun TraineeBottomNavigationBar(navController: NavController, contentPaddingValues: PaddingValues) {
     BottomNavigation(
         modifier = Modifier.padding(bottom = contentPaddingValues.calculateBottomPadding()),
-        backgroundColor = FitLadyaTheme.colors.primaryBackground,
+        backgroundColor = FitLadyaTheme.colors.secondary,
     ) {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentDestination = navBackStackEntry?.destination

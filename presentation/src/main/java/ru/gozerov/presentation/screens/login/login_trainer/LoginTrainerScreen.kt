@@ -76,7 +76,7 @@ fun LoginTrainerScreen(
         is LoginTrainerEffect.None -> {}
         is LoginTrainerEffect.SuccessLogin -> {
             viewModel.handleIntent(LoginTrainerIntent.Reset)
-            navController.navigate(Screen.TrainerProfile.route) {
+            navController.navigate(Screen.TrainerTabs.route) {
                 popUpTo(Screen.LoginTrainer.route) {
                     inclusive = true
                 }

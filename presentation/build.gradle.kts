@@ -91,4 +91,7 @@ dependencies {
     implementation(libs.paging.runtime)
     implementation(libs.paging.compose)
 
+    //Graphics
+    implementation(libs.graphics)
+
 }

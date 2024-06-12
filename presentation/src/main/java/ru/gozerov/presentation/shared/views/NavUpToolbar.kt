@@ -12,12 +12,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import ru.gozerov.presentation.R
 import ru.gozerov.presentation.ui.theme.FitLadyaTheme
 
 @Composable
@@ -49,7 +47,7 @@ fun NavUpToolbar(navController: NavController) {
 fun NavUpWithTitleToolbar(navController: NavController, title: String) {
     Box(
         modifier = Modifier
-            .padding(horizontal = 8.dp)
+            .padding(all = 8.dp)
             .fillMaxWidth()
     ) {
         IconButton(
@@ -61,8 +59,7 @@ fun NavUpWithTitleToolbar(navController: NavController, title: String) {
         ) {
             Icon(
                 modifier = Modifier
-                    .size(48.dp)
-                    .padding(6.dp),
+                    .size(48.dp),
                 imageVector = Icons.AutoMirrored.Outlined.KeyboardArrowLeft,
                 contentDescription = null,
                 tint = FitLadyaTheme.colors.text

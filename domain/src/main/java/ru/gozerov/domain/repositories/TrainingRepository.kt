@@ -43,4 +43,6 @@ interface TrainingRepository {
 
     suspend fun getAddedExercises(): List<Exercise>
 
+    suspend fun clearAddedTrainings()
+
 }

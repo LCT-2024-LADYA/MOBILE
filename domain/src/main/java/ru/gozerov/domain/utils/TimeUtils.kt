@@ -105,3 +105,17 @@ fun convertLocalDateDateToUTC(
 
     return utcDateTimeString
 }
+
+fun getAgeString(age: Int): String {
+    val lastDigit = age % 10
+    val lastTwoDigits = age % 100
+
+    val ageSuffix = when {
+        lastTwoDigits in 11..19 -> "лет"
+        lastDigit == 1 -> "год"
+        lastDigit in 2..4 -> "года"
+        else -> "лет"
+    }
+
+    return "$age $ageSuffix"
+}

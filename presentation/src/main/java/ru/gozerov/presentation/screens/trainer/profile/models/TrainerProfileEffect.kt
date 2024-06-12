@@ -1,4 +1,4 @@
-package ru.gozerov.presentation.screens.trainer.models
+package ru.gozerov.presentation.screens.trainer.profile.models
 
 import ru.gozerov.domain.models.Role
 import ru.gozerov.domain.models.Specialization
@@ -25,5 +25,7 @@ sealed interface TrainerProfileEffect {
     data object SuccessUpdatedProfile : TrainerProfileEffect
 
     class Error(val message: String) : TrainerProfileEffect
+
+    object Logout : TrainerProfileEffect
 
 }

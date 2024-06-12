@@ -1,4 +1,4 @@
-package ru.gozerov.presentation.screens.trainee.profile
+package ru.gozerov.presentation.screens.trainee.profile.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -11,8 +11,8 @@ import ru.gozerov.domain.usecases.GetClientInfoUseCase
 import ru.gozerov.domain.usecases.LogoutAsClientUseCase
 import ru.gozerov.domain.usecases.UpdateClientInfoUseCase
 import ru.gozerov.domain.usecases.UpdateClientPhotoUseCase
-import ru.gozerov.presentation.screens.trainee.profile.models.ClientProfileEffect
-import ru.gozerov.presentation.screens.trainee.profile.models.ClientProfileIntent
+import ru.gozerov.presentation.screens.trainee.profile.profile.models.ClientProfileEffect
+import ru.gozerov.presentation.screens.trainee.profile.profile.models.ClientProfileIntent
 import ru.gozerov.presentation.shared.utils.runCatchingNonCancellation
 import javax.inject.Inject
 

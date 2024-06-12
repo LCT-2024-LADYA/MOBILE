@@ -1,6 +1,7 @@
 package ru.gozerov.presentation.screens.trainee.diary.create_training.models
 
 import ru.gozerov.domain.models.Exercise
+import ru.gozerov.domain.models.Training
 
 sealed interface CreateTrainingEffect {
 
@@ -8,6 +9,10 @@ sealed interface CreateTrainingEffect {
 
     data class AddedExercises(
         val exercises: List<Exercise>
+    ) : CreateTrainingEffect
+
+    data class LoadedTraining(
+        val training: Training
     ) : CreateTrainingEffect
 
     object CreatedTraining : CreateTrainingEffect

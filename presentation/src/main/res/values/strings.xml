@@ -31,7 +31,9 @@
     <string name="input_sex">Пол</string>
     <string name="sex">Пол</string>
     <string name="sex_man">Мужской</string>
+    <string name="sex_man_d">мужской</string>
     <string name="sex_woman">Женский</string>
+    <string name="sex_woman_d">женский</string>
     <string name="email">Почта</string>
     <string name="incorrect_age">Некорректный возраст</string>
     <string name="save_changes">Сохранить изменения</string>
@@ -95,5 +97,15 @@
     <string name="choose_exercise">Выберите упражнение</string>
     <string name="no_trainings_today">В этот день тренировок нет</string>
     <string name="add_training">Добавить тренировку</string>
+    <string name="search_in_chats">Поиск по чатам</string>
+    <string name="message">Сообщение</string>
+    <string name="attach_service">Прикрепить услугу</string>
+    <string name="price_is">%1$d руб.</string>
+    <string name="users">Пользователи</string>
+    <string name="to_text">Написать</string>
+    <string name="to_text_trainer">Написать тренеру</string>
+    <string name="trainer_schedule">Расписание тренера</string>
+    <string name="show_progress">Показать прогресс</string>
+    <string name="update">Обновить</string>
     <integer name="com_vk_sdk_AppId">51938469</integer>
 </resources>

@@ -2,6 +2,8 @@ package ru.gozerov.presentation.shared.views
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -26,11 +29,14 @@ import ru.gozerov.presentation.R
 import ru.gozerov.presentation.ui.theme.FitLadyaTheme
 
 @Composable
-fun SimpleTrainingCard(trainingCard: CustomTraining) {
+fun SimpleTrainingCard(trainingCard: CustomTraining, onClick: (() -> Unit)? = null) {
     Box(
         modifier = Modifier
             .padding(horizontal = 16.dp)
             .fillMaxWidth()
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }) { onClick?.invoke() }
             .background(color = FitLadyaTheme.colors.primary, shape = RoundedCornerShape(18.dp))
     )
     {
@@ -45,7 +51,9 @@ fun SimpleTrainingCard(trainingCard: CustomTraining) {
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    modifier = Modifier.padding(vertical = 16.dp, horizontal = 16.dp).weight(1f),
+                    modifier = Modifier
+                        .padding(vertical = 16.dp, horizontal = 16.dp)
+                        .weight(1f),
                     text = trainingCard.name,
                     fontWeight = FontWeight.Medium,
                     fontSize = 16.sp,
@@ -88,11 +96,16 @@ fun SimpleTrainingCard(trainingCard: CustomTraining) {
 }
 
 @Composable
-fun SimpleTrainingCard(trainingCard: TrainingCard) {
+fun SimpleTrainingCard(trainingCard: TrainingCard, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .padding(horizontal = 16.dp)
             .fillMaxWidth()
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }) {
+                onClick()
+            }
             .background(color = FitLadyaTheme.colors.primary, shape = RoundedCornerShape(18.dp))
     )
     {
@@ -107,7 +120,9 @@ fun SimpleTrainingCard(trainingCard: TrainingCard) {
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    modifier = Modifier.padding(vertical = 16.dp, horizontal = 16.dp).weight(1f),
+                    modifier = Modifier
+                        .padding(vertical = 16.dp, horizontal = 16.dp)
+                        .weight(1f),
                     text = trainingCard.name,
                     fontWeight = FontWeight.Medium,
                     fontSize = 16.sp,

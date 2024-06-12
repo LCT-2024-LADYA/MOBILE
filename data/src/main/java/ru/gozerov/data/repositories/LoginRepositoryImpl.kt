@@ -256,6 +256,10 @@ class LoginRepositoryImpl @Inject constructor(
         loginStorage.clearClientTokens()
     }
 
+    override suspend fun logoutAsTrainer() {
+        loginStorage.clearTrainerTokens()
+    }
+
     private fun getImagePart(imageUri: Uri?): MultipartBody.Part? {
         var part: MultipartBody.Part? = null
         imageUri?.let { uri ->

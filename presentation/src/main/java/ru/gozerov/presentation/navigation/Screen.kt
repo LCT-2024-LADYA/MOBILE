@@ -33,4 +33,28 @@ sealed class Screen(
 
     object FindTraining : Screen("findTraining")
 
+    object TrainingDetails : Screen("trainingDetails")
+
+    object ClientDiary : Screen("clientDiary")
+
+    object ClientChatList : Screen("clientChatList")
+
+    object ClientChat : Screen("clientChat")
+
+    object TrainerDiary : Screen("trainerDiary")
+
+    object TrainerChatList : Screen("trainerChatList")
+
+    object TrainerChat : Screen("trainerChat")
+
+    object TrainerTabs : Screen("trainerTabs")
+
+    object ClientCard : Screen("clientCard")
+
+    object TrainerCard : Screen("trainerCard")
+
+    object ClientStatisticsScreen : Screen("clientStatistics")
+
+    object TraineeProfile : Screen("traineeProfile")
+
 }

@@ -1,6 +1,7 @@
 package ru.gozerov.presentation.screens.trainee.diary.create_training
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,6 +20,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
@@ -36,6 +38,7 @@ import androidx.navigation.NavController
 import ru.gozerov.domain.models.CreateExerciseModel
 import ru.gozerov.domain.models.CreateTrainingModel
 import ru.gozerov.domain.models.Exercise
+import ru.gozerov.domain.models.toExercise
 import ru.gozerov.presentation.R
 import ru.gozerov.presentation.navigation.Screen
 import ru.gozerov.presentation.screens.trainee.diary.create_training.models.CreateTrainingEffect
@@ -53,6 +56,7 @@ import ru.gozerov.presentation.ui.theme.FitLadyaTheme
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun CreateTrainingScreen(
+    trainingId: Int?,
     parentNavController: NavController,
     navController: NavController,
     contentPaddingValues: PaddingValues,
@@ -80,6 +84,15 @@ fun CreateTrainingScreen(
 
     val errorMessage = stringResource(id = R.string.incorrect_data)
 
+    LaunchedEffect(null) {
+        if (exercises.value.isEmpty()) {
+            viewModel.handleIntent(CreateTrainingIntent.Clear)
+            trainingId?.let {
+                viewModel.handleIntent(CreateTrainingIntent.GetTraining(trainingId))
+            }
+        }
+    }
+
     SideEffect {
         viewModel.handleIntent(CreateTrainingIntent.GetAddedExercises)
     }
@@ -87,7 +100,15 @@ fun CreateTrainingScreen(
     when (effect) {
         is CreateTrainingEffect.None -> {}
         is CreateTrainingEffect.AddedExercises -> {
+            Log.e("AAA", "hu")
             exercises.value = effect.exercises
+        }
+
+        is CreateTrainingEffect.LoadedTraining -> {
+            trainingName.value = effect.training.name
+            description.value = effect.training.description
+            exercises.value = effect.training.exercises.map { exercise -> exercise.toExercise() }
+            viewModel.handleIntent(CreateTrainingIntent.Reset)
         }
 
         is CreateTrainingEffect.Error -> {

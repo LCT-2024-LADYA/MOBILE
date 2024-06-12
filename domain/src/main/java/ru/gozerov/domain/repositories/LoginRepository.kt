@@ -56,4 +56,6 @@ interface LoginRepository {
 
     suspend fun logoutAsClient()
 
+    suspend fun logoutAsTrainer()
+
 }

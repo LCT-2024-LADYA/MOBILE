@@ -1,4 +1,4 @@
-package ru.gozerov.presentation.screens.trainer
+package ru.gozerov.presentation.screens.trainer.profile
 
 import android.annotation.SuppressLint
 import android.net.Uri
@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -75,9 +76,10 @@ import ru.gozerov.domain.models.Specialization
 import ru.gozerov.domain.models.TrainerMainInfoDTO
 import ru.gozerov.domain.models.TrainerService
 import ru.gozerov.presentation.R
+import ru.gozerov.presentation.navigation.Screen
 import ru.gozerov.presentation.screens.trainee.profile.edit.EditProfileView
-import ru.gozerov.presentation.screens.trainer.models.TrainerProfileEffect
-import ru.gozerov.presentation.screens.trainer.models.TrainerProfileIntent
+import ru.gozerov.presentation.screens.trainer.profile.models.TrainerProfileEffect
+import ru.gozerov.presentation.screens.trainer.profile.models.TrainerProfileIntent
 import ru.gozerov.presentation.shared.utils.isValidAge
 import ru.gozerov.presentation.shared.utils.isValidEmail
 import ru.gozerov.presentation.shared.utils.showError
@@ -89,7 +91,12 @@ import ru.gozerov.presentation.ui.theme.FitLadyaTheme
 @OptIn(ExperimentalMaterialApi::class, ExperimentalLayoutApi::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun TrainerProfileScreen(navController: NavController, viewModel: TrainerProfileViewModel) {
+fun TrainerProfileScreen(
+    parentNavController: NavController,
+    navController: NavController,
+    viewModel: TrainerProfileViewModel,
+    paddingValues: PaddingValues
+) {
     val effect = viewModel.effect.collectAsState().value
 
     LaunchedEffect(null) {
@@ -213,6 +220,15 @@ fun TrainerProfileScreen(navController: NavController, viewModel: TrainerProfile
             viewModel.handleIntent(TrainerProfileIntent.Reset)
         }
 
+        is TrainerProfileEffect.Logout -> {
+            viewModel.handleIntent(TrainerProfileIntent.Reset)
+            parentNavController.navigate(Screen.ChoiceLogin.route) {
+                popUpTo(Screen.TrainerTabs.route) {
+                    inclusive = true
+                }
+            }
+        }
+
     }
 
     val sheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
@@ -272,6 +288,7 @@ fun TrainerProfileScreen(navController: NavController, viewModel: TrainerProfile
     ) {
         Scaffold(
             modifier = Modifier
+                .padding(paddingValues)
                 .fillMaxSize()
                 .clickable(
                     indication = null,
@@ -754,7 +771,14 @@ fun TrainerProfileScreen(navController: NavController, viewModel: TrainerProfile
                         modifier = Modifier.padding(vertical = 24.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        Row {
+                        Row(
+                            modifier = Modifier.clickable(
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() }
+                            ) {
+                                viewModel.handleIntent(TrainerProfileIntent.Logout)
+                            }
+                        ) {
                             Text(
                                 text = stringResource(id = R.string.logout),
                                 fontWeight = FontWeight.Medium,

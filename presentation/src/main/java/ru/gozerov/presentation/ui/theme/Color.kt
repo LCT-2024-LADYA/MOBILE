@@ -16,10 +16,7 @@ val baseLightPalette = FitLadyaColors(
     buttonText = Color(0xFF644595),
     primaryBorder = Color(0xFFD6D6D6),
     secondaryBorder = Color(0xFFD6D6D6),
-    card0 = Color(0xFFF0EFFD),
-    card1 = Color(0xFFC1EFA4),
-    card2 = Color(0xFFFFCEB9),
-    card3 = Color(0xFFABB9E9)
+    avatarBackground = Color(0xFFD9D9D9)
 )
 
 val baseDarkPalette = FitLadyaColors(
@@ -36,8 +33,5 @@ val baseDarkPalette = FitLadyaColors(
     buttonText = Color(0xFFEEEEEE),
     primaryBorder = Color(0xFF47444D),
     secondaryBorder = Color(0xFF333333),
-    card0 = Color(0xFFF0EFFD),
-    card1 = Color(0xFFC1EFA4),
-    card2 = Color(0xFFFFCEB9),
-    card3 = Color(0xFFABB9E9)
+    avatarBackground = Color(0xFF333138)
 )

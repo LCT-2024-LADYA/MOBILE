@@ -167,7 +167,13 @@ fun FindTrainingScreen(
                             items(pagingData.itemCount) { index ->
                                 val card = allTrainings.value!![index]
                                 card?.let { training ->
-                                    SimpleTrainingCard(trainingCard = training)
+                                    SimpleTrainingCard(trainingCard = training) {
+                                        navController.currentBackStackEntry?.savedStateHandle?.set(
+                                            "id",
+                                            training.id
+                                        )
+                                        navController.navigate(Screen.CreateTraining.route)
+                                    }
                                 }
                             }
                         }
@@ -176,7 +182,13 @@ fun FindTrainingScreen(
                             items(pagingData.itemCount) { index ->
                                 val card = userTrainings.value!![index]
                                 card?.let { training ->
-                                    SimpleTrainingCard(trainingCard = training)
+                                    SimpleTrainingCard(trainingCard = training) {
+                                        navController.currentBackStackEntry?.savedStateHandle?.set(
+                                            "id",
+                                            training.id
+                                        )
+                                        navController.navigate(Screen.CreateTraining.route)
+                                    }
                                 }
                             }
                         }
@@ -191,6 +203,7 @@ fun FindTrainingScreen(
                     .align(Alignment.BottomEnd)
                     .background(FitLadyaTheme.colors.primary, CircleShape),
                 onClick = {
+                    navController.currentBackStackEntry?.savedStateHandle?.remove<Int>("id")
                     navController.navigate(Screen.CreateTraining.route)
                 }
             ) {

@@ -46,6 +46,14 @@ class LoginStorageImpl @Inject constructor(
             .apply()
     }
 
+    override fun clearTrainerTokens() {
+        sharedPrefs
+            .edit()
+            .remove(KEY_TRAINER_ACCESS_TOKEN)
+            .remove(KEY_TRAINER_REFRESH_TOKEN)
+            .apply()
+    }
+
     companion object {
 
         private const val KEY_CLIENT_ACCESS_TOKEN = "clientAccessToken"

@@ -157,4 +157,8 @@ class TrainingRepositoryImpl @Inject constructor(
 
     override suspend fun getAddedExercises(): List<Exercise> = exercises.toList()
 
+    override suspend fun clearAddedTrainings() {
+        exercises.clear()
+    }
+
 }

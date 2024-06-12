@@ -35,6 +35,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -90,12 +91,12 @@ fun DiaryScreen(
     val primaryColor = FitLadyaTheme.colors.primary
     val todayDateBackground = FitLadyaTheme.colors.secondary
     val todayDateBackgroundState = remember { mutableStateOf(todayDateBackground) }
-    val selectedDay = remember { mutableIntStateOf(-1) }
+    val selectedDay = rememberSaveable { mutableIntStateOf(-1) }
 
-    val dayTrainings = remember { mutableStateOf<List<CustomTraining>>(emptyList()) }
+    val dayTrainings = rememberSaveable { mutableStateOf<List<CustomTraining>>(emptyList()) }
     val scheduledTrainings = remember { mutableStateOf<List<ScheduledTraining>>(emptyList()) }
 
-    val showEmpty = remember { mutableStateOf(false) }
+    val showEmpty = rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(null) {
         viewModel.handleIntent(DiaryIntent.GetSchedule(monthState.value.currentMonth.monthValue))
@@ -286,10 +287,11 @@ fun DiaryScreen(
                                 val circleCount = scheduledTrainings.value.first { training ->
                                     training.date == convertLocalDateDateToUTC(dayState.date)
                                 }.ids.size
-                                (0 until circleCount).forEach { _ ->
-                                    Row(modifier = Modifier.padding(top = 4.dp)) {
+                                Row(modifier = Modifier.padding(top = 4.dp)) {
+                                    (0 until circleCount).forEach { _ ->
                                         Box(
                                             modifier = Modifier
+                                                .padding(horizontal = 1.dp)
                                                 .size(4.dp)
                                                 .background(
                                                     color = FitLadyaTheme.colors.accent,
@@ -341,14 +343,15 @@ fun DiaryScreen(
                             )
                             if (scheduledTrainings.value.any { training ->
                                     training.date == convertLocalDateDateToUTC(dayState.date)
-                                })
+                                }) {
+                                val circleCount = scheduledTrainings.value.first { training ->
+                                    training.date == convertLocalDateDateToUTC(dayState.date)
+                                }.ids.size
                                 Row(modifier = Modifier.padding(top = 4.dp)) {
-                                    val circleCount = scheduledTrainings.value.first { training ->
-                                        training.date == convertLocalDateDateToUTC(dayState.date)
-                                    }.ids.size
                                     (0 until circleCount).forEach { _ ->
                                         Box(
                                             modifier = Modifier
+                                                .padding(horizontal = 1.dp)
                                                 .size(4.dp)
                                                 .background(
                                                     color = FitLadyaTheme.colors.accent,
@@ -357,6 +360,7 @@ fun DiaryScreen(
                                         )
                                     }
                                 }
+                            }
                         }
                     }
                 }
@@ -369,7 +373,16 @@ fun DiaryScreen(
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         items(dayTrainings.value.size) { index ->
-                            SimpleTrainingCard(trainingCard = dayTrainings.value[index])
+                            SimpleTrainingCard(trainingCard = dayTrainings.value[index]) {
+                                navController.currentBackStackEntry?.savedStateHandle?.set(
+                                    "training",
+                                    dayTrainings.value[index]
+                                )
+                                navController.navigate(Screen.TrainingDetails.route)
+                            }
+                        }
+                        item {
+                            Spacer(modifier = Modifier.height(48.dp))
                         }
                     }
                     Button(

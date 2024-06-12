@@ -13,6 +13,12 @@ sealed interface CreateTrainingIntent {
         val timeEnd: String
     ) : CreateTrainingIntent
 
+    data class GetTraining(
+        val id: Int
+    ) : CreateTrainingIntent
+
     object GetAddedExercises : CreateTrainingIntent
+
+    object Clear : CreateTrainingIntent
 
 }

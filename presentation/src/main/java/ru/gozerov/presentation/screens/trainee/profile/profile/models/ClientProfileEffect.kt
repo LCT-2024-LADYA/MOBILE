@@ -1,4 +1,4 @@
-package ru.gozerov.presentation.screens.trainee.profile.models
+package ru.gozerov.presentation.screens.trainee.profile.profile.models
 
 import ru.gozerov.domain.models.ClientInfo
 
