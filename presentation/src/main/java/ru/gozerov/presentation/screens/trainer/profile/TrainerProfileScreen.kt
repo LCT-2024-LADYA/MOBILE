@@ -193,6 +193,10 @@ fun TrainerProfileScreen(
             viewModel.handleIntent(TrainerProfileIntent.Reset)
         }
 
+        is TrainerProfileEffect.RemovedPhoto -> {
+            photoState.value = null
+        }
+
         is TrainerProfileEffect.SuccessCreatedService -> {
             val newServices = trainerServicesState.value.toMutableList()
             newServices.add(TrainerService(effect.id, effect.name, effect.price))
@@ -249,6 +253,9 @@ fun TrainerProfileScreen(
                         newPhotoState.value = uri
                         viewModel.handleIntent(TrainerProfileIntent.UpdatePhoto(notNullUri))
                     }
+                },
+                onRemovePhotoClick = {
+                    viewModel.handleIntent(TrainerProfileIntent.RemovePhoto)
                 },
                 onSaveClicked = {
                     if (!isValidEmail(emailState.value)) {
@@ -577,7 +584,22 @@ fun TrainerProfileScreen(
                                 ChipItem(text = specialization.name) { name ->
                                     val newSpecializations =
                                         trainerSpecializationState.value.toMutableList()
-                                    newSpecializations.removeIf { s -> s.name == name }
+                                    var removedItem: Specialization? = null
+                                    newSpecializations.removeIf { s ->
+                                        if (s.name == name)
+                                            removedItem = s
+                                        s.name == name
+                                    }
+                                    removedItem?.let { item ->
+                                        val newAll = allSpecializations.value.toMutableList()
+                                        val newFilters =
+                                            filteredSpecializations.value.toMutableList()
+                                        newFilters.add(item)
+                                        newAll.add(item)
+                                        filteredSpecializations.value = newFilters
+                                        allSpecializations.value = newAll
+                                    }
+                                    isSpecializationExpanded = false
                                     trainerSpecializationState.value = newSpecializations
                                 }
                             }

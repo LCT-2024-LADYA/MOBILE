@@ -5,18 +5,21 @@ sealed interface ChatListIntent {
     object Reset : ChatListIntent
 
     data class Init(
-        val queryTrainers: String,
+        val query: String,
         val roles: List<Int>,
-        val specializations: List<Int>,
-        val queryChats: String
+        val specializations: List<Int>
     ) : ChatListIntent
 
-    object LoadChats : ChatListIntent
+    data class LoadChats(
+        val query: String
+    ) : ChatListIntent
 
     data class LoadTrainers(
         val query: String,
         val roles: List<Int>,
         val specializations: List<Int>
     ) : ChatListIntent
+
+    object LoadRolesAndSpecializations : ChatListIntent
 
 }

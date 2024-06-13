@@ -159,7 +159,15 @@ fun RegisterScreen(
                     } else if (!isValidPassword(passwordState.value)) {
                         snackbarHostState.showError(coroutineScope, incorrectPasswordMessage)
                     } else if (!isRepeatError) {
-                        navController.navigate(Screen.RegisterProfile.route + "/${emailState.value}/${passwordState.value}")
+                        navController.currentBackStackEntry?.savedStateHandle?.set(
+                            "email",
+                            emailState.value
+                        )
+                        navController.currentBackStackEntry?.savedStateHandle?.set(
+                            "password",
+                            passwordState.value
+                        )
+                        navController.navigate(Screen.RegisterProfile.route)
                     }
                 }
             ) {

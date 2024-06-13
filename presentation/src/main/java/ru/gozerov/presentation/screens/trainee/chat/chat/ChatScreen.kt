@@ -40,8 +40,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -52,6 +54,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import kotlinx.coroutines.launch
 import ru.gozerov.domain.models.ChatCard
 import ru.gozerov.domain.models.ChatMessage
+import ru.gozerov.domain.models.TrainerService
 import ru.gozerov.domain.utils.parseDateToHoursAndMinutes
 import ru.gozerov.presentation.R
 import ru.gozerov.presentation.navigation.Screen
@@ -84,14 +87,21 @@ internal fun ChatScreen(
         bottomSheetState = rememberBottomSheetState(BottomSheetValue.Collapsed)
     )
 
+    val services = remember { mutableStateOf<List<TrainerService>>(emptyList()) }
     val messages = remember { mutableStateOf<LazyPagingItems<ChatMessage>?>(null) }
 
     LaunchedEffect(null) {
-        viewModel.handleIntent(ChatIntent.GetMessages(trainer.id))
+        viewModel.handleIntent(ChatIntent.GetTrainerServices(trainer.id))
     }
 
     when (effect) {
         is ChatEffect.None -> {}
+
+        is ChatEffect.TrainerServices -> {
+            services.value = effect.services
+            viewModel.handleIntent(ChatIntent.GetMessages(trainer.id))
+        }
+
         is ChatEffect.LoadedMessages -> {
             val data = effect.messages.collectAsLazyPagingItems()
             if (data.itemCount != 0) {
@@ -114,7 +124,13 @@ internal fun ChatScreen(
         sheetPeekHeight = 0.dp,
         sheetShape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
         sheetContent = {
-            AttachServiceBottomSheet(serviceMessageState)
+            AttachServiceBottomSheet(serviceMessageState, services.value) { id, message ->
+                viewModel.handleIntent(ChatIntent.SendMessage(trainer.id, message, id))
+                serviceMessageState.value = ""
+                coroutineScope.launch {
+                    scaffoldState.bottomSheetState.collapse()
+                }
+            }
         }
     ) {
         Scaffold(
@@ -215,9 +231,12 @@ internal fun ChatScreen(
                                 val message = messages.value!![index]
                                 message?.let {
                                     if (message.isToUser)
-                                        UserMessageCard(message = message)
+                                        UserMessageCard(
+                                            message = message,
+                                            services = services.value
+                                        )
                                     else
-                                        MeMessageCard(message = message)
+                                        MeMessageCard(message = message, services = services.value)
                                 }
                             }
                         }
@@ -258,9 +277,10 @@ internal fun ChatScreen(
 }
 
 @Composable
-fun MeMessageCard(message: ChatMessage) {
+fun MeMessageCard(message: ChatMessage, services: List<TrainerService>) {
     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
         Column(
+            horizontalAlignment = Alignment.End,
             modifier = Modifier
                 .widthIn(120.dp, 280.dp)
                 .padding(horizontal = 16.dp, vertical = 4.dp)
@@ -273,17 +293,53 @@ fun MeMessageCard(message: ChatMessage) {
                     )
                 )
                 .padding(horizontal = 12.dp, vertical = 6.dp),
-            horizontalAlignment = Alignment.End
         ) {
-            message.message?.let { text ->
-                Text(
-                    text = text,
-                    color = FitLadyaTheme.colors.text,
-                    fontSize = 16.sp
-                )
+
+            Column(
+                modifier = Modifier
+                    .widthIn(64.dp, 280.dp),
+                horizontalAlignment = Alignment.Start
+            ) {
+                message.serviceId?.let { serviceId ->
+                    val service = services.firstOrNull { s -> s.id == serviceId }
+                    service?.let {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                modifier = Modifier.padding(end = 8.dp),
+                                painter = painterResource(id = R.drawable.ic_trainer_service),
+                                contentDescription = null,
+                                tint = FitLadyaTheme.colors.accent
+                            )
+                            Column {
+                                Text(
+                                    text = service.name,
+                                    color = FitLadyaTheme.colors.text,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = stringResource(id = R.string.price_is, service.price),
+                                    color = FitLadyaTheme.colors.text.copy(alpha = 0.48f),
+                                    maxLines = 1,
+                                    fontSize = 12.sp,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                            }
+                        }
+                    }
+                }
+                message.message?.let { text ->
+                    Text(
+                        text = text,
+                        color = FitLadyaTheme.colors.text,
+                        fontSize = 16.sp
+                    )
+                }
             }
             Text(
-                modifier = Modifier.padding(end = 4.dp),
+                textAlign = TextAlign.End,
                 text = parseDateToHoursAndMinutes(message.time),
                 color = FitLadyaTheme.colors.text.copy(alpha = 0.36f)
             )
@@ -292,29 +348,71 @@ fun MeMessageCard(message: ChatMessage) {
 }
 
 @Composable
-fun UserMessageCard(message: ChatMessage) {
+fun UserMessageCard(message: ChatMessage, services: List<TrainerService>) {
     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterStart) {
         Column(
+            horizontalAlignment = Alignment.End,
             modifier = Modifier
                 .widthIn(120.dp, 280.dp)
                 .padding(horizontal = 16.dp, vertical = 4.dp)
                 .background(
-                    color = FitLadyaTheme.colors.secondary,
-                    shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp, bottomEnd = 12.dp)
+                    color = FitLadyaTheme.colors.primary,
+                    shape = RoundedCornerShape(
+                        topStart = 12.dp,
+                        topEnd = 12.dp,
+                        bottomStart = 12.dp
+                    )
                 )
                 .padding(horizontal = 12.dp, vertical = 6.dp),
-            horizontalAlignment = Alignment.End
         ) {
-            message.message?.let { text ->
-                Text(
-                    text = text,
-                    color = FitLadyaTheme.colors.text,
-                    fontSize = 16.sp
-                )
+            Column(
+                modifier = Modifier.widthIn(64.dp, 280.dp),
+                horizontalAlignment = Alignment.Start
+            ) {
+                message.serviceId?.let { serviceId ->
+                    val service = services.firstOrNull { s -> s.id == serviceId }
+                    service?.let {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                modifier = Modifier.padding(end = 8.dp),
+                                painter = painterResource(id = R.drawable.ic_trainer_service),
+                                contentDescription = null,
+                                tint = FitLadyaTheme.colors.accent
+                            )
+                            Column {
+                                Text(
+                                    text = service.name,
+                                    color = FitLadyaTheme.colors.text,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = stringResource(id = R.string.price_is, service.price),
+                                    color = FitLadyaTheme.colors.text.copy(alpha = 0.48f),
+                                    maxLines = 1,
+                                    fontSize = 12.sp,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                            }
+                        }
+                    }
+                }
+                message.message?.let { text ->
+
+                    Text(
+                        modifier = Modifier.widthIn(64.dp, 280.dp),
+                        text = text,
+                        color = FitLadyaTheme.colors.text,
+                        fontSize = 16.sp,
+                        textAlign = TextAlign.Start
+                    )
+                }
             }
             Text(
-                modifier = Modifier.padding(end = 4.dp),
                 text = parseDateToHoursAndMinutes(message.time),
+                textAlign = TextAlign.End,
                 color = FitLadyaTheme.colors.text.copy(alpha = 0.36f)
             )
         }

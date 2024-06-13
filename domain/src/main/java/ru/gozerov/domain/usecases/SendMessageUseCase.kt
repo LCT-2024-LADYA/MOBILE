@@ -9,8 +9,9 @@ class SendMessageUseCase @Inject constructor(
     private val chatRepository: ChatRepository
 ) {
 
-    suspend operator fun invoke(to: Int, message: String) = withContext(Dispatchers.IO) {
-        return@withContext chatRepository.sendMessage(to, message)
-    }
+    suspend operator fun invoke(to: Int, message: String, serviceId: Int?) =
+        withContext(Dispatchers.IO) {
+            return@withContext chatRepository.sendMessage(to, message, serviceId)
+        }
 
 }

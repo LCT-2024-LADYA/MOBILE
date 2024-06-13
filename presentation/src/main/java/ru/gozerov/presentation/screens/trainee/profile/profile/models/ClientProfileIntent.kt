@@ -22,4 +22,6 @@ sealed interface ClientProfileIntent {
 
     object Logout : ClientProfileIntent
 
+    data object RemovePhoto : ClientProfileIntent
+
 }

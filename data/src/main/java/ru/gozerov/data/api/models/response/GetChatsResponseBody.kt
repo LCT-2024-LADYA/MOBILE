@@ -5,6 +5,6 @@ data class GetChatsResponseBody(
     val first_name: String,
     val last_name: String,
     val last_message: String,
-    val photoUrl: String?,
+    val photo_url: String?,
     val time_last_message: String
 )

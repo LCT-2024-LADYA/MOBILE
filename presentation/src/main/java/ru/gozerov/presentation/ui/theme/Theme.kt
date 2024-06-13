@@ -1,9 +1,12 @@
 package ru.gozerov.presentation.ui.theme
 
+import android.content.Context
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -14,7 +17,7 @@ fun FitLadyaTheme(
     textSize: FitLadyaSize = FitLadyaSize.Medium,
     paddingSize: FitLadyaSize = FitLadyaSize.Medium,
     corners: FitLadyaCorners = FitLadyaCorners.Rounded,
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    darkTheme: Boolean = isNightMode(),
     content: @Composable () -> Unit
 ) {
     val colors = if (darkTheme) baseDarkPalette else baseLightPalette
@@ -71,4 +74,23 @@ fun FitLadyaTheme(
         LocalFitLadyaShape provides shapes,
         content = content
     )
+}
+
+@Composable
+fun isNightMode(): Boolean {
+    val context = LocalContext.current
+    val prefs = context.getSharedPreferences("ladyaPrefs", Context.MODE_PRIVATE)
+    val isDarkTheme = if (prefs.contains("theme")) {
+        prefs.getBoolean("theme", false)
+    } else isSystemInDarkTheme()
+    return isDarkTheme
+}
+
+fun setTheme(context: Context, isDark: Boolean) {
+    val prefs = context.getSharedPreferences("ladyaPrefs", Context.MODE_PRIVATE)
+    prefs
+        .edit()
+        .putBoolean("theme", isDark)
+        .apply()
+    AppCompatDelegate.setDefaultNightMode(if (isDark) AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO)
 }

@@ -66,19 +66,21 @@ fun NavHostContainer(
             }
 
             composable(
-                route = Screen.RegisterProfile.route + "/{email}/{password}"
-            ) { backStackEntry ->
-                val email = backStackEntry.arguments?.getString("email")
-                    ?: throw IllegalArgumentException("no args")
-                val password = backStackEntry.arguments?.getString("password")
-                    ?: throw IllegalArgumentException("no args")
-                val viewModel = hiltViewModel<RegisterViewModel>()
-                RegisterProfileScreen(
-                    navController = navController,
-                    viewModel = viewModel,
-                    email,
-                    password
-                )
+                route = Screen.RegisterProfile.route
+            ) { _ ->
+                val email =
+                    navController.previousBackStackEntry?.savedStateHandle?.get<String>("email")
+                val password =
+                    navController.previousBackStackEntry?.savedStateHandle?.get<String>("password")
+                if (email != null && password != null) {
+                    val viewModel = hiltViewModel<RegisterViewModel>()
+                    RegisterProfileScreen(
+                        navController = navController,
+                        viewModel = viewModel,
+                        email,
+                        password
+                    )
+                }
             }
 
             composable(

@@ -73,4 +73,8 @@ interface LoginRepository {
 
     suspend fun getClientCards(query: String): Flow<PagingData<UserCard>>
 
+    suspend fun removeClientPhoto()
+
+    suspend fun removeTrainerPhoto()
+
 }

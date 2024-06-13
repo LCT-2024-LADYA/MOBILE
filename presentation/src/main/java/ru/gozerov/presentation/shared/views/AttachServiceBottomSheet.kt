@@ -33,10 +33,11 @@ import ru.gozerov.presentation.R
 import ru.gozerov.presentation.ui.theme.FitLadyaTheme
 
 @Composable
-fun AttachServiceBottomSheet(messageState: MutableState<String>) {
-
-    val services =
-        (0..4).map { TrainerService(it, "Тренировка", 1000) }
+fun AttachServiceBottomSheet(
+    messageState: MutableState<String>,
+    services: List<TrainerService>,
+    onSend: (serviceId: Int, message: String) -> Unit
+) {
 
     val selectedService = remember { mutableIntStateOf(-1) }
 
@@ -128,7 +129,11 @@ fun AttachServiceBottomSheet(messageState: MutableState<String>) {
                     onlySend = true,
                     textState = messageState,
                     placeholderText = stringResource(id = R.string.message),
-                    onSend = {},
+                    onSend = {
+                        if (selectedService.intValue != -1 && selectedService.intValue in services.indices) {
+                            onSend(services[selectedService.intValue].id, messageState.value)
+                        }
+                    },
                     onAttach = { /*No using here*/ }
                 )
             }

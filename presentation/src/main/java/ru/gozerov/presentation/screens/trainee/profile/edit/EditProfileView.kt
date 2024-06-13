@@ -5,6 +5,8 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -43,7 +45,8 @@ fun EditProfileView(
     lastNameState: MutableState<String>,
     photo: Any?,
     onPhotoSelected: (uri: Uri?) -> Unit,
-    onSaveClicked: () -> Unit
+    onSaveClicked: () -> Unit,
+    onRemovePhotoClick: () -> Unit
 ) {
     val launchStoragePermissionState = remember { mutableStateOf(false) }
 
@@ -112,7 +115,13 @@ fun EditProfileView(
                     )
                 }
                 Text(
-                    modifier = Modifier.padding(top = 8.dp),
+                    modifier = Modifier
+                        .padding(top = 8.dp)
+                        .clickable(indication = null, interactionSource = remember {
+                            MutableInteractionSource()
+                        }) {
+                            onRemovePhotoClick()
+                        },
                     text = stringResource(id = R.string.remove_photo),
                     color = FitLadyaTheme.colors.text
                 )
@@ -121,10 +130,18 @@ fun EditProfileView(
         }
         Spacer(modifier = Modifier.height(24.dp))
 
-        CustomTextField(labelText = stringResource(id = R.string.name), textState = firstNameState, containerColor = FitLadyaTheme.colors.primaryBackground)
+        CustomTextField(
+            labelText = stringResource(id = R.string.name),
+            textState = firstNameState,
+            containerColor = FitLadyaTheme.colors.primaryBackground
+        )
         Spacer(modifier = Modifier.height(24.dp))
 
-        CustomTextField(labelText = stringResource(id = R.string.lastname), textState = lastNameState, containerColor = FitLadyaTheme.colors.primaryBackground)
+        CustomTextField(
+            labelText = stringResource(id = R.string.lastname),
+            textState = lastNameState,
+            containerColor = FitLadyaTheme.colors.primaryBackground
+        )
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(

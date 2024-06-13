@@ -30,11 +30,11 @@ class TrainerChatListViewModel @Inject constructor(
             when (intent) {
                 is TrainerChatListIntent.Init -> {
                     runCatchingNonCancellation {
-                        getTrainerChatsUseCase.invoke()
+                        getTrainerChatsUseCase.invoke(query = intent.query)
                     }
                         .onSuccess { chats ->
                             runCatchingNonCancellation {
-                                getClientCardsUseCase.invoke(intent.queryClients)
+                                getClientCardsUseCase.invoke(intent.query)
                             }
                                 .onSuccess { clientsFlow ->
                                     _effect.emit(
@@ -59,7 +59,7 @@ class TrainerChatListViewModel @Inject constructor(
 
                 is TrainerChatListIntent.LoadChats -> {
                     runCatchingNonCancellation {
-                        getTrainerChatsUseCase.invoke()
+                        getTrainerChatsUseCase.invoke(intent.query)
                     }
                         .onSuccess { chats ->
                             _effect.emit(TrainerChatListEffect.LoadedChats(chats))

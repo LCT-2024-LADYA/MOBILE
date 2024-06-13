@@ -20,4 +20,6 @@ sealed interface ClientProfileEffect {
 
     data object Logout : ClientProfileEffect
 
+    data object RemovedPhoto : ClientProfileEffect
+
 }

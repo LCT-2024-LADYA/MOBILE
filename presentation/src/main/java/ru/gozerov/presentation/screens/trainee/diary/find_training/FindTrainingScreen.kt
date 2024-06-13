@@ -33,6 +33,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -65,8 +66,8 @@ fun FindTrainingScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
-    val tabs = listOf(stringResource(R.string.all_trainings), stringResource(R.string.favorites))
-    val selectedTab = remember { mutableIntStateOf(0) }
+    val tabs = listOf(stringResource(R.string.all_trainings), stringResource(R.string.my_trainings))
+    val selectedTab = rememberSaveable{ mutableIntStateOf(0) }
 
     val searchState = remember { mutableStateOf("") }
 

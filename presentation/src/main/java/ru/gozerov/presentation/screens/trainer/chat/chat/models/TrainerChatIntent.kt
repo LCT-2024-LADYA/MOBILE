@@ -7,6 +7,8 @@ sealed interface TrainerChatIntent {
 
     object Reset : TrainerChatIntent
 
+    object GetServices : TrainerChatIntent
+
     data class GetMessages(
         val userId: Int
     ) : TrainerChatIntent
@@ -17,7 +19,8 @@ sealed interface TrainerChatIntent {
 
     class SendMessage(
         val to: Int,
-        val message: String
+        val message: String,
+        val serviceId: Int? = null
     ) : TrainerChatIntent
 
     class UpdateIds(

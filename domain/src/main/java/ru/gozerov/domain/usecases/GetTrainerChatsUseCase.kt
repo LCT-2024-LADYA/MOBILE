@@ -10,8 +10,8 @@ class GetTrainerChatsUseCase @Inject constructor(
     private val chatRepository: ChatRepository
 ) {
 
-    suspend operator fun invoke(): List<ChatCard> = withContext(Dispatchers.IO) {
-        return@withContext chatRepository.getTrainerChats()
+    suspend operator fun invoke(query: String): List<ChatCard> = withContext(Dispatchers.IO) {
+        return@withContext chatRepository.getTrainerChats(query)
     }
 
 }

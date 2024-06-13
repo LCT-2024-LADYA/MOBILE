@@ -51,6 +51,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import kotlinx.coroutines.launch
 import ru.gozerov.domain.models.ChatCard
 import ru.gozerov.domain.models.ChatMessage
+import ru.gozerov.domain.models.TrainerService
 import ru.gozerov.presentation.R
 import ru.gozerov.presentation.navigation.Screen
 import ru.gozerov.presentation.screens.trainee.chat.chat.MeMessageCard
@@ -83,14 +84,21 @@ internal fun TrainerChatScreen(
         bottomSheetState = rememberBottomSheetState(BottomSheetValue.Collapsed)
     )
 
+    val services = remember { mutableStateOf<List<TrainerService>>(emptyList()) }
     val messages = remember { mutableStateOf<LazyPagingItems<ChatMessage>?>(null) }
 
     LaunchedEffect(null) {
-        viewModel.handleIntent(TrainerChatIntent.GetMessages(user.id))
+        viewModel.handleIntent(TrainerChatIntent.GetServices)
     }
 
     when (effect) {
         is TrainerChatEffect.None -> {}
+
+        is TrainerChatEffect.TrainerServices -> {
+            services.value = effect.services
+            viewModel.handleIntent(TrainerChatIntent.GetMessages(user.id))
+        }
+
         is TrainerChatEffect.LoadedMessages -> {
             val data = effect.messages.collectAsLazyPagingItems()
             if (data.itemCount != 0) {
@@ -116,7 +124,13 @@ internal fun TrainerChatScreen(
         sheetPeekHeight = 0.dp,
         sheetShape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
         sheetContent = {
-            AttachServiceBottomSheet(serviceMessageState)
+            AttachServiceBottomSheet(serviceMessageState, services.value) { serviceId, message ->
+                viewModel.handleIntent(TrainerChatIntent.SendMessage(user.id, message, serviceId))
+                serviceMessageState.value = ""
+                coroutineScope.launch {
+                    scaffoldState.bottomSheetState.collapse()
+                }
+            }
         }
     ) {
         Scaffold(
@@ -219,9 +233,12 @@ internal fun TrainerChatScreen(
                                 val message = messages.value!![index]
                                 message?.let {
                                     if (!message.isToUser)
-                                        UserMessageCard(message = message)
+                                        UserMessageCard(
+                                            message = message,
+                                            services = services.value
+                                        )
                                     else
-                                        MeMessageCard(message = message)
+                                        MeMessageCard(message = message, services = services.value)
                                 }
                             }
                         }

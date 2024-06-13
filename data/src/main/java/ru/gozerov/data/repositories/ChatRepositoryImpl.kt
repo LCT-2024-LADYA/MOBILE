@@ -1,6 +1,5 @@
 package ru.gozerov.data.repositories
 
-import android.util.Log
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
@@ -46,11 +45,11 @@ class ChatRepositoryImpl @Inject constructor(
     private val trainerMessagePagingSourceFactory: TrainerMessagePagingSource.Factory
 ) : ChatRepository {
 
-    override suspend fun getTrainerChats(): List<ChatCard> = runRequestSafelyNotResult(
+    override suspend fun getTrainerChats(query: String): List<ChatCard> = runRequestSafelyNotResult(
         checkToken = { loginRepository.checkToken() },
         accessTokenAction = { loginStorage.getTrainerAccessToken() },
         action = { token ->
-            chatApi.getTrainerChats(token).map { response -> response.toChatCard() }
+            chatApi.getTrainerChats(token, query).map { response -> response.toChatCard() }
         }
     )
 
@@ -64,11 +63,11 @@ class ChatRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getClientChats(): List<ChatCard> = runRequestSafelyNotResult(
+    override suspend fun getClientChats(query: String): List<ChatCard> = runRequestSafelyNotResult(
         checkToken = { loginRepository.checkToken() },
         accessTokenAction = { loginStorage.getClientAccessToken() },
         action = { token ->
-            chatApi.getUserChats(token).map { response -> response.toChatCard() }
+            chatApi.getUserChats(token, query).map { response -> response.toChatCard() }
         }
     )
 
@@ -116,7 +115,6 @@ class ChatRepositoryImpl @Inject constructor(
                     override fun onMessage(webSocket: WebSocket, text: String) {
                         val message = Json.decodeFromString<ChatMessageDTO>(text).toChatMessage()
                         scope.launch {
-                            Log.e("AAAA", "emit")
                             messageFlow.emit(message)
                             messages.add(message)
                         }
@@ -146,8 +144,8 @@ class ChatRepositoryImpl @Inject constructor(
         )
     }
 
-    override suspend fun sendMessage(to: Int, message: String) {
-        val body = MessageBody("message", MessageData(to, message, null))
+    override suspend fun sendMessage(to: Int, message: String, serviceId: Int?) {
+        val body = MessageBody("message", MessageData(to, message, serviceId))
         currentSocket?.send(Json.encodeToString(body))
     }
 

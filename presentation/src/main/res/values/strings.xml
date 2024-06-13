@@ -109,5 +109,12 @@
     <string name="update">Обновить</string>
     <string name="see_profile">Посмотреть профиль</string>
     <string name="find_trainer">Найти тренера</string>
+    <string name="filters">Фильтры</string>
+    <string name="approve">Применить</string>
+    <string name="my_trainings">Мои тренировки</string>
+    <string name="search_user">Найти пользователя</string>
+    <string name="trainings">Тренировки</string>
+    <string name="paid_services">Оплаченные услуги</string>
+    <string name="dark_theme">Темная тема</string>
     <integer name="com_vk_sdk_AppId">51938469</integer>
 </resources>

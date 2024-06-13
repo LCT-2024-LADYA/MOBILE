@@ -17,12 +17,17 @@ sealed interface ChatIntent {
 
     class SendMessage(
         val to: Int,
-        val message: String
+        val message: String,
+        val serviceId: Int? = null
     ) : ChatIntent
 
     class UpdateIds(
         val trainerId: Int,
         val clientId: Int
+    ) : ChatIntent
+
+    class GetTrainerServices(
+        val trainerId: Int
     ) : ChatIntent
 
     object CheckNewMessages : ChatIntent

@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import ru.gozerov.domain.usecases.GetClientInfoUseCase
 import ru.gozerov.domain.usecases.LogoutAsClientUseCase
+import ru.gozerov.domain.usecases.RemoveClientPhotoUseCase
 import ru.gozerov.domain.usecases.UpdateClientInfoUseCase
 import ru.gozerov.domain.usecases.UpdateClientPhotoUseCase
 import ru.gozerov.presentation.screens.trainee.profile.profile.models.ClientProfileEffect
@@ -21,7 +22,8 @@ class ClientProfileViewModel @Inject constructor(
     private val getClientInfoUseCase: GetClientInfoUseCase,
     private val updateClientInfoUseCase: UpdateClientInfoUseCase,
     private val updateClientPhotoUseCase: UpdateClientPhotoUseCase,
-    private val logoutAsClientUseCase: LogoutAsClientUseCase
+    private val logoutAsClientUseCase: LogoutAsClientUseCase,
+    private val removeClientPhotoUseCase: RemoveClientPhotoUseCase
 ) : ViewModel() {
 
     private val _effect = MutableStateFlow<ClientProfileEffect>(ClientProfileEffect.None)
@@ -35,6 +37,18 @@ class ClientProfileViewModel @Inject constructor(
                     _effect.emit(ClientProfileEffect.None)
                 }
 
+                is ClientProfileIntent.RemovePhoto -> {
+                    runCatchingNonCancellation {
+                        removeClientPhotoUseCase.invoke()
+                    }
+                        .onSuccess {
+                            _effect.emit(ClientProfileEffect.RemovedPhoto)
+                        }
+                        .onFailure { throwable ->
+                            _effect.emit(ClientProfileEffect.Error(throwable.message.toString()))
+                        }
+                }
+
                 is ClientProfileIntent.GetInfo -> {
                     runCatchingNonCancellation {
                         getClientInfoUseCase.invoke()
@@ -45,7 +59,6 @@ class ClientProfileViewModel @Inject constructor(
                                     _effect.emit(ClientProfileEffect.LoadedProfile(info))
                                 }
                                 .onFailure { throwable ->
-
                                     _effect.emit(ClientProfileEffect.Error(throwable.message.toString()))
                                 }
                         }

@@ -10,7 +10,10 @@ import ru.gozerov.data.api.models.response.GetChatsResponseBody
 interface ChatApi {
 
     @GET("api/chat/trainer")
-    suspend fun getTrainerChats(@Header("access_token") token: String): List<GetChatsResponseBody>
+    suspend fun getTrainerChats(
+        @Header("access_token") token: String,
+        @Query("search") query: String
+    ): List<GetChatsResponseBody>
 
     @GET("api/chat/trainer/{user_id}")
     suspend fun getTrainerChatMessages(
@@ -20,7 +23,10 @@ interface ChatApi {
     ): GetChatMessagesResponseBody
 
     @GET("api/chat/user")
-    suspend fun getUserChats(@Header("access_token") token: String): List<GetChatsResponseBody>
+    suspend fun getUserChats(
+        @Header("access_token") token: String,
+        @Query("search") query: String
+    ): List<GetChatsResponseBody>
 
     @GET("api/chat/user/{trainer_id}")
     suspend fun getUserChatMessages(

@@ -69,7 +69,7 @@ internal fun TrainerChatListScreen(
     val clients = remember { mutableStateOf<LazyPagingItems<UserCard>?>(null) }
 
     LaunchedEffect(null) {
-        viewModel.handleIntent(TrainerChatListIntent.Init("", searchState.value))
+        viewModel.handleIntent(TrainerChatListIntent.Init(searchState.value))
     }
     when (effect) {
         is TrainerChatListEffect.None -> {}
@@ -103,12 +103,27 @@ internal fun TrainerChatListScreen(
                 modifier = Modifier.background(color = FitLadyaTheme.colors.secondary)
             ) {
                 Spacer(modifier = Modifier.height(16.dp))
-                SearchTextField(
-                    textState = searchState,
-                    placeholderText = stringResource(id = R.string.search_in_chats),
-                    containerColor = FitLadyaTheme.colors.primaryBackground
-                )
-
+                if (pagerState.currentPage == 0) {
+                    SearchTextField(
+                        textState = searchState,
+                        onValueChange = { text ->
+                            searchState.value = text
+                            viewModel.handleIntent(TrainerChatListIntent.LoadChats(searchState.value))
+                        },
+                        placeholderText = stringResource(id = R.string.search_in_chats),
+                        containerColor = FitLadyaTheme.colors.primaryBackground
+                    )
+                } else {
+                    SearchTextField(
+                        textState = searchState,
+                        onValueChange = { text ->
+                            searchState.value = text
+                            viewModel.handleIntent(TrainerChatListIntent.LoadClients(searchState.value))
+                        },
+                        placeholderText = stringResource(id = R.string.search_user),
+                        containerColor = FitLadyaTheme.colors.primaryBackground
+                    )
+                }
                 TabRow(selectedTabIndex = pagerState.currentPage, indicator = { tabPositions ->
                     val currentTabPosition = tabPositions[pagerState.currentPage]
                     Box(
@@ -144,14 +159,18 @@ internal fun TrainerChatListScreen(
                     }
                 }
             }
-            HorizontalPager(state = pagerState, verticalAlignment = Alignment.Top) { page ->
+            HorizontalPager(
+                modifier = Modifier.weight(1f),
+                state = pagerState,
+                verticalAlignment = Alignment.Top
+            ) { page ->
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
                     item {
                         Spacer(modifier = Modifier.height(0.dp))
                     }
-                    if (pagerState.currentPage == 0) {
+                    if (page == 0) {
                         items(chats.value.size) { index ->
                             SimpleChatCard(chats.value[index]) {
                                 parentNavController.currentBackStackEntry?.savedStateHandle?.set(

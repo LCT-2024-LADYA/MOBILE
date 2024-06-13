@@ -305,6 +305,22 @@ class LoginRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun removeClientPhoto(): Unit = runRequestSafelyNotResult(
+        checkToken = { checkToken() },
+        accessTokenAction = { loginStorage.getClientAccessToken() },
+        action = { token ->
+            loginApi.uploadClientPhoto(token, null)
+        }
+    )
+
+    override suspend fun removeTrainerPhoto(): Unit = runRequestSafelyNotResult(
+        checkToken = { checkToken() },
+        accessTokenAction = { loginStorage.getTrainerAccessToken() },
+        action = { token ->
+            loginApi.uploadTrainerPhoto(token, null)
+        }
+    )
+
     private fun getImagePart(imageUri: Uri?): MultipartBody.Part? {
         var part: MultipartBody.Part? = null
         imageUri?.let { uri ->

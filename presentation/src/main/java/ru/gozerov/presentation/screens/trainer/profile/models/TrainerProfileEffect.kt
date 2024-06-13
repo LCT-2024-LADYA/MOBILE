@@ -24,6 +24,8 @@ sealed interface TrainerProfileEffect {
 
     data object SuccessUpdatedProfile : TrainerProfileEffect
 
+    data object RemovedPhoto : TrainerProfileEffect
+
     class Error(val message: String) : TrainerProfileEffect
 
     object Logout : TrainerProfileEffect

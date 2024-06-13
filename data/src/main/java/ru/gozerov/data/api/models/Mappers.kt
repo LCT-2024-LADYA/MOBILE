@@ -112,14 +112,21 @@ fun CustomTrainingDTO.toTraining() =
     Training(id, name, description, exercises.map { exercise -> exercise.toCustomExercise() })
 
 fun GetChatsResponseBody.toChatCard() =
-    ChatCard(id, first_name, last_name, photoUrl, last_message, time_last_message)
+    ChatCard(
+        id,
+        first_name,
+        last_name,
+        if (photo_url == null) null else BASE_URL_FOR_PHOTO + photo_url,
+        last_message,
+        time_last_message
+    )
 
 fun ChatMessageDTO.toChatMessage() =
     ChatMessage(id, is_to_user, message, service_id, time, trainer_id, user_id)
 
 fun TrainerCover.toTrainerCard() = TrainerCard(
     id,
-    photo_url,
+    if (photo_url == null) null else BASE_URL_FOR_PHOTO + photo_url,
     first_name,
     last_name,
     roles,
@@ -130,7 +137,14 @@ fun TrainerCover.toTrainerCard() = TrainerCard(
     experience
 )
 
-fun ClientCover.toUserCard() = UserCard(id, photo_url, first_name, last_name, sex, age)
+fun ClientCover.toUserCard() = UserCard(
+    id,
+    if (photo_url == null) null else BASE_URL_FOR_PHOTO + photo_url,
+    first_name,
+    last_name,
+    sex,
+    age
+)
 
 fun TrainerProfileDTO.toTrainerInfo() = TrainerInfo(
     id,
@@ -149,4 +163,12 @@ fun TrainerProfileDTO.toTrainerInfo() = TrainerInfo(
 )
 
 fun ClientProfileDTO.toClientInfo() =
-    ClientInfo(id, first_name, last_name, age, email, photo_url, sex)
+    ClientInfo(
+        id,
+        first_name,
+        last_name,
+        age,
+        email,
+        if (photo_url == null) null else BASE_URL_FOR_PHOTO + photo_url,
+        sex
+    )

@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import ru.gozerov.domain.models.ChatMessage
 import ru.gozerov.domain.usecases.CheckNewMessagesUseCase
+import ru.gozerov.domain.usecases.GetTrainerProfileUseCase
 import ru.gozerov.domain.usecases.GetUserChatMessagesUseCase
 import ru.gozerov.domain.usecases.RunWebSocketUseCase
 import ru.gozerov.domain.usecases.SendMessageUseCase
@@ -28,7 +29,8 @@ class ChatViewModel @Inject constructor(
     private val runWebSocketUseCase: RunWebSocketUseCase,
     private val getUserChatMessagesUseCase: GetUserChatMessagesUseCase,
     private val sendMessageUseCase: SendMessageUseCase,
-    private val checkNewMessagesUseCase: CheckNewMessagesUseCase
+    private val checkNewMessagesUseCase: CheckNewMessagesUseCase,
+    private val getTrainerProfileUseCase: GetTrainerProfileUseCase
 ) : ViewModel() {
 
     private val _effect = MutableStateFlow<ChatEffect>(ChatEffect.None)
@@ -85,6 +87,19 @@ class ChatViewModel @Inject constructor(
     fun handleIntent(intent: ChatIntent) {
         viewModelScope.launch {
             when (intent) {
+
+                is ChatIntent.GetTrainerServices -> {
+                    runCatchingNonCancellation {
+                        getTrainerProfileUseCase.invoke(intent.trainerId)
+                    }
+                        .onSuccess { info ->
+                            _effect.emit(ChatEffect.TrainerServices(info.services))
+                        }
+                        .onFailure { throwable ->
+                            _effect.emit(ChatEffect.Error(throwable.message.toString()))
+                        }
+                }
+
                 is ChatIntent.UpdateIds -> {
                     trainerId = intent.trainerId
                     clientId = intent.clientId
@@ -112,7 +127,7 @@ class ChatViewModel @Inject constructor(
 
                 is ChatIntent.SendMessage -> {
                     runCatchingNonCancellation {
-                        sendMessageUseCase.invoke(intent.to, intent.message)
+                        sendMessageUseCase.invoke(intent.to, intent.message, intent.serviceId)
                     }
                         .onSuccess {
                             val time = getCurrentUtcTime()
@@ -121,7 +136,7 @@ class ChatViewModel @Inject constructor(
                                     Random.nextInt(),
                                     false,
                                     intent.message,
-                                    0,
+                                    intent.serviceId,
                                     time,
                                     intent.to,
                                     0

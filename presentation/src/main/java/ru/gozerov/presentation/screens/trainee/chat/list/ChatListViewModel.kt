@@ -8,6 +8,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import ru.gozerov.domain.usecases.GetClientChatsUseCase
+import ru.gozerov.domain.usecases.GetRolesUseCase
+import ru.gozerov.domain.usecases.GetSpecializationsUseCase
 import ru.gozerov.domain.usecases.GetTrainerCardsUseCase
 import ru.gozerov.presentation.screens.trainee.chat.list.models.ChatListEffect
 import ru.gozerov.presentation.screens.trainee.chat.list.models.ChatListIntent
@@ -17,7 +19,9 @@ import javax.inject.Inject
 @HiltViewModel
 class ChatListViewModel @Inject constructor(
     private val getClientChatsUseCase: GetClientChatsUseCase,
-    private val getTrainerCardsUseCase: GetTrainerCardsUseCase
+    private val getTrainerCardsUseCase: GetTrainerCardsUseCase,
+    private val getSpecializationsUseCase: GetSpecializationsUseCase,
+    private val getRolesUseCase: GetRolesUseCase
 ) : ViewModel() {
 
     private val _effect = MutableStateFlow<ChatListEffect>(ChatListEffect.None)
@@ -28,13 +32,41 @@ class ChatListViewModel @Inject constructor(
     fun handleIntent(intent: ChatListIntent) {
         viewModelScope.launch {
             when (intent) {
+                is ChatListIntent.LoadRolesAndSpecializations -> {
+                    getSpecializationsUseCase.invoke()
+                        .onSuccess { specializations ->
+                            viewModelScope.launch {
+                                getRolesUseCase.invoke()
+                                    .onSuccess { roles ->
+                                        _effect.emit(
+                                            ChatListEffect.LoadedRolesAndSpecializations(
+                                                roles,
+                                                specializations
+                                            )
+                                        )
+                                    }
+                                    .onFailure { throwable ->
+                                        _effect.emit(ChatListEffect.Error(throwable.message.toString()))
+                                    }
+                            }
+                        }
+                        .onFailure { throwable ->
+                            _effect.emit(ChatListEffect.Error(throwable.message.toString()))
+                        }
+                }
+
+
                 is ChatListIntent.Init -> {
                     runCatchingNonCancellation {
-                        getClientChatsUseCase.invoke()
+                        getClientChatsUseCase.invoke(intent.query)
                     }
                         .onSuccess { chats ->
                             runCatchingNonCancellation {
-                                getTrainerCardsUseCase.invoke(intent.queryTrainers, intent.roles, intent.specializations)
+                                getTrainerCardsUseCase.invoke(
+                                    intent.query,
+                                    intent.roles,
+                                    intent.specializations
+                                )
                             }
                                 .onSuccess { trainersFlow ->
                                     _effect.emit(
@@ -56,7 +88,7 @@ class ChatListViewModel @Inject constructor(
 
                 is ChatListIntent.LoadChats -> {
                     runCatchingNonCancellation {
-                        getClientChatsUseCase.invoke()
+                        getClientChatsUseCase.invoke(intent.query)
                     }
                         .onSuccess { chats ->
                             _effect.emit(ChatListEffect.LoadedChats(chats))

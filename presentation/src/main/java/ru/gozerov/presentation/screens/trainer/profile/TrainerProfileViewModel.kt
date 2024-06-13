@@ -15,6 +15,7 @@ import ru.gozerov.domain.usecases.GetRolesUseCase
 import ru.gozerov.domain.usecases.GetSpecializationsUseCase
 import ru.gozerov.domain.usecases.GetTrainerInfoUseCase
 import ru.gozerov.domain.usecases.LogoutAsTrainerUseCase
+import ru.gozerov.domain.usecases.RemoveTrainerPhotoUseCase
 import ru.gozerov.domain.usecases.UpdateTrainerPhotoUseCase
 import ru.gozerov.domain.usecases.UpdateTrainerProfileUseCase
 import ru.gozerov.presentation.screens.trainer.profile.models.TrainerProfileEffect
@@ -33,7 +34,8 @@ class TrainerProfileViewModel @Inject constructor(
     private val getTrainerInfoUseCase: GetTrainerInfoUseCase,
     private val updateTrainerProfileUseCase: UpdateTrainerProfileUseCase,
     private val updateTrainerPhotoUseCase: UpdateTrainerPhotoUseCase,
-    private val logoutAsTrainerUseCase: LogoutAsTrainerUseCase
+    private val logoutAsTrainerUseCase: LogoutAsTrainerUseCase,
+    private val removeTrainerPhotoUseCase: RemoveTrainerPhotoUseCase
 ) : ViewModel() {
 
     private val _effect = MutableStateFlow<TrainerProfileEffect>(TrainerProfileEffect.None)
@@ -45,6 +47,18 @@ class TrainerProfileViewModel @Inject constructor(
             when (intent) {
                 is TrainerProfileIntent.Reset -> {
                     _effect.emit(TrainerProfileEffect.None)
+                }
+
+                is TrainerProfileIntent.RemovePhoto -> {
+                    runCatchingNonCancellation {
+                        removeTrainerPhotoUseCase.invoke()
+                    }
+                        .onSuccess {
+                            _effect.emit(TrainerProfileEffect.RemovedPhoto)
+                        }
+                        .onFailure { throwable ->
+                            _effect.emit(TrainerProfileEffect.Error(throwable.message.toString()))
+                        }
                 }
 
                 is TrainerProfileIntent.GetRoles -> {

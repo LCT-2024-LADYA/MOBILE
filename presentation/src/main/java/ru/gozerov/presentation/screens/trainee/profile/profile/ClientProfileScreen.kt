@@ -16,8 +16,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetLayout
 import androidx.compose.material.ModalBottomSheetValue
@@ -35,6 +37,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -48,10 +52,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -68,6 +74,8 @@ import ru.gozerov.presentation.shared.views.CustomTextField
 import ru.gozerov.presentation.shared.views.ProfileToolbar
 import ru.gozerov.presentation.shared.views.UserAvatar
 import ru.gozerov.presentation.ui.theme.FitLadyaTheme
+import ru.gozerov.presentation.ui.theme.isNightMode
+import ru.gozerov.presentation.ui.theme.setTheme
 
 @OptIn(ExperimentalMaterialApi::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -82,6 +90,8 @@ fun ClientProfileScreen(
     LaunchedEffect(null) {
         viewModel.handleIntent(ClientProfileIntent.GetInfo)
     }
+
+    val context = LocalContext.current
 
     val availableSex =
         listOf(stringResource(id = R.string.sex_man), stringResource(id = R.string.sex_woman))
@@ -110,6 +120,10 @@ fun ClientProfileScreen(
     val incorrectEmailMessage = stringResource(id = R.string.incorrect_email)
     val incorrectAgeMessage = stringResource(id = R.string.incorrect_age)
 
+
+    val nightMode = isNightMode()
+    val isDarkTheme = remember { mutableStateOf(nightMode) }
+
     when (effect) {
         is ClientProfileEffect.None -> {}
         is ClientProfileEffect.LoadedProfile -> {
@@ -137,6 +151,10 @@ fun ClientProfileScreen(
                 coroutineScope,
                 stringResource(R.string.success_photo_update)
             )
+        }
+
+        is ClientProfileEffect.RemovedPhoto -> {
+            photoState.value = null
         }
 
         is ClientProfileEffect.Error -> {
@@ -173,6 +191,9 @@ fun ClientProfileScreen(
                         viewModel.handleIntent(ClientProfileIntent.UpdatePhoto(notNullUri))
                     }
                 },
+                onRemovePhotoClick = {
+                    viewModel.handleIntent(ClientProfileIntent.RemovePhoto)
+                },
                 onSaveClicked = {
                     if (!isValidEmail(emailState.value)) {
                         snackbarHostState.showError(coroutineScope, incorrectEmailMessage)
@@ -204,7 +225,9 @@ fun ClientProfileScreen(
             containerColor = FitLadyaTheme.colors.primaryBackground
         ) {
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
@@ -365,7 +388,7 @@ fun ClientProfileScreen(
 
                 Row {
                     ProfileActionCard(
-                        text = stringResource(id = R.string.favorites),
+                        text = stringResource(id = R.string.trainings),
                         painter = painterResource(id = R.drawable.ic_hear_outlined),
                         iconTint = FitLadyaTheme.colors.accent
                     ) {
@@ -380,31 +403,62 @@ fun ClientProfileScreen(
                         navController.navigate(Screen.ClientStatisticsScreen.route)
                     }
                 }
-                Box(
-                    modifier = Modifier.weight(1f),
-                    contentAlignment = Alignment.Center
+                Spacer(modifier = Modifier.height(8.dp))
+                ProfileActionCard(
+                    width = 184.dp,
+                    text = stringResource(id = R.string.paid_services),
+                    painter = painterResource(id = R.drawable.ic_cash),
+                    iconTint = FitLadyaTheme.colors.cashColor
                 ) {
-                    Row(
-                        modifier = Modifier.clickable(
-                            indication = null,
-                            interactionSource = remember { MutableInteractionSource() }
-                        ) {
-                            viewModel.handleIntent(ClientProfileIntent.Logout)
-                        }
-                    ) {
-                        Text(
-                            text = stringResource(id = R.string.logout),
-                            fontWeight = FontWeight.Medium,
-                            color = FitLadyaTheme.colors.text,
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_logout),
-                            contentDescription = null,
-                            tint = FitLadyaTheme.colors.accent
-                        )
-                    }
                 }
+                Spacer(modifier = Modifier.height(32.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = stringResource(id = R.string.dark_theme),
+                        color = FitLadyaTheme.colors.text,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Switch(
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = FitLadyaTheme.colors.primary,
+                            checkedTrackColor = FitLadyaTheme.colors.fieldPrimaryText,
+                            checkedBorderColor = FitLadyaTheme.colors.fieldPrimaryText,
+                            uncheckedThumbColor = FitLadyaTheme.colors.primary,
+                            uncheckedTrackColor = FitLadyaTheme.colors.secondary,
+                            uncheckedBorderColor = FitLadyaTheme.colors.primary
+                        ),
+                        checked = isDarkTheme.value,
+                        onCheckedChange = { value ->
+                            isDarkTheme.value = value
+                            setTheme(context, isDarkTheme.value)
+                        }
+                    )
+                }
+                Spacer(modifier = Modifier.height(32.dp))
+                Row(
+                    modifier = Modifier.clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) {
+                        viewModel.handleIntent(ClientProfileIntent.Logout)
+                    },
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = stringResource(id = R.string.logout),
+                        fontWeight = FontWeight.Medium,
+                        color = FitLadyaTheme.colors.text,
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_logout),
+                        contentDescription = null,
+                        tint = FitLadyaTheme.colors.accent
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
 
             }
         }
@@ -415,6 +469,7 @@ fun ClientProfileScreen(
 
 @Composable
 fun ProfileActionCard(
+    width: Dp = 128.dp,
     text: String,
     painter: Painter,
     iconTint: Color,
@@ -422,8 +477,8 @@ fun ProfileActionCard(
 ) {
     Column(
         modifier = Modifier
-            .size(128.dp, 104.dp)
-            .background(FitLadyaTheme.colors.secondary, RoundedCornerShape(8.dp))
+            .size(width, 104.dp)
+            .background(FitLadyaTheme.colors.secondary, RoundedCornerShape(12.dp))
             .clickable(
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() }

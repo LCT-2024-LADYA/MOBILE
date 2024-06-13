@@ -31,6 +31,8 @@ sealed interface TrainerProfileIntent {
 
     data class RemoveAchievement(val id: Int) : TrainerProfileIntent
 
+    data object RemovePhoto : TrainerProfileIntent
+
     object Logout : TrainerProfileIntent
 
 }

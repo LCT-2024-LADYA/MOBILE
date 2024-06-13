@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 import ru.gozerov.domain.models.ChatMessage
 import ru.gozerov.domain.usecases.CheckNewMessagesUseCase
 import ru.gozerov.domain.usecases.GetTrainerChatMessagesUseCase
+import ru.gozerov.domain.usecases.GetTrainerInfoUseCase
 import ru.gozerov.domain.usecases.RunWebSocketUseCase
 import ru.gozerov.domain.usecases.SendMessageUseCase
 import ru.gozerov.domain.utils.getCurrentUtcTime
@@ -28,7 +29,8 @@ class TrainerChatViewModel @Inject constructor(
     private val runWebSocketUseCase: RunWebSocketUseCase,
     private val getTrainerChatMessagesUseCase: GetTrainerChatMessagesUseCase,
     private val sendMessageUseCase: SendMessageUseCase,
-    private val checkNewMessagesUseCase: CheckNewMessagesUseCase
+    private val checkNewMessagesUseCase: CheckNewMessagesUseCase,
+    private val getTrainerInfoUseCase: GetTrainerInfoUseCase
 ) : ViewModel() {
 
     private val _effect = MutableStateFlow<TrainerChatEffect>(TrainerChatEffect.None)
@@ -85,6 +87,22 @@ class TrainerChatViewModel @Inject constructor(
     fun handleIntent(intent: TrainerChatIntent) {
         viewModelScope.launch {
             when (intent) {
+
+                is TrainerChatIntent.GetServices -> {
+                    runCatchingNonCancellation {
+                        getTrainerInfoUseCase.invoke()
+                    }
+                        .map { result ->
+                            result
+                                .onSuccess { info ->
+                                    _effect.emit(TrainerChatEffect.TrainerServices(info.services))
+                                }
+                                .onFailure { throwable ->
+                                    _effect.emit(TrainerChatEffect.Error(throwable.message.toString()))
+                                }
+                        }
+                }
+
                 is TrainerChatIntent.UpdateIds -> {
                     trainerId = intent.trainerId
                     clientId = intent.clientId
@@ -112,7 +130,7 @@ class TrainerChatViewModel @Inject constructor(
 
                 is TrainerChatIntent.SendMessage -> {
                     runCatchingNonCancellation {
-                        sendMessageUseCase.invoke(intent.to, intent.message)
+                        sendMessageUseCase.invoke(intent.to, intent.message, intent.serviceId)
                     }
                         .onSuccess {
                             val time = getCurrentUtcTime()
@@ -121,7 +139,7 @@ class TrainerChatViewModel @Inject constructor(
                                     Random.nextInt(),
                                     true,
                                     intent.message,
-                                    0,
+                                    intent.serviceId,
                                     time,
                                     intent.to,
                                     0
