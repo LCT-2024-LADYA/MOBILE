@@ -17,8 +17,24 @@ sealed interface CreateTrainingIntent {
         val id: Int
     ) : CreateTrainingIntent
 
+    data class RemoveExercise(
+        val id: Int
+    ) : CreateTrainingIntent
+
     object GetAddedExercises : CreateTrainingIntent
 
     object Clear : CreateTrainingIntent
+
+    data class NextTraining(
+        val id: Int?
+    ) : CreateTrainingIntent
+
+    data class CreateTrainerTraining(
+        val createTrainingModel: CreateTrainingModel,
+        val wantsPublic: Boolean,
+        val date: String,
+        val timeStart: String,
+        val timeEnd: String
+    ) : CreateTrainingIntent
 
 }

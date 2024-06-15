@@ -9,9 +9,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import ru.gozerov.domain.usecases.AddExercisesToCreatingUseCase
 import ru.gozerov.domain.usecases.ClearAddedTrainingUseCase
+import ru.gozerov.domain.usecases.CreateTrainerTrainingUseCase
 import ru.gozerov.domain.usecases.CreateTrainingUseCase
 import ru.gozerov.domain.usecases.GetAddedExercisesUseCase
 import ru.gozerov.domain.usecases.GetTrainingByIdUseCase
+import ru.gozerov.domain.usecases.RemoveExerciseUseCase
 import ru.gozerov.presentation.screens.trainee.diary.create_training.models.CreateTrainingEffect
 import ru.gozerov.presentation.screens.trainee.diary.create_training.models.CreateTrainingIntent
 import ru.gozerov.presentation.shared.utils.runCatchingNonCancellation
@@ -23,7 +25,9 @@ class CreateTrainingViewModel @Inject constructor(
     private val getAddedExercises: GetAddedExercisesUseCase,
     private val getTrainingByIdUseCase: GetTrainingByIdUseCase,
     private val addExercisesToCreatingUseCase: AddExercisesToCreatingUseCase,
-    private val clearAddedTrainingUseCase: ClearAddedTrainingUseCase
+    private val clearAddedTrainingUseCase: ClearAddedTrainingUseCase,
+    private val removeExerciseUseCase: RemoveExerciseUseCase,
+    private val createTrainerTrainingUseCase: CreateTrainerTrainingUseCase
 ) : ViewModel() {
 
     init {
@@ -39,6 +43,18 @@ class CreateTrainingViewModel @Inject constructor(
             when (intent) {
                 is CreateTrainingIntent.Reset -> {
                     _effect.emit(CreateTrainingEffect.None)
+                }
+
+                is CreateTrainingIntent.RemoveExercise -> {
+                    runCatchingNonCancellation {
+                        removeExerciseUseCase.invoke(intent.id)
+                    }
+                        .onSuccess {
+                            _effect.emit(CreateTrainingEffect.RemovedExercise(id = intent.id))
+                        }
+                        .onFailure { throwable ->
+                            _effect.emit(CreateTrainingEffect.Error(throwable.message.toString()))
+                        }
                 }
 
                 is CreateTrainingIntent.GetAddedExercises -> {
@@ -93,6 +109,25 @@ class CreateTrainingViewModel @Inject constructor(
                     runCatchingNonCancellation {
                         clearAddedTrainingUseCase.invoke()
                     }
+                        .onFailure { throwable ->
+                            _effect.emit(CreateTrainingEffect.Error(throwable.message.toString()))
+                        }
+                }
+
+                is CreateTrainingIntent.NextTraining -> {
+
+                }
+
+                is CreateTrainingIntent.CreateTrainerTraining -> {
+                    runCatchingNonCancellation {
+                        createTrainerTrainingUseCase.invoke(
+                            intent.createTrainingModel,
+                            intent.wantsPublic
+                        )
+                    }
+                        .onSuccess {
+                            _effect.emit(CreateTrainingEffect.CreatedTraining)
+                        }
                         .onFailure { throwable ->
                             _effect.emit(CreateTrainingEffect.Error(throwable.message.toString()))
                         }

@@ -28,7 +28,7 @@ class TrainerCoversPagingSource @AssistedInject constructor(
             LoadResult.Page(
                 data = response.objects,
                 prevKey = if (page == 0) null else page - 1,
-                nextKey = if (response.objects.isEmpty() || response.cursor == 1) null else page + 1
+                nextKey = if (response.objects.isEmpty() || response.cursor == 0) null else page + 1
             )
 
         } catch (e: Exception) {

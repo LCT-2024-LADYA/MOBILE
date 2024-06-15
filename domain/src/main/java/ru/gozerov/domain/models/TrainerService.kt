@@ -7,5 +7,6 @@ import kotlinx.parcelize.Parcelize
 data class TrainerService(
     val id: Int,
     val name: String,
-    val price: Int
+    val price: Int,
+    val profile_access: Boolean
 ): Parcelable

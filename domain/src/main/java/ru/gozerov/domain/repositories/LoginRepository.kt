@@ -39,7 +39,7 @@ interface LoginRepository {
 
     suspend fun updateTrainerPhoto(uri: Uri): Result<Unit>
 
-    suspend fun createTrainerService(name: String, price: Int): Result<Int>
+    suspend fun createTrainerService(name: String, price: Int, isPlan: Boolean): Result<Int>
 
     suspend fun deleteTrainerService(id: Int): Result<Unit>
 

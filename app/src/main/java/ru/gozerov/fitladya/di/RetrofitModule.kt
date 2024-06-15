@@ -12,6 +12,7 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 import ru.gozerov.data.api.ApiConstants.BASE_URL
 import ru.gozerov.data.api.ChatApi
 import ru.gozerov.data.api.LoginApi
+import ru.gozerov.data.api.ServiceApi
 import ru.gozerov.data.api.TrainingApi
 import javax.inject.Singleton
 
@@ -44,6 +45,12 @@ interface RetrofitModule {
         @Provides
         fun provideChatApi(retrofit: Retrofit): ChatApi =
             retrofit.create(ChatApi::class.java)
+
+        @Singleton
+        @Provides
+        fun provideServiceApi(retrofit: Retrofit): ServiceApi =
+            retrofit.create(ServiceApi::class.java)
+
     }
 
 

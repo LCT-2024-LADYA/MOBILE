@@ -10,9 +10,11 @@ import ru.gozerov.data.cache.TrainingStorage
 import ru.gozerov.data.cache.TrainingStorageImpl
 import ru.gozerov.data.repositories.ChatRepositoryImpl
 import ru.gozerov.data.repositories.LoginRepositoryImpl
+import ru.gozerov.data.repositories.ServiceRepositoryImpl
 import ru.gozerov.data.repositories.TrainingRepositoryImpl
 import ru.gozerov.domain.repositories.ChatRepository
 import ru.gozerov.domain.repositories.LoginRepository
+import ru.gozerov.domain.repositories.ServiceRepository
 import ru.gozerov.domain.repositories.TrainingRepository
 import javax.inject.Singleton
 
@@ -40,5 +42,8 @@ interface AppBindModule {
     @Singleton
     fun bindChatRepoImplToChatRepo(chatRepositoryImpl: ChatRepositoryImpl): ChatRepository
 
+    @Binds
+    @Singleton
+    fun bindServiceRepoImplToServiceRepo(serviceRepositoryImpl: ServiceRepositoryImpl): ServiceRepository
 
 }

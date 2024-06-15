@@ -3,6 +3,7 @@ package ru.gozerov.domain.usecases
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import ru.gozerov.domain.models.CreateTrainingModel
+import ru.gozerov.domain.models.ExerciseWithWeight
 import ru.gozerov.domain.repositories.TrainingRepository
 import ru.gozerov.domain.utils.convertDateToUTC
 import ru.gozerov.domain.utils.convertToUTC
@@ -24,7 +25,15 @@ class CreateTrainingUseCase @Inject constructor(
                 createdTraining.id,
                 convertDateToUTC(date, startTime),
                 convertToUTC(startTime),
-                convertToUTC(endTime)
+                convertToUTC(endTime),
+                createTrainingModel.exercises.mapIndexed { index, exercise ->
+                    ExerciseWithWeight(
+                        id = exercise.id,
+                        reps = createTrainingModel.exercises[index].reps,
+                        sets = createTrainingModel.exercises[index].sets,
+                        weight = createTrainingModel.exercises[index].weight,
+                    )
+                }
             )
         }
     }

@@ -17,7 +17,12 @@ sealed interface TrainerProfileEffect {
 
     data class SuccessCreatedAchievement(val id: Int, val name: String) : TrainerProfileEffect
 
-    data class SuccessCreatedService(val id: Int, val name: String, val price: Int) :
+    data class SuccessCreatedService(
+        val id: Int,
+        val name: String,
+        val price: Int,
+        val profileAccess: Boolean
+    ) :
         TrainerProfileEffect
 
     data object SuccessPhotoUpload : TrainerProfileEffect

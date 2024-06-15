@@ -16,9 +16,9 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.HttpException
 import ru.gozerov.data.api.LoginApi
 import ru.gozerov.data.api.models.request.LoginRequestBody
-import ru.gozerov.data.api.models.response.CreateAchievementRequestBody
+import ru.gozerov.data.api.models.request.CreateAchievementRequestBody
 import ru.gozerov.data.api.models.response.MainInfoRequestBody
-import ru.gozerov.data.api.models.response.TrainerServiceRequestBody
+import ru.gozerov.data.api.models.request.TrainerServiceRequestBody
 import ru.gozerov.data.api.models.toClientInfo
 import ru.gozerov.data.api.models.toRegisterRequestBody
 import ru.gozerov.data.api.models.toTrainerCard
@@ -210,12 +210,12 @@ class LoginRepositoryImpl @Inject constructor(
         }
     )
 
-    override suspend fun createTrainerService(name: String, price: Int): Result<Int> =
+    override suspend fun createTrainerService(name: String, price: Int, isPlan: Boolean): Result<Int> =
         runRequestSafely(
             checkToken = { checkToken() },
             accessTokenAction = { loginStorage.getTrainerAccessToken() },
             action = { token ->
-                loginApi.createTrainerService(token, TrainerServiceRequestBody(name, price))
+                loginApi.createTrainerService(token, TrainerServiceRequestBody(name, price, isPlan))
                     .map { it.id }
             }
         )

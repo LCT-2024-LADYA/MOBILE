@@ -39,6 +39,8 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
@@ -148,6 +150,8 @@ fun TrainerProfileScreen(
 
     var isSpecializationExpanded: Boolean by remember { mutableStateOf(false) }
 
+    var isPlan: Boolean by remember { mutableStateOf(false) }
+
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     val incorrectEmailMessage = stringResource(id = R.string.incorrect_email)
@@ -199,7 +203,14 @@ fun TrainerProfileScreen(
 
         is TrainerProfileEffect.SuccessCreatedService -> {
             val newServices = trainerServicesState.value.toMutableList()
-            newServices.add(TrainerService(effect.id, effect.name, effect.price))
+            newServices.add(
+                TrainerService(
+                    effect.id,
+                    effect.name,
+                    effect.price,
+                    effect.profileAccess
+                )
+            )
             trainerServicesState.value = newServices
             viewModel.handleIntent(TrainerProfileIntent.Reset)
         }
@@ -770,10 +781,41 @@ fun TrainerProfileScreen(
                 CustomTextField(
                     textState = servicePriceState,
                     isRounded = false,
+                    isIndicatorEnabled = false,
                     labelText = stringResource(id = R.string.price),
                     modifier = Modifier.width(260.dp),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
+                Row(
+                    modifier = Modifier
+                        .width(260.dp)
+                        .background(FitLadyaTheme.colors.secondary),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Checkbox(
+                        checked = isPlan,
+                        onCheckedChange = { value ->
+                            isPlan = value
+                        },
+                        colors = CheckboxDefaults.colors(
+                            checkedColor = FitLadyaTheme.colors.primary,
+                            checkmarkColor = Color.White,
+                            uncheckedColor = FitLadyaTheme.colors.fieldPrimaryText
+                        )
+                    )
+                    Text(
+                        text = stringResource(id = R.string.plan_or_training),
+                        fontSize = 14.sp,
+                        color = FitLadyaTheme.colors.text,
+                        modifier = Modifier.clickable(
+                            indication = null,
+                            interactionSource = remember {
+                                MutableInteractionSource()
+                            }) {
+                            isPlan = !isPlan
+                        }
+                    )
+                }
 
                 AddAchievementButton(
                     text = stringResource(id = R.string.add)
@@ -781,7 +823,8 @@ fun TrainerProfileScreen(
                     viewModel.handleIntent(
                         TrainerProfileIntent.CreateService(
                             serviceNameState.value,
-                            servicePriceState.value.toInt()
+                            servicePriceState.value.toInt(),
+                            isPlan
                         )
                     )
                 }

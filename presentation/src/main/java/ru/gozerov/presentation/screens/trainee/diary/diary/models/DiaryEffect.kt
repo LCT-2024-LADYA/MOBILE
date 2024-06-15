@@ -19,4 +19,8 @@ sealed interface DiaryEffect {
         val message: String
     ) : DiaryEffect
 
+    data class RemoveTraining(
+        val id: Int
+    ) : DiaryEffect
+
 }

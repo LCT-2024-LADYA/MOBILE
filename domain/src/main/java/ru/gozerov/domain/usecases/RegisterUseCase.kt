@@ -20,7 +20,16 @@ class RegisterUseCase @Inject constructor(
         sex: Int
     ): Flow<Result<Unit>> =
         withContext(Dispatchers.IO) {
-            return@withContext loginRepository.register(RegisterModel(email, password, firstName, lastName, age, sex))
+            return@withContext loginRepository.register(
+                RegisterModel(
+                    email,
+                    password,
+                    firstName,
+                    lastName,
+                    age,
+                    sex
+                )
+            )
         }
 
 }

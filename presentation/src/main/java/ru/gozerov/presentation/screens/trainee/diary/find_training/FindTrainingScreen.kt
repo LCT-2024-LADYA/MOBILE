@@ -59,7 +59,8 @@ import ru.gozerov.presentation.ui.theme.FitLadyaTheme
 fun FindTrainingScreen(
     navController: NavController,
     contentPaddingValues: PaddingValues,
-    viewModel: FindTrainingViewModel
+    viewModel: FindTrainingViewModel,
+    isTrainer: Boolean = false
 ) {
     val effect = viewModel.effect.collectAsState().value
 

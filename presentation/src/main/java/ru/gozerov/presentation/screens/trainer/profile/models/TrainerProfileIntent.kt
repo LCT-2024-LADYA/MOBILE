@@ -23,7 +23,7 @@ sealed interface TrainerProfileIntent {
         val uri: Uri
     ) : TrainerProfileIntent
 
-    data class CreateService(val name: String, val price: Int) : TrainerProfileIntent
+    data class CreateService(val name: String, val price: Int, val isPlan: Boolean) : TrainerProfileIntent
 
     data class RemoveService(val id: Int) : TrainerProfileIntent
 

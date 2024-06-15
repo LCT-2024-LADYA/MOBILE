@@ -9,9 +9,9 @@ class CreateServiceUseCase @Inject constructor(
     private val loginRepository: LoginRepository
 ) {
 
-    suspend operator fun invoke(name: String, price: Int): Result<Int> =
+    suspend operator fun invoke(name: String, price: Int, isPlan: Boolean): Result<Int> =
         withContext(Dispatchers.IO) {
-            return@withContext loginRepository.createTrainerService(name, price)
+            return@withContext loginRepository.createTrainerService(name, price, isPlan)
         }
 
 }

@@ -21,7 +21,9 @@ data class FitLadyaColors(
     val buttonText: Color,
     val primaryBorder: Color,
     val secondaryBorder: Color,
-    val avatarBackground: Color
+    val avatarBackground: Color,
+    val cashColor: Color,
+    val successColor: Color
 )
 
 data class FitLadyaTypography(

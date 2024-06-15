@@ -116,6 +116,24 @@ fun convertLocalDateDateToUTC(
     return utcDateTimeString
 }
 
+
+fun convertLocalDateDateToUTCMidnight(
+    date: LocalDate
+): String {
+    val formatter = DateTimeFormatter.ISO_INSTANT
+    return formatter.format(date.atStartOfDay(ZoneOffset.UTC))
+}
+
+fun convertDateToDDMMYYYY(localDate: LocalDate): String {
+    val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+    return localDate.format(formatter)
+}
+
+fun convertDateToDDMMYYYYNullable(localDate: LocalDate?): String? {
+    val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+    return localDate?.format(formatter)
+}
+
 fun getAgeString(age: Int): String {
     val lastDigit = age % 10
     val lastTwoDigits = age % 100

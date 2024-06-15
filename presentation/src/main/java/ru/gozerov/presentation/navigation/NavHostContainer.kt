@@ -19,6 +19,7 @@ import ru.gozerov.presentation.screens.trainee.chat.chat.ChatScreen
 import ru.gozerov.presentation.screens.trainee.chat.chat.ChatViewModel
 import ru.gozerov.presentation.screens.trainee.diary.find_exercise.FindExerciseScreen
 import ru.gozerov.presentation.screens.trainee.diary.find_exercise.FindExerciseViewModel
+import ru.gozerov.presentation.screens.trainee.profile.services.ClientServicesScreen
 import ru.gozerov.presentation.screens.trainee.tabs.TraineeTabsScreen
 import ru.gozerov.presentation.screens.trainer.chat.chat.TrainerChatScreen
 import ru.gozerov.presentation.screens.trainer.chat.chat.TrainerChatViewModel
@@ -168,6 +169,12 @@ fun NavHostContainer(
                         viewModel = viewModel
                     )
                 }
+            }
+
+            composable(
+                route = Screen.ClientService.route
+            ) {
+                ClientServicesScreen(navController = navController)
             }
 
         }

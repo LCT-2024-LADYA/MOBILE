@@ -12,4 +12,8 @@ sealed interface DiaryIntent {
         val ids: List<Int>
     ) : DiaryIntent
 
+    data class DeleteScheduledTraining(
+        val trainingId: Int
+    ) : DiaryIntent
+
 }

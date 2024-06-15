@@ -10,7 +10,7 @@ class ClearAddedTrainingUseCase @Inject constructor(
 ) {
 
     suspend operator fun invoke() = withContext(Dispatchers.IO) {
-        trainingRepository.clearAddedTrainings()
+        trainingRepository.clearAddedExercises()
     }
 
 }

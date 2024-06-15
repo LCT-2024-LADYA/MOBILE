@@ -6,6 +6,7 @@ import kotlinx.parcelize.Parcelize
 @Parcelize
 data class CustomTraining(
     val id: Int,
+    val trainingId: Int,
     val date: String,
     val description: String,
     val name: String,

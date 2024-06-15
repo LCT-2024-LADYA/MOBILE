@@ -136,22 +136,8 @@ internal fun ChatScreen(
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             snackbarHost = { SnackbarHost(snackbarHostState) },
-            containerColor = FitLadyaTheme.colors.secondary
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clickable(indication = null, interactionSource = remember {
-                        MutableInteractionSource()
-                    }) {
-                        if (scaffoldState.bottomSheetState.isExpanded) {
-                            coroutineScope.launch {
-                                scaffoldState.bottomSheetState.collapse()
-                            }
-                        }
-                    }
-            ) {
-
+            containerColor = FitLadyaTheme.colors.secondary,
+            topBar = {
                 Row(
                     modifier = Modifier.height(56.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -215,33 +201,48 @@ internal fun ChatScreen(
                     }
                 }
 
-                Box(
+            }
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(it)
+                    .clickable(indication = null, interactionSource = remember {
+                        MutableInteractionSource()
+                    }) {
+                        if (scaffoldState.bottomSheetState.isExpanded) {
+                            coroutineScope.launch {
+                                scaffoldState.bottomSheetState.collapse()
+                            }
+                        }
+                    }
+            ) {
+
+
+                LazyColumn(
                     modifier = Modifier
                         .weight(1f)
+                        .fillMaxSize()
                         .background(color = FitLadyaTheme.colors.primaryBackground)
+                        .animateContentSize(),
+                    reverseLayout = true,
                 ) {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .animateContentSize(),
-                        reverseLayout = true,
-                    ) {
-                        messages.value?.itemCount?.let { itemCount ->
-                            items(itemCount) { index ->
-                                val message = messages.value!![index]
-                                message?.let {
-                                    if (message.isToUser)
-                                        UserMessageCard(
-                                            message = message,
-                                            services = services.value
-                                        )
-                                    else
-                                        MeMessageCard(message = message, services = services.value)
-                                }
+                    messages.value?.itemCount?.let { itemCount ->
+                        items(itemCount) { index ->
+                            val message = messages.value!![index]
+                            message?.let {
+                                if (message.isToUser)
+                                    UserMessageCard(
+                                        message = message,
+                                        services = services.value
+                                    )
+                                else
+                                    MeMessageCard(message = message, services = services.value)
                             }
                         }
                     }
                 }
+
 
                 Row(
                     modifier = Modifier
@@ -270,8 +271,9 @@ internal fun ChatScreen(
                         }
                     )
                 }
-
             }
+
+
         }
     }
 }
@@ -356,7 +358,7 @@ fun UserMessageCard(message: ChatMessage, services: List<TrainerService>) {
                 .widthIn(120.dp, 280.dp)
                 .padding(horizontal = 16.dp, vertical = 4.dp)
                 .background(
-                    color = FitLadyaTheme.colors.primary,
+                    color = FitLadyaTheme.colors.secondary,
                     shape = RoundedCornerShape(
                         topStart = 12.dp,
                         topEnd = 12.dp,

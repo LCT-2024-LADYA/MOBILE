@@ -17,8 +17,6 @@ sealed class Screen(
 
     object LoginTrainee : Screen("loginTrainee")
 
-    object TrainerProfile : Screen("trainerProfile")
-
     object TraineeTabs : Screen("traineeTabs")
 
     object MainTraining : Screen("mainTraining")
@@ -56,5 +54,25 @@ sealed class Screen(
     object ClientStatisticsScreen : Screen("clientStatistics")
 
     object TraineeProfile : Screen("traineeProfile")
+
+    object ClientService : Screen("clientService")
+
+    object SchedulePlan : Screen("schedulePlan")
+
+    object TrainingToSchedule : Screen("trainingToSchedule")
+
+    object PasteTraining : Screen("pasteTraining")
+
+    object PlanDetailsScreen : Screen("planDetails")
+
+    object TrainerServices : Screen("trainerServices")
+
+    object CreatePlan : Screen("createPlan")
+
+    object CreateService : Screen("createService")
+
+    object SelectTraining : Screen("selectTraining")
+
+    object TrainerTrainingDetails : Screen("trainerTrainingDetails")
 
 }

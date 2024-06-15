@@ -405,11 +405,11 @@ fun ClientProfileScreen(
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 ProfileActionCard(
-                    width = 184.dp,
-                    text = stringResource(id = R.string.paid_services),
+                    text = stringResource(id = R.string.services),
                     painter = painterResource(id = R.drawable.ic_cash),
                     iconTint = FitLadyaTheme.colors.cashColor
                 ) {
+                    parentNavController.navigate(Screen.ClientService.route)
                 }
                 Spacer(modifier = Modifier.height(32.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {

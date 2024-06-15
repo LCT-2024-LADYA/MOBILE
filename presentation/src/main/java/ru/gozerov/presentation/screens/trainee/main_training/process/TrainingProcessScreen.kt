@@ -2,7 +2,6 @@ package ru.gozerov.presentation.screens.trainee.main_training.process
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -28,7 +27,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -46,7 +44,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -57,8 +54,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import ru.gozerov.domain.models.CustomExercise
 import ru.gozerov.domain.models.CustomTraining
-import ru.gozerov.domain.utils.parseDateToDDMMYYYY
-import ru.gozerov.domain.utils.parseDateToHoursAndMinutes
 import ru.gozerov.presentation.R
 import ru.gozerov.presentation.navigation.Screen
 import ru.gozerov.presentation.screens.trainee.main_training.process.models.TrainingProcessEffect
@@ -117,75 +112,7 @@ fun TrainingProcessScreen(
         containerColor = FitLadyaTheme.colors.primaryBackground
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-
             Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                modifier = Modifier.padding(horizontal = 32.dp),
-                text = training.name,
-                fontSize = 16.sp,
-                color = FitLadyaTheme.colors.text
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(
-                modifier = Modifier.padding(
-                    horizontal = 32.dp
-                )
-            ) {
-                Text(
-                    text = parseDateToDDMMYYYY(training.date),
-                    modifier = Modifier
-                        .border(
-                            1.dp,
-                            FitLadyaTheme.colors.secondaryBorder,
-                            RoundedCornerShape(8.dp)
-                        )
-                        .padding(horizontal = 8.dp, vertical = 4.dp),
-                    fontWeight = FontWeight.Medium,
-                    color = FitLadyaTheme.colors.text
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "${
-                        parseDateToHoursAndMinutes(
-                            training.date,
-                            training.timeStart
-                        )
-                    } - ${parseDateToHoursAndMinutes(training.date, training.timeEnd)}",
-                    modifier = Modifier
-                        .border(
-                            1.dp,
-                            FitLadyaTheme.colors.secondaryBorder,
-                            RoundedCornerShape(8.dp)
-                        )
-                        .padding(horizontal = 8.dp, vertical = 4.dp),
-                    fontWeight = FontWeight.Medium,
-                    color = FitLadyaTheme.colors.text
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Row(
-                    modifier = Modifier
-                        .border(
-                            1.dp,
-                            FitLadyaTheme.colors.secondaryBorder,
-                            RoundedCornerShape(8.dp)
-                        )
-                        .padding(horizontal = 8.dp, vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = training.exercises.size.toString(),
-                        fontWeight = FontWeight.Medium,
-                        color = FitLadyaTheme.colors.text
-                    )
-                    Icon(
-                        modifier = Modifier.padding(start = 4.dp),
-                        painter = painterResource(id = R.drawable.ic_training),
-                        contentDescription = null,
-                        tint = FitLadyaTheme.colors.accent
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.height(8.dp))
             HorizontalPager(state = pagerState) { page ->
                 val imagePagerState =
                     rememberPagerState(pageCount = { training.exercises[page].photos.size })

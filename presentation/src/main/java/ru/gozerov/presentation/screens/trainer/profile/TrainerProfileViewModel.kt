@@ -165,7 +165,7 @@ class TrainerProfileViewModel @Inject constructor(
 
                 is TrainerProfileIntent.CreateService -> {
                     runCatchingNonCancellation {
-                        createServiceUseCase.invoke(intent.name, intent.price)
+                        createServiceUseCase.invoke(intent.name, intent.price, intent.isPlan)
                     }
                         .map { result ->
                             result
@@ -174,7 +174,8 @@ class TrainerProfileViewModel @Inject constructor(
                                         TrainerProfileEffect.SuccessCreatedService(
                                             id,
                                             intent.name,
-                                            intent.price
+                                            intent.price,
+                                            intent.isPlan
                                         )
                                     )
                                 }

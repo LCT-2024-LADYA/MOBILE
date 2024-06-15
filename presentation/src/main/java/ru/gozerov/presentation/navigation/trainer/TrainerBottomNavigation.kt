@@ -11,16 +11,34 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import ru.gozerov.presentation.R
 import ru.gozerov.presentation.navigation.Screen
+import ru.gozerov.presentation.screens.trainee.diary.create_training.CreateTrainingScreen
+import ru.gozerov.presentation.screens.trainee.diary.create_training.CreateTrainingViewModel
+import ru.gozerov.presentation.screens.trainee.diary.find_training.FindTrainingScreen
+import ru.gozerov.presentation.screens.trainee.diary.find_training.FindTrainingViewModel
+import ru.gozerov.presentation.screens.trainee.diary.select_training.SelectTrainingScreen
+import ru.gozerov.presentation.screens.trainee.diary.select_training.SelectTrainingViewModel
 import ru.gozerov.presentation.screens.trainer.chat.list.TrainerChatListScreen
 import ru.gozerov.presentation.screens.trainer.chat.list.TrainerChatListViewModel
+import ru.gozerov.presentation.screens.trainer.diary.create_plan.CreatePlanScreen
+import ru.gozerov.presentation.screens.trainer.diary.create_plan.CreatePlanViewModel
+import ru.gozerov.presentation.screens.trainer.diary.create_service.CreateServiceScreen
+import ru.gozerov.presentation.screens.trainer.diary.create_service.CreateServiceViewModel
 import ru.gozerov.presentation.screens.trainer.diary.diary.TrainerDiaryScreen
+import ru.gozerov.presentation.screens.trainer.diary.diary.TrainerDiaryViewModel
+import ru.gozerov.presentation.screens.trainer.diary.find_training.FindTrainerTrainingScreen
+import ru.gozerov.presentation.screens.trainer.diary.training_details.TrainerTrainingDetailsScreen
+import ru.gozerov.presentation.screens.trainer.diary.training_details.TrainerTrainingDetailsViewModel
 import ru.gozerov.presentation.screens.trainer.profile.TrainerProfileScreen
 import ru.gozerov.presentation.screens.trainer.profile.TrainerProfileViewModel
+import ru.gozerov.presentation.screens.trainer.service.TrainerServicesScreen
+import ru.gozerov.presentation.screens.trainer.service.TrainerServicesViewModel
 
 sealed class TrainerBottomNavBarItem(
     val route: String,
     @DrawableRes val iconId: Int
 ) {
+
+    object ServiceFlow : TrainerBottomNavBarItem("serviceFlow", R.drawable.ic_people)
 
     object ChatFlow : TrainerBottomNavBarItem("trainerChatFlow", R.drawable.ic_chat)
     object DiaryFlow : TrainerBottomNavBarItem("trainerDiaryFlow", R.drawable.ic_diary)
@@ -29,6 +47,7 @@ sealed class TrainerBottomNavBarItem(
 
 val trainerBottomNavBarItems =
     listOf(
+        TrainerBottomNavBarItem.ServiceFlow,
         TrainerBottomNavBarItem.ChatFlow,
         TrainerBottomNavBarItem.DiaryFlow,
         TrainerBottomNavBarItem.Profile
@@ -42,8 +61,15 @@ fun TrainerBottomNavHostContainer(
 ) {
     NavHost(
         navController = navController,
-        startDestination = TrainerBottomNavBarItem.ChatFlow.route,
+        startDestination = TrainerBottomNavBarItem.ServiceFlow.route,
         builder = {
+
+            navigation(Screen.TrainerServices.route, TrainerBottomNavBarItem.ServiceFlow.route) {
+                composable(Screen.TrainerServices.route) {
+                    val viewModel = hiltViewModel<TrainerServicesViewModel>()
+                    TrainerServicesScreen(padding, viewModel)
+                }
+            }
 
             navigation(Screen.TrainerChatList.route, TrainerBottomNavBarItem.ChatFlow.route) {
 
@@ -65,53 +91,105 @@ fun TrainerBottomNavHostContainer(
                 composable(
                     route = Screen.TrainerDiary.route
                 ) {
-                    //val viewModel = hiltViewModel<DiaryViewModel>()
+                    val viewModel = hiltViewModel<TrainerDiaryViewModel>()
                     TrainerDiaryScreen(
-                        // viewModel = viewModel,
                         contentPaddingValues = padding,
-                        // navController = navController
+                        navController = navController,
+                        viewModel = viewModel
                     )
                 }
-                /*
-                                composable(
-                                    route = Screen.FindTraining.route
-                                ) {
-                                    val viewModel = hiltViewModel<FindTrainingViewModel>()
-                                    FindTrainingScreen(
-                                        navController = navController,
-                                        contentPaddingValues = padding,
-                                        viewModel = viewModel
-                                    )
-                                }
 
-                                composable(
-                                    route = Screen.CreateTraining.route
-                                ) {
-                                    val id = navController.previousBackStackEntry?.savedStateHandle?.get<Int>("id")
-                                    val viewModel = hiltViewModel<CreateTrainingViewModel>()
-                                    CreateTrainingScreen(
-                                        trainingId = id,
-                                        parentNavController = rootNavController,
-                                        navController = navController,
-                                        contentPaddingValues = padding,
-                                        viewModel = viewModel
-                                    )
-                                }
+                composable(
+                    route = Screen.CreateService.route
+                ) {
+                    val viewModel = hiltViewModel<CreateServiceViewModel>()
+                    val date =
+                        navController.previousBackStackEntry?.savedStateHandle?.get<String>("date")
+                    CreateServiceScreen(
+                        contentPaddingValues = padding,
+                        navController = navController,
+                        viewModel = viewModel,
+                        serviceDate = date
+                    )
+                }
 
-                                composable(
-                                    route = Screen.TrainingDetails.route
-                                ) {
-                                    val training =
-                                        navController.previousBackStackEntry?.savedStateHandle?.get<CustomTraining>(
-                                            "training"
-                                        )
-                                    training?.let {
-                                        TrainingDetailsScreen(
-                                            navController = navController,
-                                            training = training
-                                        )
-                                    }
-                                }*/
+                composable(
+                    route = Screen.CreatePlan.route
+                ) {
+                    val id =
+                        navController.previousBackStackEntry?.savedStateHandle?.get<Int>("id")
+                    id?.let {
+                        val viewModel = hiltViewModel<CreatePlanViewModel>()
+
+                        CreatePlanScreen(
+                            navController = navController,
+                            viewModel = viewModel,
+                            contentPaddingValues = padding,
+                            userId = id
+                        )
+                    }
+                }
+
+
+                composable(
+                    route = Screen.SelectTraining.route
+                ) {
+                    val viewModel = hiltViewModel<SelectTrainingViewModel>()
+                    SelectTrainingScreen(
+                        navController = navController,
+                        contentPaddingValues = padding,
+                        viewModel = viewModel
+                    )
+                }
+
+                composable(
+                    route = Screen.TrainerTrainingDetails.route
+                ) {
+                    val training =
+                        navController.previousBackStackEntry?.savedStateHandle?.get<Int>(
+                            "id"
+                        )
+                    training?.let {
+                        val viewModel = hiltViewModel<TrainerTrainingDetailsViewModel>()
+                        TrainerTrainingDetailsScreen(
+                            paddingValues = padding,
+                            navController = navController,
+                            trainingId = training,
+                            viewModel = viewModel
+                        )
+                    }
+                }
+
+                composable(
+                    route = Screen.FindTraining.route
+                ) {
+                    val viewModel = hiltViewModel<SelectTrainingViewModel>()
+                    FindTrainerTrainingScreen(
+                        navController = navController,
+                        contentPaddingValues = padding,
+                        viewModel = viewModel
+                    )
+                }
+
+                composable(
+                    route = Screen.CreateTraining.route
+                ) {
+                    val id = navController.previousBackStackEntry?.savedStateHandle?.get<Int>("id")
+                    val date =
+                        navController.previousBackStackEntry?.savedStateHandle?.get<String>("date")
+                    val viewModel = hiltViewModel<CreateTrainingViewModel>()
+                    CreateTrainingScreen(
+                        isTrainer = true,
+                        trainingId = id,
+                        trainingDate = date,
+                        parentNavController = rootNavController,
+                        navController = navController,
+                        contentPaddingValues = padding,
+                        viewModel = viewModel,
+                        backRoute = Screen.TrainerDiary.route
+                    )
+                }
+
 
             }
 
