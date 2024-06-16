@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import ru.gozerov.domain.usecases.ClearAddedTrainingUseCase
 import ru.gozerov.domain.usecases.GetNextTrainingUseCase
 import ru.gozerov.presentation.screens.trainee.main_training.main_training.models.MainTrainingEffect
 import ru.gozerov.presentation.screens.trainee.main_training.main_training.models.MainTrainingIntent
@@ -16,7 +17,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MainTrainingViewModel @Inject constructor(
-    private val getNextTrainingUseCase: GetNextTrainingUseCase
+    private val getNextTrainingUseCase: GetNextTrainingUseCase,
+    private val clearAddedTrainingUseCase: ClearAddedTrainingUseCase
 ) : ViewModel() {
 
     private val _viewState = MutableStateFlow<MainTrainingViewState>(MainTrainingViewState.None)
@@ -26,6 +28,12 @@ class MainTrainingViewModel @Inject constructor(
     private val _effect = MutableStateFlow<MainTrainingEffect>(MainTrainingEffect.None)
     val effect: StateFlow<MainTrainingEffect>
         get() = _effect.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            clearAddedTrainingUseCase.invoke()
+        }
+    }
 
     fun handleIntent(intent: MainTrainingIntent) {
         viewModelScope.launch {

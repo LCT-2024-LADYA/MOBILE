@@ -97,8 +97,13 @@ fun DiaryScreen(
             )
         )
     }
+
     val calendarState = rememberSelectableCalendarState(monthState = monthState.value)
     calendarState.selectionState.selectionMode = SelectionMode.Single
+
+    LaunchedEffect(calendarState.monthState.currentMonth) {
+        viewModel.handleIntent(DiaryIntent.GetSchedule(monthState.value.currentMonth.monthValue))
+    }
 
     val primaryColor = FitLadyaTheme.colors.primary
     val todayDateBackground = FitLadyaTheme.colors.secondary
@@ -371,7 +376,9 @@ fun DiaryScreen(
                                                     },
                                                     fontSize = 16.sp,
                                                     text = dayState.date.dayOfMonth.toString(),
-                                                    color = if (dayState.date.month.value == monthState.value.currentMonth.monthValue && dayState.date.dayOfMonth == selectedDay.intValue) FitLadyaTheme.colors.diaryText else FitLadyaTheme.colors.text.copy(alpha = if (dayState.date.month == monthState.value.currentMonth.month) 1f else 0.32f),
+                                                    color = if (dayState.date.month.value == monthState.value.currentMonth.monthValue && dayState.date.dayOfMonth == selectedDay.intValue) FitLadyaTheme.colors.diaryText else FitLadyaTheme.colors.text.copy(
+                                                        alpha = if (dayState.date.month == monthState.value.currentMonth.month) 1f else 0.32f
+                                                    ),
                                                     textAlign = TextAlign.Center
                                                 )
                                                 if (scheduledTrainings.value.filter { training ->
@@ -445,7 +452,9 @@ fun DiaryScreen(
                                                     },
                                                     fontSize = 16.sp,
                                                     text = dayState.date.dayOfMonth.toString(),
-                                                    color = if (dayState.date.month.value == monthState.value.currentMonth.monthValue && dayState.date.dayOfMonth == selectedDay.intValue) FitLadyaTheme.colors.diaryText else FitLadyaTheme.colors.text.copy(alpha = if (dayState.date.month == monthState.value.currentMonth.month) 1f else 0.32f),
+                                                    color = if (dayState.date.month.value == monthState.value.currentMonth.monthValue && dayState.date.dayOfMonth == selectedDay.intValue) FitLadyaTheme.colors.diaryText else FitLadyaTheme.colors.text.copy(
+                                                        alpha = if (dayState.date.month == monthState.value.currentMonth.month) 1f else 0.32f
+                                                    ),
                                                     textAlign = TextAlign.Center
                                                 )
                                                 if (scheduledTrainings.value.any { training ->
@@ -495,6 +504,10 @@ fun DiaryScreen(
                                             navController.navigate(Screen.TrainingDetails.route)
                                         },
                                         onCopy = {
+                                            navController.currentBackStackEntry?.savedStateHandle?.set(
+                                                "month",
+                                                monthState.value.currentMonth.month.value
+                                            )
                                             navController.currentBackStackEntry?.savedStateHandle?.set(
                                                 "training",
                                                 dayTrainings.value[index]
@@ -609,6 +622,7 @@ fun DiaryScreen(
         }
     }
 }
+
 fun YearMonth.mapMonthToRu(): String {
     return when (this.month.value) {
         1 -> "январь"

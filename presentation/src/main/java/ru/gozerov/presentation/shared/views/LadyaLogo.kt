@@ -1,7 +1,7 @@
 package ru.gozerov.presentation.shared.views
 
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -23,7 +23,7 @@ import ru.gozerov.presentation.ui.theme.FitLadyaTheme
 @Composable
 fun ColumnScope.LadyaLogo() {
     val ddxLogo =
-        painterResource(id = if (isSystemInDarkTheme()) R.drawable.ic_ddx_logo_dark else R.drawable.ic_ddx_logo)
+        painterResource(id = if (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_UNSPECIFIED) R.drawable.ic_ddx_logo_dark else R.drawable.ic_ddx_logo)
 
     Image(
         modifier = Modifier.width(240.dp),

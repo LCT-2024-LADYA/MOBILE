@@ -500,6 +500,7 @@ fun TrainerProfileScreen(
                             textState = experienceState,
                             labelText = stringResource(id = R.string.experience),
                             modifier = Modifier.width(260.dp),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                         )
 
                         Spacer(modifier = Modifier.height(20.dp))
@@ -507,8 +508,7 @@ fun TrainerProfileScreen(
                             CustomTextField(
                                 labelText = stringResource(id = R.string.favorite_quote),
                                 textState = quoteState,
-                                modifier = Modifier.width(260.dp),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                                modifier = Modifier.width(260.dp)
                             )
 
                             Spacer(modifier = Modifier.height(20.dp))

@@ -76,7 +76,8 @@ fun PasteTrainingScreen(
     scheduledTrainings: List<ScheduledTraining>,
     training: CustomTraining,
     navController: NavController,
-    viewModel: PasteTrainingViewModel
+    viewModel: PasteTrainingViewModel,
+    month: Int
 ) {
     val effect = viewModel.effect.collectAsState().value
 
@@ -86,7 +87,7 @@ fun PasteTrainingScreen(
     val monthState = remember {
         mutableStateOf(
             MonthState(
-                YearMonth.now(),
+                YearMonth.of(currentDate.year, month),
                 YearMonth.of(currentDate.year, 1),
                 YearMonth.of(currentDate.year, 12)
             )

@@ -168,7 +168,7 @@ fun TrainerProfileDTO.toTrainerInfo() = TrainerInfo(
     first_name,
     last_name,
     email,
-    photo_url,
+    if (photo_url == null) null else BASE_URL_FOR_PHOTO + photo_url,
     age,
     sex,
     experience,

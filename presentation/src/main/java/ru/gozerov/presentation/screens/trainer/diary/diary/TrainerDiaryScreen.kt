@@ -68,6 +68,7 @@ import ru.gozerov.domain.utils.convertLocalDateDateToUTC
 import ru.gozerov.presentation.R
 import ru.gozerov.presentation.navigation.Screen
 import ru.gozerov.presentation.screens.trainee.diary.diary.mapMonthToRu
+import ru.gozerov.presentation.screens.trainee.diary.diary.models.DiaryIntent
 import ru.gozerov.presentation.screens.trainer.diary.diary.models.TrainerDiaryEffect
 import ru.gozerov.presentation.screens.trainer.diary.diary.models.TrainerDiaryIntent
 import ru.gozerov.presentation.shared.utils.showError
@@ -150,6 +151,10 @@ fun TrainerDiaryScreen(
             dayServices.value = newTrainings
             viewModel.handleIntent(TrainerDiaryIntent.GetSchedule(monthState.value.currentMonth.monthValue))
         }
+    }
+
+    LaunchedEffect(calendarState.monthState.currentMonth) {
+        viewModel.handleIntent(TrainerDiaryIntent.GetSchedule(monthState.value.currentMonth.monthValue))
     }
 
     Scaffold(

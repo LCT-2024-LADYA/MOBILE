@@ -11,7 +11,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import ru.gozerov.domain.models.CustomTraining
 import ru.gozerov.domain.models.ScheduledTraining
-import ru.gozerov.domain.models.TrainingPlan
 import ru.gozerov.domain.models.TrainingPlanCard
 import ru.gozerov.presentation.R
 import ru.gozerov.presentation.navigation.Screen
@@ -115,6 +114,9 @@ fun TraineeBottomNavHostContainer(
                     val id = navController.previousBackStackEntry?.savedStateHandle?.get<Int>("id")
                     val date =
                         navController.previousBackStackEntry?.savedStateHandle?.get<String>("date")
+
+                    val backRoute =
+                        navController.previousBackStackEntry?.savedStateHandle?.get<String>("backRoute")
                     val viewModel = hiltViewModel<CreateTrainingViewModel>()
                     CreateTrainingScreen(
                         trainingId = id,
@@ -124,7 +126,7 @@ fun TraineeBottomNavHostContainer(
                         navController = navController,
                         contentPaddingValues = padding,
                         viewModel = viewModel,
-                        backRoute = Screen.MainTraining.route
+                        backRoute = backRoute ?: Screen.MainTraining.route
                     )
                 }
 
@@ -168,14 +170,19 @@ fun TraineeBottomNavHostContainer(
                         navController.previousBackStackEntry?.savedStateHandle?.get<List<ScheduledTraining>>(
                             "trainings"
                         )
-                    if (trainings != null && training != null) {
+                    val month =
+                        navController.previousBackStackEntry?.savedStateHandle?.get<Int>(
+                            "month"
+                        )
+                    if (trainings != null && training != null && month != null) {
                         val viewModel = hiltViewModel<PasteTrainingViewModel>()
                         PasteTrainingScreen(
                             contentPaddingValues = padding,
                             scheduledTrainings = trainings,
                             training = training,
                             navController = navController,
-                            viewModel = viewModel
+                            viewModel = viewModel,
+                            month = month
                         )
                     }
                 }

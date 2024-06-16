@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Fit Ladya</string>
+    <string name="app_name">LadyaFit</string>
     <string name="working_weight_is">Рабочий вес</string>
     <string name="sets_and_reps">Подходы x Повторения</string>
     <string name="exercise_pos_is">#%1$d</string>

@@ -79,7 +79,14 @@ fun MainTrainingScreen(
     ) {
         if (showEmpty.value) {
             NoTraining {
-                navController.navigate(Screen.CreateTraining.route)
+                navController.currentBackStackEntry?.savedStateHandle?.set(
+                    "backRoute",
+                    Screen.MainTraining.route
+                )
+                navController.navigate(Screen.CreateTraining.route) {
+                    restoreState = true
+                    launchSingleTop = true
+                }
             }
         }
         currentTraining.value?.let { training ->

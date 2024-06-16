@@ -23,6 +23,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,14 +47,19 @@ import ru.gozerov.presentation.ui.theme.FitLadyaTheme
 @Composable
 fun EditableCustomExerciseCard(
     exercise: Exercise,
-    weightState: MutableState<String>,
-    setsState: MutableState<String>,
-    repsState: MutableState<String>,
+    weight: String,
+    sets: String,
+    reps: String,
+    onWeightChange: (weight: String) -> Unit,
+    onSetsChange: (weight: String) -> Unit,
+    onRepsChange: (weight: String) -> Unit,
     position: Int,
     onRemove: () -> Unit
 ) {
     val underlineColor = FitLadyaTheme.colors.primaryBorder
-
+    val weightState: MutableState<String> = remember { mutableStateOf(weight) }
+    val setsState: MutableState<String> = remember { mutableStateOf(sets) }
+    val repsState: MutableState<String> = remember { mutableStateOf(reps) }
     Card(
         modifier = Modifier
             .padding(horizontal = 16.dp)
@@ -122,7 +128,10 @@ fun EditableCustomExerciseCard(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     BasicTextField(
                         value = weightState.value,
-                        onValueChange = { value -> weightState.value = value },
+                        onValueChange = { value ->
+                            weightState.value = value
+                            onWeightChange(value)
+                        },
                         modifier = Modifier.width(32.dp),
                         textStyle = TextStyle(
                             color = FitLadyaTheme.colors.accent,
@@ -161,7 +170,10 @@ fun EditableCustomExerciseCard(
                 Row {
                     BasicTextField(
                         value = setsState.value,
-                        onValueChange = { value -> setsState.value = value },
+                        onValueChange = { value ->
+                            setsState.value = value
+                            onSetsChange(value)
+                        },
                         modifier = Modifier.width(24.dp),
                         textStyle = TextStyle(
                             color = FitLadyaTheme.colors.accent,
@@ -193,7 +205,10 @@ fun EditableCustomExerciseCard(
 
                     BasicTextField(
                         value = repsState.value,
-                        onValueChange = { value -> repsState.value = value },
+                        onValueChange = { value ->
+                            repsState.value = value
+                            onRepsChange(value)
+                        },
                         modifier = Modifier.width(24.dp),
                         textStyle = TextStyle(
                             color = FitLadyaTheme.colors.accent,

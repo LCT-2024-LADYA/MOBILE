@@ -106,9 +106,11 @@ internal fun ChatScreen(
             val data = effect.messages.collectAsLazyPagingItems()
             if (data.itemCount != 0) {
                 val message =
-                    data.itemSnapshotList.items.first { it is ChatItem.ChatMessage } as ChatItem.ChatMessage
-                viewModel.handleIntent(ChatIntent.UpdateIds(message.trainerId, message.userId))
-                messages.value = data
+                    data.itemSnapshotList.items.firstOrNull { it is ChatItem.ChatMessage } as? ChatItem.ChatMessage
+                message?.let {
+                    viewModel.handleIntent(ChatIntent.UpdateIds(message.trainerId, message.userId))
+                    messages.value = data
+                }
             }
             val pagingData = PagingData.from(data.itemSnapshotList.items)
             viewModel.handleIntent(ChatIntent.SaveMessages(pagingData))

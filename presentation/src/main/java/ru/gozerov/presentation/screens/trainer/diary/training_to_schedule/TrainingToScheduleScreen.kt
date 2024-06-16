@@ -120,6 +120,10 @@ fun TrainingToScheduleScreen(
         viewModel.handleIntent(TrainingToScheduleIntent.GetLastAddedTraining)
     }
 
+    LaunchedEffect(calendarState.monthState.currentMonth) {
+        viewModel.handleIntent(TrainingToScheduleIntent.GetSchedule(monthState.value.currentMonth.monthValue))
+    }
+
     when (effect) {
         is TrainingToScheduleEffect.None -> {}
         is TrainingToScheduleEffect.LoadedPlan -> {

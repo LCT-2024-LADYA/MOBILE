@@ -36,6 +36,10 @@ class CreateTrainingViewModel @Inject constructor(
         handleIntent(CreateTrainingIntent.Clear)
     }
 
+    val weights = mutableListOf<String>()
+    val sets = mutableListOf<String>()
+    val reps = mutableListOf<String>()
+
     private val _effect = MutableStateFlow<CreateTrainingEffect>(CreateTrainingEffect.None)
     val effect: StateFlow<CreateTrainingEffect>
         get() = _effect.asStateFlow()

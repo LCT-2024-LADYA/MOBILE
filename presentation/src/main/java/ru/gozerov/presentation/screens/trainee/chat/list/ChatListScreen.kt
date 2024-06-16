@@ -87,7 +87,7 @@ internal fun ChatListScreen(
     val selectedSpecializations = remember { mutableStateOf<List<Specialization>>(emptyList()) }
 
     LaunchedEffect(null) {
-        viewModel.handleIntent(ChatListIntent.Init(searchState.value, listOf(), listOf()))
+        viewModel.handleIntent(ChatListIntent.LoadRolesAndSpecializations)
     }
 
     val specializations = remember { mutableStateOf<List<Specialization>>(listOf()) }
@@ -99,6 +99,7 @@ internal fun ChatListScreen(
         is ChatListEffect.LoadedRolesAndSpecializations -> {
             roles.value = effect.roles
             specializations.value = effect.specializations
+            viewModel.handleIntent(ChatListIntent.LoadChats(searchState.value))
         }
 
         is ChatListEffect.LoadedChatsAndTrainers -> {
@@ -110,6 +111,15 @@ internal fun ChatListScreen(
 
         is ChatListEffect.LoadedChats -> {
             chats.value = effect.chats
+            viewModel.handleIntent(ChatListIntent.LoadTrainers(
+                query = searchState.value,
+                roles = if (selectedRole.intValue in roles.value.indices) listOf(
+                    roles.value[selectedRole.intValue].id
+                ) else listOf(),
+                selectedSpecializations.value.map { specialization ->
+                    specialization.id
+                }
+            ))
         }
 
         is ChatListEffect.LoadedTrainers -> {

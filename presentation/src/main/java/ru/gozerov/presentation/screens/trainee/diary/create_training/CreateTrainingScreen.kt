@@ -1,6 +1,7 @@
 package ru.gozerov.presentation.screens.trainee.diary.create_training
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -28,7 +29,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -95,9 +95,6 @@ fun CreateTrainingScreen(
     val description = rememberSaveable { mutableStateOf("") }
 
     val exercises = remember { mutableStateOf(listOf<Exercise>()) }
-    val weightsState = remember { mutableListOf<MutableState<String>>() }
-    val setsState = remember { mutableListOf<MutableState<String>>() }
-    val repsState = remember { mutableListOf<MutableState<String>>() }
 
     val errorMessage = stringResource(id = R.string.incorrect_data)
 
@@ -120,9 +117,9 @@ fun CreateTrainingScreen(
             val exerciseToRemove = newExercises.first { exercise -> exercise.id == effect.id }
             newExercises.remove(exerciseToRemove)
             val pos = exercises.value.indexOf(exerciseToRemove)
-            weightsState.removeAt(pos)
-            setsState.removeAt(pos)
-            repsState.removeAt(pos)
+            viewModel.weights.removeAt(pos)
+            viewModel.sets.removeAt(pos)
+            viewModel.reps.removeAt(pos)
             exercises.value = newExercises
             newExercises.removeIf { exercise -> exercise.id == effect.id }
             viewModel.handleIntent(CreateTrainingIntent.Reset)
@@ -131,12 +128,11 @@ fun CreateTrainingScreen(
         is CreateTrainingEffect.AddedExercises -> {
             val diff = effect.exercises.size - exercises.value.size
             repeat(diff) {
-                val weight = rememberSaveable { mutableStateOf("0") }
-                val sets = rememberSaveable { mutableStateOf("") }
-                val reps = rememberSaveable { mutableStateOf("") }
-                weightsState.add(weight)
-                setsState.add(sets)
-                repsState.add(reps)
+                if (viewModel.weights.size < effect.exercises.size) {
+                    viewModel.weights.add("0")
+                    viewModel.sets.add("")
+                    viewModel.reps.add("")
+                }
             }
             exercises.value = effect.exercises
             viewModel.handleIntent(CreateTrainingIntent.Reset)
@@ -147,13 +143,10 @@ fun CreateTrainingScreen(
             description.value = effect.training.description
             val diff = effect.training.exercises.size - exercises.value.size
             repeat(diff) {
-                val weight = rememberSaveable { mutableStateOf("0") }
-                val sets = rememberSaveable { mutableStateOf("") }
-                val reps = rememberSaveable { mutableStateOf("") }
 
-                weightsState.add(weight)
-                setsState.add(sets)
-                repsState.add(reps)
+                viewModel.weights.add("0")
+                viewModel.sets.add("")
+                viewModel.reps.add("")
             }
             exercises.value = effect.training.exercises.map { exercise -> exercise.toExercise() }
             viewModel.handleIntent(CreateTrainingIntent.Reset)
@@ -223,13 +216,13 @@ fun CreateTrainingScreen(
                                 onClick = {
                                     if (sureTrainingName.value.isNotBlank()) {
                                         val createExercisesModels =
-                                            weightsState.mapIndexed { ind, state ->
+                                            viewModel.weights.mapIndexed { ind, state ->
                                                 CreateExerciseModel(
                                                     exercises.value[ind].id,
                                                     step = ind,
-                                                    reps = repsState[ind].value.toInt(),
-                                                    sets = setsState[ind].value.toInt(),
-                                                    weight = weightsState[ind].value.toInt()
+                                                    reps = viewModel.reps[ind].toInt(),
+                                                    sets = viewModel.sets[ind].toInt(),
+                                                    weight = viewModel.weights[ind].toInt()
                                                 )
                                             }
 
@@ -266,13 +259,13 @@ fun CreateTrainingScreen(
                                 onClick = {
                                     if (sureTrainingName.value.isNotBlank()) {
                                         val createExercisesModels =
-                                            weightsState.mapIndexed { ind, state ->
+                                            viewModel.weights.mapIndexed { ind, state ->
                                                 CreateExerciseModel(
                                                     exercises.value[ind].id,
                                                     step = ind,
-                                                    reps = repsState[ind].value.toInt(),
-                                                    sets = setsState[ind].value.toInt(),
-                                                    weight = weightsState[ind].value.toInt()
+                                                    reps = viewModel.reps[ind].toInt(),
+                                                    sets = viewModel.sets[ind].toInt(),
+                                                    weight = viewModel.weights[ind].toInt()
                                                 )
                                             }
 
@@ -395,9 +388,18 @@ fun CreateTrainingScreen(
                         EditableCustomExerciseCard(
                             exercise = exercises.value[index],
                             position = index,
-                            weightState = weightsState[index],
-                            setsState = setsState[index],
-                            repsState = repsState[index]
+                            onWeightChange = { value ->
+                                viewModel.weights[index] = value
+                            },
+                            onSetsChange = { value ->
+                                viewModel.sets[index] = value
+                            },
+                            onRepsChange = { value ->
+                                viewModel.reps[index] = value
+                            },
+                            weight = viewModel.weights[index],
+                            sets = viewModel.sets[index],
+                            reps = viewModel.reps[index],
                         ) {
                             viewModel.handleIntent(CreateTrainingIntent.RemoveExercise(exercises.value[index].id))
                         }
@@ -416,16 +418,16 @@ fun CreateTrainingScreen(
                 colors = ButtonDefaults.buttonColors(containerColor = FitLadyaTheme.colors.primary),
                 onClick = {
                     var isEmpty = false
-                    weightsState.forEach { state ->
-                        if (!isValidInt(state.value))
+                    viewModel.weights.forEach { state ->
+                        if (!isValidInt(state))
                             isEmpty = true
                     }
-                    setsState.forEach { state ->
-                        if (!isValidInt(state.value))
+                    viewModel.sets.forEach { state ->
+                        if (!isValidInt(state))
                             isEmpty = true
                     }
-                    repsState.forEach { state ->
-                        if (!isValidInt(state.value))
+                    viewModel.reps.forEach { state ->
+                        if (!isValidInt(state))
                             isEmpty = true
                     }
                     if (isTrainer && !isEmpty) {
@@ -437,13 +439,13 @@ fun CreateTrainingScreen(
                             timeStart.value.text.length == 5 && timeEnd.value.text.length == 5
                             && date.value.text.length == 10 && exercises.value.isNotEmpty()
                         ) {
-                            val createExercisesModels = weightsState.mapIndexed { ind, state ->
+                            val createExercisesModels = viewModel.weights.mapIndexed { ind, state ->
                                 CreateExerciseModel(
                                     exercises.value[ind].id,
                                     step = ind,
-                                    reps = repsState[ind].value.toInt(),
-                                    sets = setsState[ind].value.toInt(),
-                                    weight = weightsState[ind].value.toInt()
+                                    reps = viewModel.reps[ind].toInt(),
+                                    sets = viewModel.sets[ind].toInt(),
+                                    weight = viewModel.weights[ind].toInt()
                                 )
                             }
 
