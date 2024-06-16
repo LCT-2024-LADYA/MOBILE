@@ -54,7 +54,6 @@ import ru.gozerov.presentation.R
 import ru.gozerov.presentation.navigation.Screen
 import ru.gozerov.presentation.screens.trainee.diary.create_training.models.CreateTrainingEffect
 import ru.gozerov.presentation.screens.trainee.diary.create_training.models.CreateTrainingIntent
-import ru.gozerov.presentation.shared.utils.isValidInt
 import ru.gozerov.presentation.shared.utils.showError
 import ru.gozerov.presentation.shared.views.CustomTextField
 import ru.gozerov.presentation.shared.views.DateDDMMYYYYTextField
@@ -400,7 +399,12 @@ fun CreateTrainingScreen(
                             sets = viewModel.sets[index],
                             reps = viewModel.reps[index],
                         ) {
-                            viewModel.handleIntent(CreateTrainingIntent.RemoveExercise(exercises.value[index].id, index))
+                            viewModel.handleIntent(
+                                CreateTrainingIntent.RemoveExercise(
+                                    exercises.value[index].id,
+                                    index
+                                )
+                            )
                         }
                     }
                     item {
@@ -416,52 +420,36 @@ fun CreateTrainingScreen(
                     .height(40.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = FitLadyaTheme.colors.primary),
                 onClick = {
-                    var isEmpty = false
-                    viewModel.weights.forEach { state ->
-                        if (!isValidInt(state))
-                            isEmpty = true
-                    }
-                    viewModel.sets.forEach { state ->
-                        if (!isValidInt(state))
-                            isEmpty = true
-                    }
-                    viewModel.reps.forEach { state ->
-                        if (!isValidInt(state))
-                            isEmpty = true
-                    }
-                    if (isTrainer && !isEmpty) {
+                    if (isTrainer) {
                         showPopup = true
-                    } else
-                        if (isEmpty) {
-                            snackbarHostState.showError(coroutineScope, errorMessage)
-                        } else if (description.value.isNotBlank() && trainingName.value.isNotBlank() &&
-                            timeStart.value.text.length == 5 && timeEnd.value.text.length == 5
-                            && date.value.text.length == 10 && exercises.value.isNotEmpty()
-                        ) {
-                            val createExercisesModels = viewModel.weights.mapIndexed { ind, state ->
-                                CreateExerciseModel(
-                                    exercises.value[ind].id,
-                                    step = ind,
-                                    reps = viewModel.reps[ind].toInt(),
-                                    sets = viewModel.sets[ind].toInt(),
-                                    weight = viewModel.weights[ind].toInt()
-                                )
-                            }
-
-
-                            viewModel.handleIntent(
-                                CreateTrainingIntent.CreateTraining(
-                                    CreateTrainingModel(
-                                        description.value,
-                                        createExercisesModels,
-                                        trainingName.value
-                                    ), date.value.text, timeStart.value.text, timeEnd.value.text
-                                )
+                    } else if (description.value.isNotBlank() && trainingName.value.isNotBlank() &&
+                        timeStart.value.text.length == 5 && timeEnd.value.text.length == 5
+                        && date.value.text.length == 10 && exercises.value.isNotEmpty()
+                    ) {
+                        val createExercisesModels = viewModel.weights.mapIndexed { ind, state ->
+                            CreateExerciseModel(
+                                exercises.value[ind].id,
+                                step = ind,
+                                reps = viewModel.reps[ind].toInt(),
+                                sets = viewModel.sets[ind].toInt(),
+                                weight = viewModel.weights[ind].toInt()
                             )
-
-                        } else {
-                            snackbarHostState.showError(coroutineScope, errorMessage)
                         }
+
+
+                        viewModel.handleIntent(
+                            CreateTrainingIntent.CreateTraining(
+                                CreateTrainingModel(
+                                    description.value,
+                                    createExercisesModels,
+                                    trainingName.value
+                                ), date.value.text, timeStart.value.text, timeEnd.value.text
+                            )
+                        )
+
+                    } else {
+                        snackbarHostState.showError(coroutineScope, errorMessage)
+                    }
                 }
             ) {
                 Text(

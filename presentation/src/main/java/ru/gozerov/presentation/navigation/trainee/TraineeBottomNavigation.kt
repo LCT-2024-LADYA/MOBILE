@@ -1,5 +1,6 @@
 package ru.gozerov.presentation.navigation.trainee
 
+import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
@@ -268,7 +269,10 @@ fun TraineeBottomNavHostContainer(
                         navController.previousBackStackEntry?.savedStateHandle?.get<TrainingPlanCard>(
                             "plan"
                         )
+                    Log.e("AAA", month.toString())
+                    Log.e("AAA", plan.toString())
                     if (start != null && end != null && month != null && plan != null) {
+
                         val viewModel = hiltViewModel<TrainingToScheduleViewModel>()
                         TrainingToScheduleScreen(
                             start,

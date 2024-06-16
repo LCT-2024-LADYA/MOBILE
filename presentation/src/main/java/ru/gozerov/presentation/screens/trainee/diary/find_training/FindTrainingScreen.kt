@@ -178,6 +178,10 @@ fun FindTrainingScreen(
                                             "date",
                                             date
                                         )
+                                        navController.currentBackStackEntry?.savedStateHandle?.set(
+                                            "backRoute",
+                                            Screen.ClientDiary.route
+                                        )
                                         navController.navigate(Screen.CreateTraining.route)
                                     }
                                 }

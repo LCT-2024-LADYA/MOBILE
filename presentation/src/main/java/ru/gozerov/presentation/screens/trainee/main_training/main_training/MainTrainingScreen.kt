@@ -83,10 +83,6 @@ fun MainTrainingScreen(
                     "backRoute",
                     Screen.MainTraining.route
                 )
-                navController.navigate(Screen.CreateTraining.route) {
-                    restoreState = true
-                    launchSingleTop = true
-                }
             }
         }
         currentTraining.value?.let { training ->
