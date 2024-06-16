@@ -45,22 +45,6 @@ fun MainTraining(
 
                 Spacer(modifier = Modifier.height(24.dp))
                 Text(
-                    modifier = Modifier
-                        .padding(start = 32.dp)
-                        .width(200.dp),
-                    text = stringResource(id = R.string.next_training),
-                    color = FitLadyaTheme.colors.primary,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium
-                )
-
-                HorizontalDivider(
-                    modifier = Modifier
-                        .padding(vertical = 8.dp, horizontal = 32.dp)
-                        .fillMaxWidth(),
-                    color = FitLadyaTheme.colors.secondaryBorder
-                )
-                Text(
                     modifier = Modifier.padding(horizontal = 32.dp),
                     text = training.name,
                     fontSize = 22.sp,

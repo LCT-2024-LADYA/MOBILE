@@ -75,4 +75,6 @@ sealed class Screen(
 
     object TrainerTrainingDetails : Screen("trainerTrainingDetails")
 
+    object UserTrainings : Screen("userTrainings" )
+
 }

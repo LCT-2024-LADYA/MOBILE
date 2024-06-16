@@ -154,5 +154,6 @@
     <string name="plan_or_training">План или тренировка</string>
     <string name="make_public">Сделать тренировку публичной?</string>
     <string name="to_moderate">Отправить на модерацию</string>
+    <string name="services_and_trainings">Услуги и тренировки</string>
     <integer name="com_vk_sdk_AppId">51938469</integer>
 </resources>

@@ -7,7 +7,7 @@ import ru.gozerov.data.api.models.request.CreateTrainingDTO
 import ru.gozerov.data.api.models.request.RegisterRequestBody
 import ru.gozerov.data.api.models.request.TrainerMainInfoRequestBody
 import ru.gozerov.data.api.models.response.AchievementDTO
-import ru.gozerov.data.api.models.response.ChatMessageDTO
+import ru.gozerov.data.api.models.response.ChatItemDTO
 import ru.gozerov.data.api.models.response.ClientCover
 import ru.gozerov.data.api.models.response.ClientProfileDTO
 import ru.gozerov.data.api.models.response.CreateTrainingResponse
@@ -27,7 +27,7 @@ import ru.gozerov.data.api.models.response.TrainerProfileDTO
 import ru.gozerov.data.api.models.response.UserInfoResponse
 import ru.gozerov.domain.models.Achievement
 import ru.gozerov.domain.models.ChatCard
-import ru.gozerov.domain.models.ChatMessage
+import ru.gozerov.domain.models.ChatItem
 import ru.gozerov.domain.models.ClientCustomService
 import ru.gozerov.domain.models.ClientInfo
 import ru.gozerov.domain.models.CreateExerciseModel
@@ -136,8 +136,10 @@ fun GetChatsResponseBody.toChatCard() =
         time_last_message
     )
 
-fun ChatMessageDTO.toChatMessage() =
-    ChatMessage(id, is_to_user, message, service_id, time, trainer_id, user_id)
+fun ChatItemDTO.ChatMessageDTO.toChatMessage() =
+    ChatItem.ChatMessage(id, is_to_user, message, service_id, time, trainer_id, user_id)
+
+fun ChatItemDTO.DateMessageDTO.toChatDate() = ChatItem.DateMessage(message = date)
 
 fun TrainerCover.toTrainerCard() = TrainerCard(
     id,

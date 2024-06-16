@@ -365,7 +365,7 @@ fun TrainerServiceCard(
                         fontSize = 12.sp
                     )
                 }
-                if (service.service.profile_access && (!service.isPayed || service.isTrainerApproved != true || service.isClientApproved != true)) {
+                if (service.service.profile_access && service.isPayed && (service.isTrainerApproved != true || service.isClientApproved != true)) {
                     Box(contentAlignment = Alignment.CenterEnd) {
                         IconButton(
                             onClick = {
@@ -410,7 +410,7 @@ fun TrainerServiceCard(
                         fontWeight = FontWeight.Medium,
                         color = if (isTrainerApproved != false) FitLadyaTheme.colors.buttonText
                         else FitLadyaTheme.colors.buttonText.copy(alpha = 0.32f),
-                        fontSize = 14.sp
+                        fontSize = 12.sp
                     )
                 }
                 Spacer(modifier = Modifier.width(8.dp))
@@ -432,7 +432,7 @@ fun TrainerServiceCard(
                         fontWeight = FontWeight.Medium,
                         color = if (isTrainerApproved != true) FitLadyaTheme.colors.secondaryText
                         else FitLadyaTheme.colors.secondaryText.copy(alpha = 0.32f),
-                        fontSize = 14.sp
+                        fontSize = 12.sp
                     )
                 }
             }
@@ -441,7 +441,7 @@ fun TrainerServiceCard(
             Spacer(modifier = Modifier.height(12.dp))
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                 Text(
-                    text = stringResource(id = R.string.remove),
+                    text = stringResource(id = R.string.cancel_service),
                     color = FitLadyaTheme.colors.accent,
                     fontWeight = FontWeight.Medium,
                     modifier = Modifier.clickable(

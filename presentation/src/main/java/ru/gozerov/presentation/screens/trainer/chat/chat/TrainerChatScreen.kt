@@ -1,11 +1,11 @@
 package ru.gozerov.presentation.screens.trainer.chat.chat
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -50,10 +50,11 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import kotlinx.coroutines.launch
 import ru.gozerov.domain.models.ChatCard
-import ru.gozerov.domain.models.ChatMessage
+import ru.gozerov.domain.models.ChatItem
 import ru.gozerov.domain.models.TrainerService
 import ru.gozerov.presentation.R
 import ru.gozerov.presentation.navigation.Screen
+import ru.gozerov.presentation.screens.trainee.chat.chat.DateCard
 import ru.gozerov.presentation.screens.trainee.chat.chat.MeMessageCard
 import ru.gozerov.presentation.screens.trainee.chat.chat.UserMessageCard
 import ru.gozerov.presentation.screens.trainer.chat.chat.models.TrainerChatEffect
@@ -85,7 +86,7 @@ internal fun TrainerChatScreen(
     )
 
     val services = remember { mutableStateOf<List<TrainerService>>(emptyList()) }
-    val messages = remember { mutableStateOf<LazyPagingItems<ChatMessage>?>(null) }
+    val messages = remember { mutableStateOf<LazyPagingItems<ChatItem>?>(null) }
 
     LaunchedEffect(null) {
         viewModel.handleIntent(TrainerChatIntent.GetServices)
@@ -102,7 +103,8 @@ internal fun TrainerChatScreen(
         is TrainerChatEffect.LoadedMessages -> {
             val data = effect.messages.collectAsLazyPagingItems()
             if (data.itemCount != 0) {
-                val message = data.itemSnapshotList.items.first()
+                val message =
+                    data.itemSnapshotList.items.first { it is ChatItem.ChatMessage } as ChatItem.ChatMessage
                 viewModel.handleIntent(
                     TrainerChatIntent.UpdateIds(message.trainerId, message.userId)
                 )
@@ -216,34 +218,44 @@ internal fun TrainerChatScreen(
                     }
                 }
 
-                Box(
+
+                LazyColumn(
                     modifier = Modifier
+                        .fillMaxSize()
                         .weight(1f)
                         .background(color = FitLadyaTheme.colors.primaryBackground)
-                ) {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .animateContentSize(),
-                        reverseLayout = true,
+                        .animateContentSize(),
+                    reverseLayout = true,
 
-                        ) {
-                        messages.value?.itemCount?.let { itemCount ->
-                            items(itemCount) { index ->
-                                val message = messages.value!![index]
-                                message?.let {
-                                    if (!message.isToUser)
-                                        UserMessageCard(
-                                            message = message,
-                                            services = services.value
-                                        )
-                                    else
-                                        MeMessageCard(message = message, services = services.value)
+                    ) {
+                    messages.value?.itemCount?.let { itemCount ->
+                        items(itemCount) { index ->
+                            val message = messages.value!![index]
+                            message?.let {
+                                when (message) {
+                                    is ChatItem.ChatMessage -> message.let {
+                                        if (!message.isToUser)
+                                            UserMessageCard(
+                                                message = message,
+                                                services = services.value
+                                            )
+                                        else
+                                            MeMessageCard(
+                                                message = message,
+                                                services = services.value
+                                            )
+                                    }
+
+                                    is ChatItem.DateMessage -> {
+                                        Log.e("AAA", message.message)
+                                        DateCard(date = message.message)
+                                    }
                                 }
                             }
                         }
                     }
                 }
+
 
                 Row(
                     modifier = Modifier

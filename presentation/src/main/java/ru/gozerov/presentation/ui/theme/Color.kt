@@ -18,7 +18,9 @@ val baseLightPalette = FitLadyaColors(
     secondaryBorder = Color(0xFFD6D6D6),
     avatarBackground = Color(0xFFD9D9D9),
     cashColor = Color(0xFF356823),
-    successColor = Color(0xFF66BB6A)
+    successColor = Color(0xFF66BB6A),
+    messageText = Color(0xFFE9E8EE),
+    diaryText = Color(0xFFE9E8EE)
 )
 
 val baseDarkPalette = FitLadyaColors(
@@ -37,5 +39,7 @@ val baseDarkPalette = FitLadyaColors(
     secondaryBorder = Color(0xFF333333),
     avatarBackground = Color(0xFF333138),
     cashColor = Color(0xFF54AA36),
-    successColor = Color(0xFF66BB6A)
+    successColor = Color(0xFF66BB6A),
+    messageText = Color(0xFFEEEEEE),
+    diaryText = Color(0xFFEEEEEE)
 )

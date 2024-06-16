@@ -11,13 +11,15 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
-import ru.gozerov.domain.models.ChatMessage
+import ru.gozerov.domain.models.ChatItem
+import ru.gozerov.domain.models.ClientMessagePage
 import ru.gozerov.domain.usecases.CheckNewMessagesUseCase
 import ru.gozerov.domain.usecases.GetTrainerProfileUseCase
 import ru.gozerov.domain.usecases.GetUserChatMessagesUseCase
 import ru.gozerov.domain.usecases.RunWebSocketUseCase
 import ru.gozerov.domain.usecases.SendMessageUseCase
 import ru.gozerov.domain.utils.getCurrentUtcTime
+import ru.gozerov.domain.utils.parseDateToDDMM
 import ru.gozerov.presentation.screens.trainee.chat.chat.models.ChatEffect
 import ru.gozerov.presentation.screens.trainee.chat.chat.models.ChatIntent
 import ru.gozerov.presentation.shared.utils.runCatchingNonCancellation
@@ -63,8 +65,15 @@ class ChatViewModel @Inject constructor(
         viewModelScope.launch {
             checkNewMessagesUseCase.invoke().collectLatest { newMessage ->
                 if (newMessage.trainerId == trainerId) {
+                    val date = parseDateToDDMM(newMessage.time)
+                    if (date != ClientMessagePage.lastDate) {
+                        messages = messages?.insertHeaderItem(
+                            item = ChatItem.DateMessage(date)
+                        )
+                        ClientMessagePage.lastDate = date
+                    }
                     messages = messages?.insertHeaderItem(
-                        item = ChatMessage(
+                        item = ChatItem.ChatMessage(
                             newMessage.id,
                             newMessage.isToUser,
                             newMessage.message,
@@ -82,7 +91,7 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-    private var messages: PagingData<ChatMessage>? = null
+    private var messages: PagingData<ChatItem>? = null
 
     fun handleIntent(intent: ChatIntent) {
         viewModelScope.launch {
@@ -131,8 +140,15 @@ class ChatViewModel @Inject constructor(
                     }
                         .onSuccess {
                             val time = getCurrentUtcTime()
+                            val date = parseDateToDDMM(time)
+                            if (date != ClientMessagePage.lastDate) {
+                                messages = messages?.insertHeaderItem(
+                                    item = ChatItem.DateMessage(date)
+                                )
+                                ClientMessagePage.lastDate = date
+                            }
                             messages = messages?.insertHeaderItem(
-                                item = ChatMessage(
+                                item = ChatItem.ChatMessage(
                                     Random.nextInt(),
                                     false,
                                     intent.message,
@@ -158,8 +174,15 @@ class ChatViewModel @Inject constructor(
                         .onSuccess { flow ->
                             flow.collect { newMessage ->
                                 if (newMessage.trainerId == trainerId && newMessage.userId == clientId) {
+                                    val date = parseDateToDDMM(newMessage.time)
+                                    if (date != ClientMessagePage.lastDate) {
+                                        messages = messages?.insertHeaderItem(
+                                            item = ChatItem.DateMessage(date)
+                                        )
+                                        ClientMessagePage.lastDate = date
+                                    }
                                     messages = messages?.insertHeaderItem(
-                                        item = ChatMessage(
+                                        item = ChatItem.ChatMessage(
                                             newMessage.id,
                                             newMessage.isToUser,
                                             newMessage.message,

@@ -435,7 +435,6 @@ fun PasteTrainingScreen(
                                 }
                             ) {
                                 Text(
-                                    modifier = Modifier.padding(end = 8.dp),
                                     style = FitLadyaTheme.typography.body,
                                     text = stringResource(id = R.string.paste),
                                     fontWeight = FontWeight.Medium,

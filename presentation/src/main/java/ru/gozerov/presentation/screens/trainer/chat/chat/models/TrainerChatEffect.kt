@@ -2,7 +2,7 @@ package ru.gozerov.presentation.screens.trainer.chat.chat.models
 
 import androidx.paging.PagingData
 import kotlinx.coroutines.flow.Flow
-import ru.gozerov.domain.models.ChatMessage
+import ru.gozerov.domain.models.ChatItem
 import ru.gozerov.domain.models.TrainerService
 
 sealed interface TrainerChatEffect {
@@ -14,7 +14,7 @@ sealed interface TrainerChatEffect {
     ) : TrainerChatEffect
 
     class LoadedMessages(
-        val messages: Flow<PagingData<ChatMessage>>
+        val messages: Flow<PagingData<ChatItem>>
     ) : TrainerChatEffect
 
     data class Error(

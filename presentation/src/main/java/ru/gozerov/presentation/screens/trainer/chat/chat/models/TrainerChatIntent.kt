@@ -1,7 +1,7 @@
 package ru.gozerov.presentation.screens.trainer.chat.chat.models
 
 import androidx.paging.PagingData
-import ru.gozerov.domain.models.ChatMessage
+import ru.gozerov.domain.models.ChatItem
 
 sealed interface TrainerChatIntent {
 
@@ -14,7 +14,7 @@ sealed interface TrainerChatIntent {
     ) : TrainerChatIntent
 
     data class SaveMessages(
-        val data: PagingData<ChatMessage>
+        val data: PagingData<ChatItem>
     ) : TrainerChatIntent
 
     class SendMessage(

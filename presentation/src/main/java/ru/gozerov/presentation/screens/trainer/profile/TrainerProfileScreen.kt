@@ -84,6 +84,7 @@ import ru.gozerov.presentation.screens.trainer.profile.models.TrainerProfileEffe
 import ru.gozerov.presentation.screens.trainer.profile.models.TrainerProfileIntent
 import ru.gozerov.presentation.shared.utils.isValidAge
 import ru.gozerov.presentation.shared.utils.isValidEmail
+import ru.gozerov.presentation.shared.utils.isValidInt
 import ru.gozerov.presentation.shared.utils.showError
 import ru.gozerov.presentation.shared.views.CustomTextField
 import ru.gozerov.presentation.shared.views.ProfileToolbar
@@ -820,13 +821,14 @@ fun TrainerProfileScreen(
                 AddAchievementButton(
                     text = stringResource(id = R.string.add)
                 ) {
-                    viewModel.handleIntent(
-                        TrainerProfileIntent.CreateService(
-                            serviceNameState.value,
-                            servicePriceState.value.toInt(),
-                            isPlan
+                    if (isValidInt(servicePriceState.value) && serviceNameState.value.isNotBlank())
+                        viewModel.handleIntent(
+                            TrainerProfileIntent.CreateService(
+                                serviceNameState.value,
+                                servicePriceState.value.toInt(),
+                                isPlan
+                            )
                         )
-                    )
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))

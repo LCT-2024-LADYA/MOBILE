@@ -181,11 +181,12 @@ fun SelectTrainingScreen(
                                 val card = trainerTrainings.value!![index]
                                 card?.let { training ->
                                     SimpleTrainingCard(trainingCard = training) {
-                                        navController.currentBackStackEntry?.savedStateHandle?.set(
-                                            "id",
-                                            training.id
+                                        viewModel.handleIntent(
+                                            SelectTrainingIntent.AddTraining(
+                                                training
+                                            )
                                         )
-                                        navController.navigate(Screen.CreateTraining.route)
+                                        navController.popBackStack()
                                     }
                                 }
                             }

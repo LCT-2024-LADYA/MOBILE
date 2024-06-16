@@ -1,14 +1,14 @@
 package ru.gozerov.presentation.screens.trainee.chat.chat.models
 
 import androidx.paging.PagingData
-import ru.gozerov.domain.models.ChatMessage
+import ru.gozerov.domain.models.ChatItem
 
 sealed interface ChatIntent {
 
     object Reset : ChatIntent
 
     data class SaveMessages(
-        val data: PagingData<ChatMessage>
+        val data: PagingData<ChatItem>
     ) : ChatIntent
 
     data class GetMessages(

@@ -392,7 +392,7 @@ fun ClientProfileScreen(
                         painter = painterResource(id = R.drawable.ic_hear_outlined),
                         iconTint = FitLadyaTheme.colors.accent
                     ) {
-
+                        navController.navigate(Screen.UserTrainings.route)
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     ProfileActionCard(

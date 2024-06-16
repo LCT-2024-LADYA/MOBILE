@@ -33,11 +33,14 @@ import ru.gozerov.presentation.screens.trainee.profile.profile.ClientProfileScre
 import ru.gozerov.presentation.screens.trainee.profile.profile.ClientProfileViewModel
 import ru.gozerov.presentation.screens.trainee.profile.statistics.ClientStatisticsScreen
 import ru.gozerov.presentation.screens.trainee.profile.statistics.ClientStatisticsViewModel
+import ru.gozerov.presentation.screens.trainee.profile.trainings.UserTrainingScreen
+import ru.gozerov.presentation.screens.trainee.profile.trainings.UserTrainingsViewModel
 import ru.gozerov.presentation.screens.trainer.diary.diary_plan.SchedulePlanScreen
 import ru.gozerov.presentation.screens.trainer.diary.diary_plan.SchedulePlanViewModel
 import ru.gozerov.presentation.screens.trainer.diary.paste_training.PasteTrainingScreen
 import ru.gozerov.presentation.screens.trainer.diary.paste_training.PasteTrainingViewModel
 import ru.gozerov.presentation.screens.trainer.diary.plan_details.PlanDetailsScreen
+import ru.gozerov.presentation.screens.trainer.diary.plan_details.PlanDetailsViewModel
 import ru.gozerov.presentation.screens.trainer.diary.training_to_schedule.TrainingToScheduleScreen
 import ru.gozerov.presentation.screens.trainer.diary.training_to_schedule.TrainingToScheduleViewModel
 
@@ -181,14 +184,16 @@ fun TraineeBottomNavHostContainer(
                     route = Screen.PlanDetailsScreen.route
                 ) {
                     val plan =
-                        navController.previousBackStackEntry?.savedStateHandle?.get<TrainingPlan>(
+                        navController.previousBackStackEntry?.savedStateHandle?.get<TrainingPlanCard>(
                             "plan"
                         )
                     plan?.let {
+                        val viewModel = hiltViewModel<PlanDetailsViewModel>()
                         PlanDetailsScreen(
                             contentPaddingValues = padding,
-                            plan = plan,
-                            navController = navController
+                            planCard = plan,
+                            navController = navController,
+                            viewModel = viewModel
                         )
                     }
                 }
@@ -340,6 +345,17 @@ fun TraineeBottomNavHostContainer(
                         navController = navController,
                         viewModel = viewModel,
                         contentPaddingValues = padding
+                    )
+                }
+
+                composable(
+                    route = Screen.UserTrainings.route
+                ) {
+                    val viewModel = hiltViewModel<UserTrainingsViewModel>()
+                    UserTrainingScreen(
+                        navController = navController,
+                        contentPaddingValues = padding,
+                        viewModel = viewModel
                     )
                 }
             }

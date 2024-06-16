@@ -25,14 +25,15 @@ import okio.ByteString
 import ru.gozerov.data.api.ChatApi
 import ru.gozerov.data.api.models.request.MessageBody
 import ru.gozerov.data.api.models.request.MessageData
-import ru.gozerov.data.api.models.response.ChatMessageDTO
+import ru.gozerov.data.api.models.response.ChatItemDTO
 import ru.gozerov.data.api.models.toChatCard
+import ru.gozerov.data.api.models.toChatDate
 import ru.gozerov.data.api.models.toChatMessage
 import ru.gozerov.data.api.paging.ClientMessagePagingSource
 import ru.gozerov.data.api.paging.TrainerMessagePagingSource
 import ru.gozerov.data.cache.LoginStorage
 import ru.gozerov.domain.models.ChatCard
-import ru.gozerov.domain.models.ChatMessage
+import ru.gozerov.domain.models.ChatItem
 import ru.gozerov.domain.repositories.ChatRepository
 import ru.gozerov.domain.repositories.LoginRepository
 import javax.inject.Inject
@@ -53,13 +54,18 @@ class ChatRepositoryImpl @Inject constructor(
         }
     )
 
-    override suspend fun getTrainerChatMessages(userId: Int): Flow<PagingData<ChatMessage>> {
+    override suspend fun getTrainerChatMessages(userId: Int): Flow<PagingData<ChatItem>> {
         val messagePagingSource = trainerMessagePagingSourceFactory.create(userId)
         val pager = Pager(PagingConfig(50)) {
             messagePagingSource
         }
         return pager.flow.map { data ->
-            data.map { dto -> dto.toChatMessage() }
+            data.map { dto ->
+                when (dto) {
+                    is ChatItemDTO.ChatMessageDTO -> dto.toChatMessage()
+                    is ChatItemDTO.DateMessageDTO -> dto.toChatDate()
+                }
+            }
         }
     }
 
@@ -71,19 +77,25 @@ class ChatRepositoryImpl @Inject constructor(
         }
     )
 
-    override suspend fun getClientChatMessages(trainerId: Int): Flow<PagingData<ChatMessage>> {
+    override suspend fun getClientChatMessages(trainerId: Int): Flow<PagingData<ChatItem>> {
         val messagePagingSource = clientMessagePagingSourceFactory.create(trainerId)
         val pager = Pager(PagingConfig(50)) {
             messagePagingSource
         }
         return pager.flow.map { data ->
-            data.map { dto -> dto.toChatMessage() }
+            data.map { dto ->
+                when (dto) {
+                    is ChatItemDTO.ChatMessageDTO -> dto.toChatMessage()
+                    is ChatItemDTO.DateMessageDTO -> dto.toChatDate()
+                }
+            }
         }
     }
 
-    private val messages = mutableListOf<ChatMessage>()
+    private val messages = mutableListOf<ChatItem.ChatMessage>()
 
-    private val messageFlow = MutableSharedFlow<ChatMessage>(1, 0, BufferOverflow.DROP_OLDEST)
+    private val messageFlow =
+        MutableSharedFlow<ChatItem.ChatMessage>(1, 0, BufferOverflow.DROP_OLDEST)
 
     private var currentSocket: WebSocket? = null
 
@@ -113,7 +125,8 @@ class ChatRepositoryImpl @Inject constructor(
                     }
 
                     override fun onMessage(webSocket: WebSocket, text: String) {
-                        val message = Json.decodeFromString<ChatMessageDTO>(text).toChatMessage()
+                        val message =
+                            Json.decodeFromString<ChatItemDTO.ChatMessageDTO>(text).toChatMessage()
                         scope.launch {
                             messageFlow.emit(message)
                             messages.add(message)
@@ -149,7 +162,7 @@ class ChatRepositoryImpl @Inject constructor(
         currentSocket?.send(Json.encodeToString(body))
     }
 
-    override suspend fun checkNewMessages(): SharedFlow<ChatMessage> {
+    override suspend fun checkNewMessages(): SharedFlow<ChatItem.ChatMessage> {
         return messageFlow
     }
 

@@ -53,7 +53,7 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import kotlinx.coroutines.launch
 import ru.gozerov.domain.models.ChatCard
-import ru.gozerov.domain.models.ChatMessage
+import ru.gozerov.domain.models.ChatItem
 import ru.gozerov.domain.models.TrainerService
 import ru.gozerov.domain.utils.parseDateToHoursAndMinutes
 import ru.gozerov.presentation.R
@@ -88,7 +88,7 @@ internal fun ChatScreen(
     )
 
     val services = remember { mutableStateOf<List<TrainerService>>(emptyList()) }
-    val messages = remember { mutableStateOf<LazyPagingItems<ChatMessage>?>(null) }
+    val messages = remember { mutableStateOf<LazyPagingItems<ChatItem>?>(null) }
 
     LaunchedEffect(null) {
         viewModel.handleIntent(ChatIntent.GetTrainerServices(trainer.id))
@@ -105,7 +105,8 @@ internal fun ChatScreen(
         is ChatEffect.LoadedMessages -> {
             val data = effect.messages.collectAsLazyPagingItems()
             if (data.itemCount != 0) {
-                val message = data.itemSnapshotList.items.first()
+                val message =
+                    data.itemSnapshotList.items.first { it is ChatItem.ChatMessage } as ChatItem.ChatMessage
                 viewModel.handleIntent(ChatIntent.UpdateIds(message.trainerId, message.userId))
                 messages.value = data
             }
@@ -137,7 +138,23 @@ internal fun ChatScreen(
             modifier = Modifier.fillMaxSize(),
             snackbarHost = { SnackbarHost(snackbarHostState) },
             containerColor = FitLadyaTheme.colors.secondary,
-            topBar = {
+
+            ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(it)
+                    .clickable(indication = null, interactionSource = remember {
+                        MutableInteractionSource()
+                    }) {
+                        if (scaffoldState.bottomSheetState.isExpanded) {
+                            coroutineScope.launch {
+                                scaffoldState.bottomSheetState.collapse()
+                            }
+                        }
+                    }
+            ) {
+
                 Row(
                     modifier = Modifier.height(56.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -200,25 +217,6 @@ internal fun ChatScreen(
                         }
                     }
                 }
-
-            }
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(it)
-                    .clickable(indication = null, interactionSource = remember {
-                        MutableInteractionSource()
-                    }) {
-                        if (scaffoldState.bottomSheetState.isExpanded) {
-                            coroutineScope.launch {
-                                scaffoldState.bottomSheetState.collapse()
-                            }
-                        }
-                    }
-            ) {
-
-
                 LazyColumn(
                     modifier = Modifier
                         .weight(1f)
@@ -231,13 +229,24 @@ internal fun ChatScreen(
                         items(itemCount) { index ->
                             val message = messages.value!![index]
                             message?.let {
-                                if (message.isToUser)
-                                    UserMessageCard(
-                                        message = message,
-                                        services = services.value
-                                    )
-                                else
-                                    MeMessageCard(message = message, services = services.value)
+                                when (message) {
+                                    is ChatItem.ChatMessage -> message.let {
+                                        if (message.isToUser)
+                                            UserMessageCard(
+                                                message = message,
+                                                services = services.value
+                                            )
+                                        else
+                                            MeMessageCard(
+                                                message = message,
+                                                services = services.value
+                                            )
+                                    }
+
+                                    is ChatItem.DateMessage -> {
+                                        DateCard(date = message.message)
+                                    }
+                                }
                             }
                         }
                     }
@@ -279,7 +288,7 @@ internal fun ChatScreen(
 }
 
 @Composable
-fun MeMessageCard(message: ChatMessage, services: List<TrainerService>) {
+fun MeMessageCard(message: ChatItem.ChatMessage, services: List<TrainerService>) {
     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
         Column(
             horizontalAlignment = Alignment.End,
@@ -315,14 +324,14 @@ fun MeMessageCard(message: ChatMessage, services: List<TrainerService>) {
                             Column {
                                 Text(
                                     text = service.name,
-                                    color = FitLadyaTheme.colors.text,
+                                    color = FitLadyaTheme.colors.messageText,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
                                     text = stringResource(id = R.string.price_is, service.price),
-                                    color = FitLadyaTheme.colors.text.copy(alpha = 0.48f),
+                                    color = FitLadyaTheme.colors.messageText.copy(alpha = 0.48f),
                                     maxLines = 1,
                                     fontSize = 12.sp,
                                     overflow = TextOverflow.Ellipsis
@@ -335,7 +344,7 @@ fun MeMessageCard(message: ChatMessage, services: List<TrainerService>) {
                 message.message?.let { text ->
                     Text(
                         text = text,
-                        color = FitLadyaTheme.colors.text,
+                        color = FitLadyaTheme.colors.messageText,
                         fontSize = 16.sp
                     )
                 }
@@ -343,14 +352,14 @@ fun MeMessageCard(message: ChatMessage, services: List<TrainerService>) {
             Text(
                 textAlign = TextAlign.End,
                 text = parseDateToHoursAndMinutes(message.time),
-                color = FitLadyaTheme.colors.text.copy(alpha = 0.36f)
+                color = FitLadyaTheme.colors.messageText.copy(alpha = 0.36f)
             )
         }
     }
 }
 
 @Composable
-fun UserMessageCard(message: ChatMessage, services: List<TrainerService>) {
+fun UserMessageCard(message: ChatItem.ChatMessage, services: List<TrainerService>) {
     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterStart) {
         Column(
             horizontalAlignment = Alignment.End,
@@ -384,14 +393,14 @@ fun UserMessageCard(message: ChatMessage, services: List<TrainerService>) {
                             Column {
                                 Text(
                                     text = service.name,
-                                    color = FitLadyaTheme.colors.text,
+                                    color = FitLadyaTheme.colors.messageText,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
                                     text = stringResource(id = R.string.price_is, service.price),
-                                    color = FitLadyaTheme.colors.text.copy(alpha = 0.48f),
+                                    color = FitLadyaTheme.colors.messageText.copy(alpha = 0.48f),
                                     maxLines = 1,
                                     fontSize = 12.sp,
                                     overflow = TextOverflow.Ellipsis
@@ -418,5 +427,16 @@ fun UserMessageCard(message: ChatMessage, services: List<TrainerService>) {
                 color = FitLadyaTheme.colors.text.copy(alpha = 0.36f)
             )
         }
+    }
+}
+
+@Composable
+fun DateCard(date: String) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(48.dp), contentAlignment = Alignment.Center
+    ) {
+        Text(text = date, color = FitLadyaTheme.colors.text.copy(alpha = 0.48f))
     }
 }

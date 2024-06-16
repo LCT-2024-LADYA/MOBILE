@@ -33,7 +33,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
@@ -371,8 +370,10 @@ fun ProgressCard(progressCard: ProgressCard) {
                             backgroundCornerRadius = CornerRadius(16f),
                             labelSize = 14.sp,
                             labelColor = FitLadyaTheme.colors.text,
-                            popUpLabel = { _, _ ->
-                                "   соси хуй    "
+                            popUpLabel = { i, weight ->
+                                if (i.toInt() < points.size && dates[i.toInt()] != "") {
+                                    "   ${progressCard.progresses[if (i.toInt() == progressCard.progresses.size) i.toInt() - 1 else i.toInt()].sets} x ${weight.toInt()}   "
+                                } else ""
                             }
                         )
                     )
