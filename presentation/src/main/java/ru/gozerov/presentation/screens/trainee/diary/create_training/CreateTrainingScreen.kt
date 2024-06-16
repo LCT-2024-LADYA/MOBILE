@@ -426,7 +426,7 @@ fun CreateTrainingScreen(
                         timeStart.value.text.length == 5 && timeEnd.value.text.length == 5
                         && date.value.text.length == 10 && exercises.value.isNotEmpty()
                     ) {
-                        val createExercisesModels = viewModel.weights.mapIndexed { ind, state ->
+                        val createExercisesModels = exercises.value.mapIndexed { ind, state ->
                             CreateExerciseModel(
                                 exercises.value[ind].id,
                                 step = ind,
