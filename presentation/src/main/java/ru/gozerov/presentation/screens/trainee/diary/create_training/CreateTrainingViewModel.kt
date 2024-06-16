@@ -53,10 +53,10 @@ class CreateTrainingViewModel @Inject constructor(
 
                 is CreateTrainingIntent.RemoveExercise -> {
                     runCatchingNonCancellation {
-                        removeExerciseUseCase.invoke(intent.id)
+                        removeExerciseUseCase.invoke(intent.id, intent.index)
                     }
                         .onSuccess {
-                            _effect.emit(CreateTrainingEffect.RemovedExercise(id = intent.id))
+                            _effect.emit(CreateTrainingEffect.RemovedExercise(id = intent.id, index = intent.index))
                         }
                         .onFailure { throwable ->
                             _effect.emit(CreateTrainingEffect.Error(throwable.message.toString()))

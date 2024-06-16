@@ -9,8 +9,8 @@ class RemoveExerciseUseCase @Inject constructor(
     private val trainingRepository: TrainingRepository
 ) {
 
-    suspend operator fun invoke(id: Int) = withContext(Dispatchers.IO) {
-        return@withContext trainingRepository.removeExercise(id)
+    suspend operator fun invoke(id: Int, index: Int) = withContext(Dispatchers.IO) {
+        return@withContext trainingRepository.removeExercise(id, index)
     }
 
 }

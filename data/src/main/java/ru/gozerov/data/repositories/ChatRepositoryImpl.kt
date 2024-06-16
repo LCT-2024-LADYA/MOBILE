@@ -1,5 +1,6 @@
 package ru.gozerov.data.repositories
 
+import android.util.Log
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
@@ -115,7 +116,7 @@ class ChatRepositoryImpl @Inject constructor(
                 ).build()
 
                 val request = Request.Builder()
-                    .url("ws://176.109.99.250:8080/ws")
+                    .url("ws://89.111.174.228:8080/ws")
                     .addHeader("Sec-WebSocket-Protocol", token)
                     .build()
 

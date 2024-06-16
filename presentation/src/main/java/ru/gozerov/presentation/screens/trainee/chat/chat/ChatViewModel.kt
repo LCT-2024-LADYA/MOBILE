@@ -140,13 +140,6 @@ class ChatViewModel @Inject constructor(
                     }
                         .onSuccess {
                             val time = getCurrentUtcTime()
-                            val date = parseDateToDDMM(time)
-                            if (date != ClientMessagePage.lastDate) {
-                                messages = messages?.insertHeaderItem(
-                                    item = ChatItem.DateMessage(date)
-                                )
-                                ClientMessagePage.lastDate = date
-                            }
                             messages = messages?.insertHeaderItem(
                                 item = ChatItem.ChatMessage(
                                     Random.nextInt(),

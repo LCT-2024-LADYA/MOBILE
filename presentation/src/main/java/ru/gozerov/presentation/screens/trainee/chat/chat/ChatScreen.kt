@@ -373,7 +373,7 @@ fun UserMessageCard(message: ChatItem.ChatMessage, services: List<TrainerService
                     shape = RoundedCornerShape(
                         topStart = 12.dp,
                         topEnd = 12.dp,
-                        bottomStart = 12.dp
+                        bottomEnd = 12.dp
                     )
                 )
                 .padding(horizontal = 12.dp, vertical = 6.dp),

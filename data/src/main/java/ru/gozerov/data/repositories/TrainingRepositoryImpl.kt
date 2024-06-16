@@ -174,8 +174,8 @@ class TrainingRepositoryImpl @Inject constructor(
         exercises.add(exercise)
     }
 
-    override suspend fun removeExercise(id: Int) {
-        exercises.removeIf { exercise -> exercise.id == id }
+    override suspend fun removeExercise(id: Int, index: Int) {
+        exercises.removeAt(index)
     }
 
     override suspend fun getAddedExercises(): List<Exercise> = exercises.toList()

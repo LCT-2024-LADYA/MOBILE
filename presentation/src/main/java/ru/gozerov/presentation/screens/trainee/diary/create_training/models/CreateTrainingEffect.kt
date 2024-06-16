@@ -22,7 +22,8 @@ sealed interface CreateTrainingEffect {
     ) : CreateTrainingEffect
 
     data class RemovedExercise(
-        val id: Int
+        val id: Int,
+        val index: Int
     ) : CreateTrainingEffect
 
 }

@@ -1,7 +1,6 @@
 package ru.gozerov.presentation.screens.trainee.diary.create_training
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -114,24 +113,23 @@ fun CreateTrainingScreen(
         is CreateTrainingEffect.None -> {}
         is CreateTrainingEffect.RemovedExercise -> {
             val newExercises = exercises.value.toMutableList()
-            val exerciseToRemove = newExercises.first { exercise -> exercise.id == effect.id }
-            newExercises.remove(exerciseToRemove)
-            val pos = exercises.value.indexOf(exerciseToRemove)
-            viewModel.weights.removeAt(pos)
-            viewModel.sets.removeAt(pos)
-            viewModel.reps.removeAt(pos)
+            newExercises.removeAt(effect.index)
             exercises.value = newExercises
-            newExercises.removeIf { exercise -> exercise.id == effect.id }
+            viewModel.weights.removeAt(effect.index)
+            viewModel.sets.removeAt(effect.index)
+            viewModel.reps.removeAt(effect.index)
             viewModel.handleIntent(CreateTrainingIntent.Reset)
         }
 
         is CreateTrainingEffect.AddedExercises -> {
             val diff = effect.exercises.size - exercises.value.size
-            repeat(diff) {
-                if (viewModel.weights.size < effect.exercises.size) {
-                    viewModel.weights.add("0")
-                    viewModel.sets.add("")
-                    viewModel.reps.add("")
+            if (diff > 0) {
+                repeat(diff) {
+                    if (viewModel.weights.size < effect.exercises.size) {
+                        viewModel.weights.add("0")
+                        viewModel.sets.add("")
+                        viewModel.reps.add("")
+                    }
                 }
             }
             exercises.value = effect.exercises
@@ -142,11 +140,12 @@ fun CreateTrainingScreen(
             trainingName.value = effect.training.name
             description.value = effect.training.description
             val diff = effect.training.exercises.size - exercises.value.size
-            repeat(diff) {
-
-                viewModel.weights.add("0")
-                viewModel.sets.add("")
-                viewModel.reps.add("")
+            if (diff > 0) {
+                repeat(diff) {
+                    viewModel.weights.add("0")
+                    viewModel.sets.add("")
+                    viewModel.reps.add("")
+                }
             }
             exercises.value = effect.training.exercises.map { exercise -> exercise.toExercise() }
             viewModel.handleIntent(CreateTrainingIntent.Reset)
@@ -401,7 +400,7 @@ fun CreateTrainingScreen(
                             sets = viewModel.sets[index],
                             reps = viewModel.reps[index],
                         ) {
-                            viewModel.handleIntent(CreateTrainingIntent.RemoveExercise(exercises.value[index].id))
+                            viewModel.handleIntent(CreateTrainingIntent.RemoveExercise(exercises.value[index].id, index))
                         }
                     }
                     item {

@@ -18,7 +18,8 @@ sealed interface CreateTrainingIntent {
     ) : CreateTrainingIntent
 
     data class RemoveExercise(
-        val id: Int
+        val id: Int,
+        val index: Int
     ) : CreateTrainingIntent
 
     object GetAddedExercises : CreateTrainingIntent

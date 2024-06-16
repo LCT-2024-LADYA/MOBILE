@@ -48,7 +48,7 @@ interface TrainingRepository {
 
     suspend fun addExerciseToCreating(exercise: Exercise)
 
-    suspend fun removeExercise(id: Int)
+    suspend fun removeExercise(id: Int, index: Int)
 
     suspend fun getAddedExercises(): List<Exercise>
 
