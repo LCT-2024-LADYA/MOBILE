@@ -49,8 +49,7 @@ import io.github.boguszpawlowski.composecalendar.header.MonthState
 import io.github.boguszpawlowski.composecalendar.rememberSelectableCalendarState
 import io.github.boguszpawlowski.composecalendar.selection.SelectionMode
 import ru.gozerov.domain.models.ScheduledTraining
-import ru.gozerov.domain.models.TrainingCard
-import ru.gozerov.domain.models.TrainingPlan
+import ru.gozerov.domain.models.TrainingPlanCard
 import ru.gozerov.domain.utils.compareDates
 import ru.gozerov.domain.utils.convertLocalDateDateToUTC
 import ru.gozerov.presentation.R
@@ -69,7 +68,8 @@ fun SchedulePlanScreen(
     navController: NavController,
     paddingValues: PaddingValues,
     viewModel: SchedulePlanViewModel,
-    trainingPlan: TrainingPlan
+    trainingPlan: TrainingPlanCard,
+    scheduledTrainings: List<ScheduledTraining>
 ) {
     val currentDate = LocalDate.now()
     val monthState = remember {
@@ -97,17 +97,6 @@ fun SchedulePlanScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     var isPeriodSelected: Boolean by rememberSaveable { mutableStateOf(false) }
-
-    val scheduledTrainings = remember {
-        mutableStateOf<List<ScheduledTraining>>(
-            listOf(
-                ScheduledTraining(
-                    "2024-06-15T00:00:00Z",
-                    listOf(1, 2)
-                )
-            )
-        )
-    }
 
     Scaffold(
         modifier = Modifier
@@ -300,13 +289,13 @@ fun SchedulePlanScreen(
                                 color = FitLadyaTheme.colors.text.copy(alpha = if (dayState.date.month == monthState.value.currentMonth.month) 1f else 0.32f),
                                 textAlign = TextAlign.Center
                             )
-                            if (scheduledTrainings.value.filter { training ->
+                            if (scheduledTrainings.filter { training ->
                                     compareDates(
                                         training.date,
                                         convertLocalDateDateToUTC(dayState.date)
                                     ) == 0
                                 }.size == 1) {
-                                val circleCount = scheduledTrainings.value.first { training ->
+                                val circleCount = scheduledTrainings.first { training ->
                                     training.date == convertLocalDateDateToUTC(dayState.date)
                                 }.ids.size
                                 Row(modifier = Modifier.padding(top = 4.dp)) {
@@ -378,10 +367,10 @@ fun SchedulePlanScreen(
                                 color = FitLadyaTheme.colors.text.copy(alpha = if (dayState.date.month == monthState.value.currentMonth.month) 1f else 0.32f),
                                 textAlign = TextAlign.Center
                             )
-                            if (scheduledTrainings.value.any { training ->
+                            if (scheduledTrainings.any { training ->
                                     training.date == convertLocalDateDateToUTC(dayState.date)
                                 }) {
-                                val circleCount = scheduledTrainings.value.first { training ->
+                                val circleCount = scheduledTrainings.first { training ->
                                     training.date == convertLocalDateDateToUTC(dayState.date)
                                 }.ids.size
                                 Row(modifier = Modifier.padding(top = 4.dp)) {
@@ -428,10 +417,6 @@ fun SchedulePlanScreen(
                             navController.currentBackStackEntry?.savedStateHandle?.set(
                                 "plan",
                                 trainingPlan
-                            )
-                            navController.currentBackStackEntry?.savedStateHandle?.set(
-                                "trainings",
-                                scheduledTrainings.value
                             )
                             navController.navigate(Screen.TrainingToSchedule.route)
                         }

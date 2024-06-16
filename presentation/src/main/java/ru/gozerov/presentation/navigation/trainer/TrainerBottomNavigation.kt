@@ -67,7 +67,7 @@ fun TrainerBottomNavHostContainer(
             navigation(Screen.TrainerServices.route, TrainerBottomNavBarItem.ServiceFlow.route) {
                 composable(Screen.TrainerServices.route) {
                     val viewModel = hiltViewModel<TrainerServicesViewModel>()
-                    TrainerServicesScreen(padding, viewModel)
+                    TrainerServicesScreen(padding, viewModel, navController)
                 }
             }
 

@@ -8,10 +8,13 @@ import ru.gozerov.domain.models.CustomTraining
 import ru.gozerov.domain.models.Exercise
 import ru.gozerov.domain.models.ExerciseWithWeight
 import ru.gozerov.domain.models.IdResponse
+import ru.gozerov.domain.models.ProgressCard
 import ru.gozerov.domain.models.ScheduledTraining
 import ru.gozerov.domain.models.TrainerTrainingCard
 import ru.gozerov.domain.models.Training
 import ru.gozerov.domain.models.TrainingCard
+import ru.gozerov.domain.models.TrainingPlan
+import ru.gozerov.domain.models.TrainingPlanCard
 
 interface TrainingRepository {
 
@@ -82,5 +85,15 @@ interface TrainingRepository {
         trainings: List<Int>,
         userId: Int
     ): Int
+
+    suspend fun getUserPlans(): List<TrainingPlanCard>
+
+    suspend fun getPlan(id: Int): TrainingPlan
+
+    suspend fun getProgress(
+        query: String,
+        dateStart: String,
+        dateEnd: String
+    ): Flow<PagingData<ProgressCard>>
 
 }

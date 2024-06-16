@@ -2,6 +2,7 @@ package ru.gozerov.presentation.screens.trainee.diary.diary.models
 
 import ru.gozerov.domain.models.CustomTraining
 import ru.gozerov.domain.models.ScheduledTraining
+import ru.gozerov.domain.models.TrainingPlanCard
 
 sealed interface DiaryEffect {
 
@@ -17,6 +18,10 @@ sealed interface DiaryEffect {
 
     data class Error(
         val message: String
+    ) : DiaryEffect
+
+    data class LoadedPlans(
+        val plans: List<TrainingPlanCard>
     ) : DiaryEffect
 
     data class RemoveTraining(

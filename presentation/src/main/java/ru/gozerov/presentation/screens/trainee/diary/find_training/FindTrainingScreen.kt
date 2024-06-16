@@ -60,7 +60,7 @@ fun FindTrainingScreen(
     navController: NavController,
     contentPaddingValues: PaddingValues,
     viewModel: FindTrainingViewModel,
-    isTrainer: Boolean = false
+    date: String?
 ) {
     val effect = viewModel.effect.collectAsState().value
 
@@ -68,7 +68,7 @@ fun FindTrainingScreen(
     val coroutineScope = rememberCoroutineScope()
 
     val tabs = listOf(stringResource(R.string.all_trainings), stringResource(R.string.my_trainings))
-    val selectedTab = rememberSaveable{ mutableIntStateOf(0) }
+    val selectedTab = rememberSaveable { mutableIntStateOf(0) }
 
     val searchState = remember { mutableStateOf("") }
 
@@ -174,6 +174,10 @@ fun FindTrainingScreen(
                                             "id",
                                             training.id
                                         )
+                                        navController.currentBackStackEntry?.savedStateHandle?.set(
+                                            "date",
+                                            date
+                                        )
                                         navController.navigate(Screen.CreateTraining.route)
                                     }
                                 }
@@ -188,6 +192,10 @@ fun FindTrainingScreen(
                                         navController.currentBackStackEntry?.savedStateHandle?.set(
                                             "id",
                                             training.id
+                                        )
+                                        navController.currentBackStackEntry?.savedStateHandle?.set(
+                                            "date",
+                                            date
                                         )
                                         navController.navigate(Screen.CreateTraining.route)
                                     }
@@ -206,6 +214,10 @@ fun FindTrainingScreen(
                     .background(FitLadyaTheme.colors.primary, CircleShape),
                 onClick = {
                     navController.currentBackStackEntry?.savedStateHandle?.remove<Int>("id")
+                    navController.currentBackStackEntry?.savedStateHandle?.set(
+                        "date",
+                        date
+                    )
                     navController.navigate(Screen.CreateTraining.route)
                 }
             ) {

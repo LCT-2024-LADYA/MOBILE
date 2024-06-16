@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import ru.gozerov.domain.repositories.TrainingRepository
 import ru.gozerov.domain.usecases.AddExercisesToCreatingUseCase
 import ru.gozerov.domain.usecases.ClearAddedTrainingUseCase
 import ru.gozerov.domain.usecases.CreateTrainerTrainingUseCase
@@ -27,7 +28,8 @@ class CreateTrainingViewModel @Inject constructor(
     private val addExercisesToCreatingUseCase: AddExercisesToCreatingUseCase,
     private val clearAddedTrainingUseCase: ClearAddedTrainingUseCase,
     private val removeExerciseUseCase: RemoveExerciseUseCase,
-    private val createTrainerTrainingUseCase: CreateTrainerTrainingUseCase
+    private val createTrainerTrainingUseCase: CreateTrainerTrainingUseCase,
+    private val trainingRepository: TrainingRepository
 ) : ViewModel() {
 
     init {
@@ -115,7 +117,7 @@ class CreateTrainingViewModel @Inject constructor(
                 }
 
                 is CreateTrainingIntent.NextTraining -> {
-
+                    trainingRepository.setNextTraining(intent.id)
                 }
 
                 is CreateTrainingIntent.CreateTrainerTraining -> {

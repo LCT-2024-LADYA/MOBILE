@@ -30,6 +30,7 @@ import ru.gozerov.domain.models.CustomTraining
 import ru.gozerov.domain.models.TrainerTrainingCard
 import ru.gozerov.domain.models.TrainingCard
 import ru.gozerov.domain.models.TrainingPlan
+import ru.gozerov.domain.models.TrainingPlanCard
 import ru.gozerov.presentation.R
 import ru.gozerov.presentation.ui.theme.FitLadyaTheme
 
@@ -426,7 +427,7 @@ fun SimpleTrainingCard(trainingCard: TrainingCard, onClick: () -> Unit) {
 
 
 @Composable
-fun SimplePlanCard(plan: TrainingPlan, onClick: () -> Unit, onManage: () -> Unit) {
+fun SimplePlanCard(plan: TrainingPlanCard, onClick: () -> Unit, onManage: () -> Unit) {
     Box(
         modifier = Modifier
             .padding(horizontal = 16.dp)
@@ -470,7 +471,7 @@ fun SimplePlanCard(plan: TrainingPlan, onClick: () -> Unit, onManage: () -> Unit
                 ) {
                     Text(
                         modifier = Modifier.padding(end = 8.dp),
-                        text = plan.trainings.size.toString(),
+                        text = plan.trainings.toString(),
                         color = FitLadyaTheme.colors.text,
                         fontWeight = FontWeight.Medium
                     )

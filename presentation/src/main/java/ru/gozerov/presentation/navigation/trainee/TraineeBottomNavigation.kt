@@ -1,6 +1,5 @@
 package ru.gozerov.presentation.navigation.trainee
 
-import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
@@ -13,6 +12,7 @@ import androidx.navigation.navigation
 import ru.gozerov.domain.models.CustomTraining
 import ru.gozerov.domain.models.ScheduledTraining
 import ru.gozerov.domain.models.TrainingPlan
+import ru.gozerov.domain.models.TrainingPlanCard
 import ru.gozerov.presentation.R
 import ru.gozerov.presentation.navigation.Screen
 import ru.gozerov.presentation.screens.trainee.chat.list.ChatListScreen
@@ -32,6 +32,7 @@ import ru.gozerov.presentation.screens.trainee.main_training.training_details.Tr
 import ru.gozerov.presentation.screens.trainee.profile.profile.ClientProfileScreen
 import ru.gozerov.presentation.screens.trainee.profile.profile.ClientProfileViewModel
 import ru.gozerov.presentation.screens.trainee.profile.statistics.ClientStatisticsScreen
+import ru.gozerov.presentation.screens.trainee.profile.statistics.ClientStatisticsViewModel
 import ru.gozerov.presentation.screens.trainer.diary.diary_plan.SchedulePlanScreen
 import ru.gozerov.presentation.screens.trainer.diary.diary_plan.SchedulePlanViewModel
 import ru.gozerov.presentation.screens.trainer.diary.paste_training.PasteTrainingScreen
@@ -128,10 +129,13 @@ fun TraineeBottomNavHostContainer(
                     route = Screen.FindTraining.route
                 ) {
                     val viewModel = hiltViewModel<FindTrainingViewModel>()
+                    val date =
+                        navController.previousBackStackEntry?.savedStateHandle?.get<String>("date")
                     FindTrainingScreen(
                         navController = navController,
                         contentPaddingValues = padding,
-                        viewModel = viewModel
+                        viewModel = viewModel,
+                        date = date
                     )
                 }
 
@@ -222,13 +226,17 @@ fun TraineeBottomNavHostContainer(
                 composable(
                     route = Screen.SchedulePlan.route
                 ) {
+                    val trainings =
+                        navController.previousBackStackEntry?.savedStateHandle?.get<List<ScheduledTraining>>(
+                            "trainings"
+                        )
                     val plan =
-                        navController.previousBackStackEntry?.savedStateHandle?.get<TrainingPlan>(
+                        navController.previousBackStackEntry?.savedStateHandle?.get<TrainingPlanCard>(
                             "plan"
                         )
-                    plan?.let {
+                    if (plan != null && trainings != null) {
                         val viewModel = hiltViewModel<SchedulePlanViewModel>()
-                        SchedulePlanScreen(navController, padding, viewModel, plan)
+                        SchedulePlanScreen(navController, padding, viewModel, plan, trainings)
                     }
                 }
 
@@ -245,21 +253,16 @@ fun TraineeBottomNavHostContainer(
                         "month"
                     )
                     val plan =
-                        navController.previousBackStackEntry?.savedStateHandle?.get<TrainingPlan>(
+                        navController.previousBackStackEntry?.savedStateHandle?.get<TrainingPlanCard>(
                             "plan"
                         )
-                    val trainings =
-                        navController.previousBackStackEntry?.savedStateHandle?.get<List<ScheduledTraining>>(
-                            "trainings"
-                        )
-                    if (start != null && end != null && month != null && plan != null && trainings != null) {
+                    if (start != null && end != null && month != null && plan != null) {
                         val viewModel = hiltViewModel<TrainingToScheduleViewModel>()
                         TrainingToScheduleScreen(
                             start,
                             end,
                             month,
                             plan,
-                            trainings,
                             navController,
                             padding,
                             Screen.ClientDiary.route,
@@ -272,10 +275,13 @@ fun TraineeBottomNavHostContainer(
                     route = Screen.FindTraining.route
                 ) {
                     val viewModel = hiltViewModel<FindTrainingViewModel>()
+                    val date =
+                        navController.previousBackStackEntry?.savedStateHandle?.get<String>("date")
                     FindTrainingScreen(
                         navController = navController,
                         contentPaddingValues = padding,
-                        viewModel = viewModel
+                        viewModel = viewModel,
+                        date = date
                     )
                 }
 
@@ -286,6 +292,9 @@ fun TraineeBottomNavHostContainer(
                     val date =
                         navController.previousBackStackEntry?.savedStateHandle?.get<String>("date")
                     val viewModel = hiltViewModel<CreateTrainingViewModel>()
+
+                    val backRoute =
+                        navController.previousBackStackEntry?.savedStateHandle?.get<String>("backRoute")
                     CreateTrainingScreen(
                         trainingId = id,
                         isTrainer = false,
@@ -294,7 +303,7 @@ fun TraineeBottomNavHostContainer(
                         navController = navController,
                         contentPaddingValues = padding,
                         viewModel = viewModel,
-                        backRoute = Screen.ClientDiary.route
+                        backRoute = backRoute ?: Screen.ClientDiary.route
                     )
                 }
 
@@ -326,7 +335,12 @@ fun TraineeBottomNavHostContainer(
                 composable(
                     route = Screen.ClientStatisticsScreen.route
                 ) {
-                    ClientStatisticsScreen(navController = navController)
+                    val viewModel = hiltViewModel<ClientStatisticsViewModel>()
+                    ClientStatisticsScreen(
+                        navController = navController,
+                        viewModel = viewModel,
+                        contentPaddingValues = padding
+                    )
                 }
             }
         }

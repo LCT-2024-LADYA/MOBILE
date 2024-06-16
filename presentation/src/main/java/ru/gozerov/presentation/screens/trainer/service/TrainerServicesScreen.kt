@@ -2,6 +2,7 @@ package ru.gozerov.presentation.screens.trainer.service
 
 import TrainerServiceCard
 import android.annotation.SuppressLint
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -25,10 +26,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import ru.gozerov.domain.models.CustomService
 import ru.gozerov.presentation.R
+import ru.gozerov.presentation.navigation.Screen
+import ru.gozerov.presentation.screens.trainee.profile.services.views.ConfirmChangesDialog
 import ru.gozerov.presentation.screens.trainer.service.models.TrainerServicesEffect
 import ru.gozerov.presentation.screens.trainer.service.models.TrainerServicesIntent
 import ru.gozerov.presentation.shared.utils.showError
@@ -38,7 +42,8 @@ import ru.gozerov.presentation.ui.theme.FitLadyaTheme
 @Composable
 fun TrainerServicesScreen(
     contentPaddingValues: PaddingValues,
-    viewModel: TrainerServicesViewModel
+    viewModel: TrainerServicesViewModel,
+    navController: NavController
 ) {
     val effect = viewModel.effect.collectAsState().value
 
@@ -54,7 +59,9 @@ fun TrainerServicesScreen(
     when (effect) {
         is TrainerServicesEffect.None -> {}
         is TrainerServicesEffect.LoadedServices -> {
-            services.value = effect.services.collectAsLazyPagingItems()
+            val data = effect.services.collectAsLazyPagingItems()
+            if (data.itemCount > 0)
+                services.value = data
         }
 
         is TrainerServicesEffect.Error -> {
@@ -67,11 +74,28 @@ fun TrainerServicesScreen(
         }
     }
 
+
+    val onDialogConfirm = remember { mutableStateOf<(status: Boolean) -> Unit>({}) }
+
+    var showDialog: Boolean by remember { mutableStateOf(false) }
+    var onPositiveClicked: Boolean by remember { mutableStateOf(false) }
+
+    if (showDialog) {
+        ConfirmChangesDialog(
+            isPositive = onPositiveClicked,
+            onDismiss = {
+                showDialog = false
+            },
+            onConfirm = onDialogConfirm.value
+        )
+    }
+
     Scaffold(
         modifier = Modifier.padding(contentPaddingValues),
         containerColor = FitLadyaTheme.colors.primaryBackground,
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { _ ->
+
         Column(modifier = Modifier.fillMaxSize()) {
             Text(
                 text = stringResource(id = R.string.services_manager),
@@ -80,35 +104,77 @@ fun TrainerServicesScreen(
                 modifier = Modifier.padding(top = 16.dp, start = 32.dp, bottom = 16.dp)
             )
             Spacer(modifier = Modifier.height(16.dp))
-        }
-        LazyColumn {
-            services.value?.let { lazyItems ->
-                items(lazyItems.itemCount) { index ->
-                    val service = lazyItems[index]
-                    service?.let {
-                        var isTrainerApproved: Boolean? by remember { mutableStateOf(service.isTrainerApproved) }
-                        TrainerServiceCard(
-                            service = service,
-                            isTrainerApproved = isTrainerApproved,
-                            onClick = { status ->
-                                if (isTrainerApproved == null ) {
-                                    viewModel.handleIntent(TrainerServicesIntent.SetStatus(service.id, status, 2))
-                                    isTrainerApproved = status
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                services.value?.let { lazyItems ->
+                    items(lazyItems.itemCount) { index ->
+                        val service = lazyItems[index]
+                        service?.let {
+                            var isTrainerApproved: Boolean? by remember { mutableStateOf(service.isTrainerApproved) }
+                            TrainerServiceCard(
+                                service = service,
+                                isTrainerApproved = isTrainerApproved,
+                                onClick = { s ->
+                                    onPositiveClicked = s
+                                    showDialog = true
+                                    onDialogConfirm.value = { status ->
+                                        when (isTrainerApproved) {
+                                            null -> {
+                                                viewModel.handleIntent(
+                                                    TrainerServicesIntent.SetStatus(
+                                                        service.id,
+                                                        status,
+                                                        2
+                                                    )
+                                                )
+                                                isTrainerApproved = status
+                                            }
+
+                                            true -> {
+                                                viewModel.handleIntent(
+                                                    TrainerServicesIntent.SetStatus(
+                                                        service.id,
+                                                        false,
+                                                        2
+                                                    )
+                                                )
+                                                isTrainerApproved = false
+                                            }
+
+                                            else -> {
+                                                viewModel.handleIntent(
+                                                    TrainerServicesIntent.SetStatus(
+                                                        service.id,
+                                                        true,
+                                                        2
+                                                    )
+                                                )
+                                                isTrainerApproved = true
+                                            }
+                                        }
+                                        showDialog = false
+                                    }
+                                },
+                                onPlan = {
+                                    navController.currentBackStackEntry?.savedStateHandle?.set(
+                                        "id",
+                                        service.userId
+                                    )
+                                    navController.navigate(Screen.CreatePlan.route)
+                                },
+                                onBottomAction = {
+                                    viewModel.handleIntent(
+                                        TrainerServicesIntent.DeleteService(
+                                            service.id
+                                        )
+                                    )
                                 }
-                                else if (isTrainerApproved == true) {
-                                    viewModel.handleIntent(TrainerServicesIntent.SetStatus(service.id, false, 2))
-                                    isTrainerApproved = false
-                                }
-                                else {
-                                    viewModel.handleIntent(TrainerServicesIntent.SetStatus(service.id, true, 2))
-                                    isTrainerApproved = true
-                                }
-                            },
-                            onPlan = {  },
-                            onBottomAction = {
-                                viewModel.handleIntent(TrainerServicesIntent.DeleteService(service.id))
-                            }
-                        )
+                            )
+                        }
+                    }
+                    item {
+                        Spacer(modifier = Modifier.height(8.dp))
                     }
                 }
             }

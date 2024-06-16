@@ -92,7 +92,7 @@ fun CreateTrainingScreen(
         rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
     val timeEnd =
         rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
-    val description = rememberSaveable { mutableStateOf(trainingDate ?: "") }
+    val description = rememberSaveable { mutableStateOf("") }
 
     val exercises = remember { mutableStateOf(listOf<Exercise>()) }
     val weightsState = remember { mutableListOf<MutableState<String>>() }

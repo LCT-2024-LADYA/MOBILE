@@ -23,6 +23,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -46,7 +47,9 @@ import io.github.boguszpawlowski.composecalendar.rememberSelectableCalendarState
 import io.github.boguszpawlowski.composecalendar.selection.SelectionMode
 import ru.gozerov.domain.models.ScheduledTraining
 import ru.gozerov.domain.models.TrainingPlan
+import ru.gozerov.domain.models.TrainingPlanCard
 import ru.gozerov.domain.utils.compareDates
+import ru.gozerov.domain.utils.convertDateToDDMMYYYYNullable
 import ru.gozerov.domain.utils.convertLocalDateDateToUTC
 import ru.gozerov.presentation.R
 import ru.gozerov.presentation.navigation.Screen
@@ -67,8 +70,7 @@ fun TrainingToScheduleScreen(
     startDate: Int,
     endDate: Int,
     month: Int,
-    trainingPlan: TrainingPlan,
-    scheduledTrainings: List<ScheduledTraining>,
+    plan: TrainingPlanCard,
     navController: NavController,
     paddingValues: PaddingValues,
     backRoute: String,
@@ -86,8 +88,11 @@ fun TrainingToScheduleScreen(
             )
         )
     }
+    val scheduledTrainings = remember { (mutableStateOf<List<ScheduledTraining>>(emptyList())) }
 
-    val currentTrainingPosition = remember { mutableIntStateOf(0) }
+    val trainingPlan = remember { mutableStateOf<TrainingPlan?>(null) }
+
+    val currentTrainingPosition = rememberSaveable { mutableIntStateOf(viewModel.currentPosition) }
 
     val primaryColor = FitLadyaTheme.colors.primary
     val todayDateBackground = FitLadyaTheme.colors.secondary
@@ -106,18 +111,36 @@ fun TrainingToScheduleScreen(
     val coroutineScope = rememberCoroutineScope()
     var isAttachAvailable: Boolean by remember { mutableStateOf(false) }
 
+    LaunchedEffect(null) {
+        if (trainingPlan.value == null)
+            viewModel.handleIntent(TrainingToScheduleIntent.GetPlanById(plan.id))
+    }
+
     SideEffect {
         viewModel.handleIntent(TrainingToScheduleIntent.GetLastAddedTraining)
     }
 
     when (effect) {
         is TrainingToScheduleEffect.None -> {}
+        is TrainingToScheduleEffect.LoadedPlan -> {
+            trainingPlan.value = effect.plan
+            viewModel.handleIntent(TrainingToScheduleIntent.GetSchedule(month))
+        }
+
+        is TrainingToScheduleEffect.LoadedSchedule -> {
+            scheduledTrainings.value = effect.trainings
+            viewModel.handleIntent(TrainingToScheduleIntent.Reset)
+        }
+
         is TrainingToScheduleEffect.LastAddedTraining -> {
-            if (effect.id == trainingPlan.trainings[currentTrainingPosition.intValue].id) {
-                if (currentTrainingPosition.intValue < trainingPlan.trainings.size - 1) {
-                    currentTrainingPosition.intValue += 1
-                } else {
-                    navController.popBackStack(backRoute, false)
+            trainingPlan.value?.let { p ->
+                if (effect.id == p.trainings[currentTrainingPosition.intValue].id) {
+                    if (viewModel.currentPosition < p.trainings.size - 1) {
+                        viewModel.currentPosition += 1
+                        currentTrainingPosition.intValue = viewModel.currentPosition
+                    } else {
+                        navController.popBackStack(backRoute, false)
+                    }
                 }
             }
         }
@@ -133,196 +156,199 @@ fun TrainingToScheduleScreen(
         containerColor = FitLadyaTheme.colors.primaryBackground,
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
-            NavUpWithTitleToolbar(
-                navController = navController,
-                title = stringResource(id = R.string.training_plan_attaching)
-            )
-            Text(
-                modifier = Modifier.padding(
-                    start = 32.dp,
-                    end = 32.dp,
-                    bottom = 12.dp
-                ),
-                maxLines = 2,
-                text = trainingPlan.name,
-                fontSize = 22.sp,
-                color = FitLadyaTheme.colors.text
-            )
-            Text(
-                modifier = Modifier.padding(
-                    start = 32.dp,
-                    end = 32.dp,
-                    bottom = 12.dp
-                ),
-                maxLines = 2,
-                text = trainingPlan.description,
-                fontSize = 14.sp,
-                color = FitLadyaTheme.colors.text.copy(alpha = 0.8f)
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                modifier = Modifier.padding(
-                    start = 32.dp,
-                    end = 32.dp,
-                    bottom = 12.dp
-                ),
-                text = stringResource(
-                    id = R.string.training_is,
-                    currentTrainingPosition.intValue + 1,
-                    trainingPlan.trainings.size
-                ),
-                fontSize = 16.sp,
-                color = FitLadyaTheme.colors.fieldPrimaryText,
-                fontWeight = FontWeight.Medium
-            )
-            SimpleTrainingCard(trainingCard = trainingPlan.trainings[currentTrainingPosition.intValue]) { /*Not clickable in that context*/ }
+        trainingPlan.value?.let { trainingPlan ->
 
-            SelectableCalendar(
+            Column(
                 modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .fillMaxWidth(),
-                firstDayOfWeek = DayOfWeek.MONDAY,
-                monthHeader = { },
-                daysOfWeekHeader = {
-                    Row(
-                        modifier = Modifier
-                            .padding(vertical = 16.dp)
-                            .fillMaxWidth()
-                    ) {
-                        Text(
-                            text = "ПН",
-                            color = FitLadyaTheme.colors.text,
-                            modifier = Modifier.weight(1f),
-                            textAlign = TextAlign.Center
-                        )
-                        Text(
-                            text = "ВТ",
-                            color = FitLadyaTheme.colors.text,
-                            modifier = Modifier.weight(1f),
-                            textAlign = TextAlign.Center
-                        )
-                        Text(
-                            text = "СР",
-                            color = FitLadyaTheme.colors.text,
-                            modifier = Modifier.weight(1f),
-                            textAlign = TextAlign.Center
-                        )
-                        Text(
-                            text = "ЧТ",
-                            color = FitLadyaTheme.colors.text,
-                            modifier = Modifier.weight(1f),
-                            textAlign = TextAlign.Center
-                        )
-                        Text(
-                            text = "ПТ",
-                            color = FitLadyaTheme.colors.text,
-                            modifier = Modifier.weight(1f),
-                            textAlign = TextAlign.Center
-                        )
-                        Text(
-                            text = "СБ",
-                            color = FitLadyaTheme.colors.text,
-                            modifier = Modifier.weight(1f),
-                            textAlign = TextAlign.Center
-                        )
-                        Text(
-                            text = "ВС",
-                            color = FitLadyaTheme.colors.text,
-                            modifier = Modifier.weight(1f),
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                },
-                calendarState = calendarState,
-                dayContent = { dayState ->
-                    Column(
-                        modifier = Modifier
-                            .size(48.dp)
-                            .padding(4.dp)
-                            .background(
-                                color = if (dayState.date.dayOfMonth == selectedDay.intValue && dayState.date.month.value == month)
-                                    FitLadyaTheme.colors.primary else FitLadyaTheme.colors.primaryBackground,
-                                shape = CircleShape
-                            ),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center,
-                    ) {
-                        Text(
-                            modifier = Modifier.clickable(
-                                indication = null,
-                                interactionSource = remember { MutableInteractionSource() }) {
-                                if (dayState.date.month.value == month && dayState.date.dayOfMonth > startDate && dayState.date.dayOfMonth < endDate) {
-                                    selectedDay.intValue = dayState.date.dayOfMonth
-                                    selectedDate.value = dayState.date
-                                    todayDateBackgroundState.value = primaryColor
-                                    isAttachAvailable = true
+                    .fillMaxSize()
+            ) {
+                NavUpWithTitleToolbar(
+                    navController = navController,
+                    title = stringResource(id = R.string.training_plan_attaching)
+                )
+                Text(
+                    modifier = Modifier.padding(
+                        start = 32.dp,
+                        end = 32.dp,
+                        bottom = 12.dp
+                    ),
+                    maxLines = 2,
+                    text = trainingPlan.name,
+                    fontSize = 22.sp,
+                    color = FitLadyaTheme.colors.text
+                )
+                Text(
+                    modifier = Modifier.padding(
+                        start = 32.dp,
+                        end = 32.dp,
+                        bottom = 12.dp
+                    ),
+                    maxLines = 2,
+                    text = trainingPlan.description,
+                    fontSize = 14.sp,
+                    color = FitLadyaTheme.colors.text.copy(alpha = 0.8f)
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    modifier = Modifier.padding(
+                        start = 32.dp,
+                        end = 32.dp,
+                        bottom = 12.dp
+                    ),
+                    text = stringResource(
+                        id = R.string.training_is,
+                        currentTrainingPosition.intValue + 1,
+                        trainingPlan.trainings.size
+                    ),
+                    fontSize = 16.sp,
+                    color = FitLadyaTheme.colors.fieldPrimaryText,
+                    fontWeight = FontWeight.Medium
+                )
+                SimpleTrainingCard(trainingCard = trainingPlan.trainings[currentTrainingPosition.intValue]) { /*Not clickable in that context*/ }
+
+                SelectableCalendar(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .fillMaxWidth(),
+                    firstDayOfWeek = DayOfWeek.MONDAY,
+                    monthHeader = { },
+                    daysOfWeekHeader = {
+                        Row(
+                            modifier = Modifier
+                                .padding(vertical = 16.dp)
+                                .fillMaxWidth()
+                        ) {
+                            Text(
+                                text = "ПН",
+                                color = FitLadyaTheme.colors.text,
+                                modifier = Modifier.weight(1f),
+                                textAlign = TextAlign.Center
+                            )
+                            Text(
+                                text = "ВТ",
+                                color = FitLadyaTheme.colors.text,
+                                modifier = Modifier.weight(1f),
+                                textAlign = TextAlign.Center
+                            )
+                            Text(
+                                text = "СР",
+                                color = FitLadyaTheme.colors.text,
+                                modifier = Modifier.weight(1f),
+                                textAlign = TextAlign.Center
+                            )
+                            Text(
+                                text = "ЧТ",
+                                color = FitLadyaTheme.colors.text,
+                                modifier = Modifier.weight(1f),
+                                textAlign = TextAlign.Center
+                            )
+                            Text(
+                                text = "ПТ",
+                                color = FitLadyaTheme.colors.text,
+                                modifier = Modifier.weight(1f),
+                                textAlign = TextAlign.Center
+                            )
+                            Text(
+                                text = "СБ",
+                                color = FitLadyaTheme.colors.text,
+                                modifier = Modifier.weight(1f),
+                                textAlign = TextAlign.Center
+                            )
+                            Text(
+                                text = "ВС",
+                                color = FitLadyaTheme.colors.text,
+                                modifier = Modifier.weight(1f),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    },
+                    calendarState = calendarState,
+                    dayContent = { dayState ->
+                        Column(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .padding(4.dp)
+                                .background(
+                                    color = if (dayState.date.dayOfMonth == selectedDay.intValue && dayState.date.month.value == month)
+                                        FitLadyaTheme.colors.primary else FitLadyaTheme.colors.primaryBackground,
+                                    shape = CircleShape
+                                ),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center,
+                        ) {
+                            Text(
+                                modifier = Modifier.clickable(
+                                    indication = null,
+                                    interactionSource = remember { MutableInteractionSource() }) {
+                                    if (dayState.date.month.value == month && dayState.date.dayOfMonth >= startDate && dayState.date.dayOfMonth <= endDate) {
+                                        selectedDay.intValue = dayState.date.dayOfMonth
+                                        selectedDate.value = dayState.date
+                                        todayDateBackgroundState.value = primaryColor
+                                        isAttachAvailable = true
+                                    }
+                                },
+                                fontSize = 16.sp,
+                                text = dayState.date.dayOfMonth.toString(),
+                                color = FitLadyaTheme.colors.text.copy(alpha = if (dayState.date.month == monthState.value.currentMonth.month && dayState.date.dayOfMonth >= startDate && dayState.date.dayOfMonth <= endDate) 1f else 0.32f),
+                                textAlign = TextAlign.Center
+                            )
+                            if (scheduledTrainings.value.filter { training ->
+                                    compareDates(
+                                        training.date,
+                                        convertLocalDateDateToUTC(dayState.date)
+                                    ) == 0
+                                }.size == 1) {
+                                val circleCount = scheduledTrainings.value.first { training ->
+                                    training.date == convertLocalDateDateToUTC(dayState.date)
+                                }.ids.size
+                                Row(modifier = Modifier.padding(top = 4.dp)) {
+                                    (0 until circleCount).forEach { _ ->
+                                        Box(
+                                            modifier = Modifier
+                                                .padding(horizontal = 1.dp)
+                                                .size(4.dp)
+                                                .background(
+                                                    color = FitLadyaTheme.colors.accent,
+                                                    shape = CircleShape
+                                                )
+                                        )
+                                    }
                                 }
-                            },
-                            fontSize = 16.sp,
-                            text = dayState.date.dayOfMonth.toString(),
-                            color = FitLadyaTheme.colors.text.copy(alpha = if (dayState.date.month == monthState.value.currentMonth.month && dayState.date.dayOfMonth > startDate && dayState.date.dayOfMonth < endDate) 1f else 0.32f),
-                            textAlign = TextAlign.Center
-                        )
-                        if (scheduledTrainings.filter { training ->
-                                compareDates(
-                                    training.date,
-                                    convertLocalDateDateToUTC(dayState.date)
-                                ) == 0
-                            }.size == 1) {
-                            val circleCount = scheduledTrainings.first { training ->
-                                training.date == convertLocalDateDateToUTC(dayState.date)
-                            }.ids.size
-                            Row(modifier = Modifier.padding(top = 4.dp)) {
-                                (0 until circleCount).forEach { _ ->
-                                    Box(
-                                        modifier = Modifier
-                                            .padding(horizontal = 1.dp)
-                                            .size(4.dp)
-                                            .background(
-                                                color = FitLadyaTheme.colors.accent,
-                                                shape = CircleShape
-                                            )
+                            } else {
+                                Box(modifier = Modifier.height(8.dp))
+                            }
+                        }
+                    }
+                )
+                Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.BottomCenter) {
+                    if (isAttachAvailable) {
+                        Button(
+                            modifier = Modifier
+                                .padding(horizontal = 32.dp, vertical = 24.dp)
+                                .fillMaxWidth()
+                                .height(40.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = FitLadyaTheme.colors.primary),
+                            onClick = {
+                                selectedDate.value?.let {
+                                    navController.currentBackStackEntry?.savedStateHandle?.set(
+                                        "id",
+                                        trainingPlan.trainings[currentTrainingPosition.intValue].id
                                     )
+                                    navController.currentBackStackEntry?.savedStateHandle?.set(
+                                        "date", convertDateToDDMMYYYYNullable(selectedDate.value)
+                                    )
+                                    navController.currentBackStackEntry?.savedStateHandle?.set(
+                                        "backRoute", Screen.TrainingToSchedule.route
+                                    )
+                                    navController.navigate(Screen.CreateTraining.route)
                                 }
                             }
-                        } else {
-                            Box(modifier = Modifier.height(8.dp))
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.attach),
+                                color = FitLadyaTheme.colors.secondaryText
+                            )
                         }
-                    }
-                }
-            )
-            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.BottomCenter) {
-                if (isAttachAvailable) {
-                    Button(
-                        modifier = Modifier
-                            .padding(horizontal = 32.dp, vertical = 24.dp)
-                            .fillMaxWidth()
-                            .height(40.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = FitLadyaTheme.colors.primary),
-                        onClick = {
-                            selectedDate.value?.let {
-                                navController.currentBackStackEntry?.savedStateHandle?.set(
-                                    "id",
-                                    trainingPlan.trainings[currentTrainingPosition.intValue].id
-                                )
-                                navController.currentBackStackEntry?.savedStateHandle?.set(
-                                    "date", selectedDate.value
-                                )
-                                navController.currentBackStackEntry?.savedStateHandle?.set(
-                                    "backRoute", Screen.TrainingToSchedule.route
-                                )
-                                navController.navigate(Screen.CreateTraining.route)
-                            }
-                        }
-                    ) {
-                        Text(
-                            text = stringResource(id = R.string.attach),
-                            color = FitLadyaTheme.colors.secondaryText
-                        )
                     }
                 }
             }

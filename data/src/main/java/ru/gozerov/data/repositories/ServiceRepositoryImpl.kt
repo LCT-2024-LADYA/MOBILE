@@ -12,12 +12,14 @@ import ru.gozerov.data.api.ServiceApi
 import ru.gozerov.data.api.models.request.CreateCustomServiceRequestBody
 import ru.gozerov.data.api.models.request.ScheduleServiceRequestBody
 import ru.gozerov.data.api.models.request.ServiceStatus
+import ru.gozerov.data.api.models.toClientCustomService
 import ru.gozerov.data.api.models.toCustomService
 import ru.gozerov.data.api.models.toScheduledService
 import ru.gozerov.data.api.models.toScheduledTraining
 import ru.gozerov.data.api.paging.TrainerServicePagingSource
 import ru.gozerov.data.api.paging.UserServicePagingSource
 import ru.gozerov.data.cache.LoginStorage
+import ru.gozerov.domain.models.ClientCustomService
 import ru.gozerov.domain.models.CustomService
 import ru.gozerov.domain.models.IdResponse
 import ru.gozerov.domain.models.ScheduleService
@@ -86,13 +88,13 @@ class ServiceRepositoryImpl @Inject constructor(
         }
 
 
-    override suspend fun getUserServices(): Flow<PagingData<CustomService>> =
+    override suspend fun getUserServices(): Flow<PagingData<ClientCustomService>> =
         withContext(Dispatchers.IO) {
             val pager = Pager(PagingConfig(50)) {
                 userServicePagingSource
             }
             return@withContext pager.flow.map { data ->
-                data.map { service -> service.toCustomService() }
+                data.map { service -> service.toClientCustomService() }
             }
         }
 

@@ -8,12 +8,26 @@ import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 
 fun getCurrentUtcTime(): String {
     val currentTime = Instant.now()
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
         .withZone(ZoneOffset.UTC)
     return formatter.format(currentTime)
+}
+
+fun getCurrentDayInDDMMYYYY(): String {
+    val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+    val todayFormatted = LocalDate.now().format(formatter)
+    return todayFormatted
+}
+
+fun getDayPrevMonthInDDMMYYYY(): String {
+    val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+    val oneMonthAgo = LocalDate.now().minus(1, ChronoUnit.MONTHS)
+    val oneMonthAgoFormatted = oneMonthAgo.format(formatter)
+    return oneMonthAgoFormatted
 }
 
 fun resetTimeToMidnight(dateString: String): String {
@@ -104,6 +118,17 @@ fun convertDateToUTC(
     return utcDateTimeString
 }
 
+fun convertDateToUTC(dateString: String): String {
+    val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+    val localDate = LocalDate.parse(dateString, formatter)
+
+    val localDateTime = LocalDateTime.of(localDate, LocalDateTime.MIN.toLocalTime())
+    val utcDateTime = localDateTime.atOffset(ZoneOffset.UTC)
+
+    val outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
+    return utcDateTime.format(outputFormatter)
+}
+
 fun convertLocalDateDateToUTC(
     date: LocalDate
 ): String {
@@ -114,14 +139,6 @@ fun convertLocalDateDateToUTC(
     val utcDateTimeString = isoFormatter.format(localDateTime.toInstant(ZoneOffset.UTC))
 
     return utcDateTimeString
-}
-
-
-fun convertLocalDateDateToUTCMidnight(
-    date: LocalDate
-): String {
-    val formatter = DateTimeFormatter.ISO_INSTANT
-    return formatter.format(date.atStartOfDay(ZoneOffset.UTC))
 }
 
 fun convertDateToDDMMYYYY(localDate: LocalDate): String {

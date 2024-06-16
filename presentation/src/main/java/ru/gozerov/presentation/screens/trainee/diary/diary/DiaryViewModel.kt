@@ -10,6 +10,7 @@ import kotlinx.coroutines.launch
 import ru.gozerov.domain.usecases.DeleteScheduledTrainingUseCase
 import ru.gozerov.domain.usecases.GetScheduleUseCase
 import ru.gozerov.domain.usecases.GetTrainingsAtDateUseCase
+import ru.gozerov.domain.usecases.GetUserPlanCardsUseCase
 import ru.gozerov.presentation.screens.trainee.diary.diary.models.DiaryEffect
 import ru.gozerov.presentation.screens.trainee.diary.diary.models.DiaryIntent
 import ru.gozerov.presentation.shared.utils.runCatchingNonCancellation
@@ -19,7 +20,8 @@ import javax.inject.Inject
 class DiaryViewModel @Inject constructor(
     private val getScheduleUseCase: GetScheduleUseCase,
     private val getTrainingsAtDateUseCase: GetTrainingsAtDateUseCase,
-    private val deleteScheduledTrainingUseCase: DeleteScheduledTrainingUseCase
+    private val deleteScheduledTrainingUseCase: DeleteScheduledTrainingUseCase,
+    private val getUserPlanCardsUseCase: GetUserPlanCardsUseCase
 ) : ViewModel() {
 
     private val _effect = MutableStateFlow<DiaryEffect>(DiaryEffect.None)
@@ -63,6 +65,18 @@ class DiaryViewModel @Inject constructor(
                     }
                         .onSuccess {
                             _effect.emit(DiaryEffect.RemoveTraining(intent.trainingId))
+                        }
+                        .onFailure { throwable ->
+                            _effect.emit(DiaryEffect.Error(throwable.message.toString()))
+                        }
+                }
+
+                is DiaryIntent.GetPlans -> {
+                    runCatchingNonCancellation {
+                        getUserPlanCardsUseCase.invoke()
+                    }
+                        .onSuccess { cards ->
+                            _effect.emit(DiaryEffect.LoadedPlans(cards))
                         }
                         .onFailure { throwable ->
                             _effect.emit(DiaryEffect.Error(throwable.message.toString()))

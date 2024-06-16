@@ -22,6 +22,7 @@ import ru.gozerov.data.api.models.toExercise
 import ru.gozerov.data.api.models.toScheduledTraining
 import ru.gozerov.data.api.models.toTraining
 import ru.gozerov.data.api.paging.ExercisePagingSource
+import ru.gozerov.data.api.paging.GetProgressPagingSource
 import ru.gozerov.data.api.paging.TrainerTrainingsPagingSource
 import ru.gozerov.data.api.paging.TrainingPagingSource
 import ru.gozerov.data.api.paging.UserTrainingPagingSource
@@ -33,10 +34,13 @@ import ru.gozerov.domain.models.CustomTraining
 import ru.gozerov.domain.models.Exercise
 import ru.gozerov.domain.models.ExerciseWithWeight
 import ru.gozerov.domain.models.IdResponse
+import ru.gozerov.domain.models.ProgressCard
 import ru.gozerov.domain.models.ScheduledTraining
 import ru.gozerov.domain.models.TrainerTrainingCard
 import ru.gozerov.domain.models.Training
 import ru.gozerov.domain.models.TrainingCard
+import ru.gozerov.domain.models.TrainingPlan
+import ru.gozerov.domain.models.TrainingPlanCard
 import ru.gozerov.domain.repositories.LoginRepository
 import ru.gozerov.domain.repositories.TrainingRepository
 import javax.inject.Inject
@@ -49,7 +53,8 @@ class TrainingRepositoryImpl @Inject constructor(
     private val exercisePagingSourceFactory: ExercisePagingSource.Factory,
     private val loginRepository: LoginRepository,
     private val loginStorage: LoginStorage,
-    private val trainingStorage: TrainingStorage
+    private val trainingStorage: TrainingStorage,
+    private val getProgressPagingSourceFactory: GetProgressPagingSource.Factory
 ) : TrainingRepository {
 
     private val exercises = mutableListOf<Exercise>()
@@ -249,6 +254,30 @@ class TrainingRepositoryImpl @Inject constructor(
         userId,
         CreatePlanRequestBody(name, description, trainings)
     ).id
+
+    override suspend fun getUserPlans(): List<TrainingPlanCard> = runRequestSafelyNotResult(
+        checkToken = { loginRepository.checkToken() },
+        accessTokenAction = { loginStorage.getClientAccessToken() },
+        action = { token ->
+            trainingApi.getPlanCovers(token)
+        }
+    )
+
+    override suspend fun getPlan(id: Int): TrainingPlan = trainingApi.getPlan(planId = id)
+
+    override suspend fun getProgress(
+        query: String,
+        dateStart: String,
+        dateEnd: String
+    ): Flow<PagingData<ProgressCard>> =
+        withContext(Dispatchers.IO) {
+            val getProgressPagingSource =
+                getProgressPagingSourceFactory.create(query, dateStart, dateEnd)
+            val pager = Pager(PagingConfig(50)) {
+                getProgressPagingSource
+            }
+            return@withContext pager.flow
+        }
 
 
 }

@@ -23,107 +23,185 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import ru.gozerov.domain.models.PayedService
-import ru.gozerov.domain.models.TrainerCard
-import ru.gozerov.domain.models.TrainerService
-import ru.gozerov.domain.models.UserCard
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
+import ru.gozerov.domain.models.ClientCustomService
 import ru.gozerov.presentation.R
+import ru.gozerov.presentation.screens.trainee.profile.services.models.ClientServicesEffect
+import ru.gozerov.presentation.screens.trainee.profile.services.models.ClientServicesIntent
 import ru.gozerov.presentation.screens.trainee.profile.services.views.ConfirmChangesDialog
+import ru.gozerov.presentation.shared.utils.showError
 import ru.gozerov.presentation.shared.views.NavUpWithTitleToolbar
 import ru.gozerov.presentation.shared.views.UserAvatar
 import ru.gozerov.presentation.ui.theme.FitLadyaTheme
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun ClientServicesScreen(navController: NavController) {
+fun ClientServicesScreen(
+    navController: NavController,
+    viewModel: ClientServicesViewModel
+) {
+    val effect = viewModel.effect.collectAsState().value
 
     val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
 
-    val trainer = TrainerCard(0, null, "name", "name", emptyList(), 100, 1, null, emptyList(), 10)
-    val service = PayedService(0, TrainerService(0, "aaaa", 1000, true), false, null, null, 0, 0, UserCard(0, null, "aaa", "aaaa", 1, 100))
-    val isClientApproved = remember { mutableStateOf(service.isClientApproved) }
-    var isPayed: Boolean by remember { mutableStateOf(service.isPayed) }
+    val services = remember { mutableStateOf<LazyPagingItems<ClientCustomService>?>(null) }
+
+    LaunchedEffect(null) {
+        viewModel.handleIntent(ClientServicesIntent.LoadServices)
+    }
+
+    val onDialogConfirm = remember { mutableStateOf<(status: Boolean) -> Unit>({}) }
 
     var showDialog: Boolean by remember { mutableStateOf(false) }
+
+    when (effect) {
+        is ClientServicesEffect.None -> {}
+        is ClientServicesEffect.LoadedServices -> {
+            val data = effect.services.collectAsLazyPagingItems()
+            if (data.itemCount > 0)
+                services.value = data
+        }
+
+        is ClientServicesEffect.Error -> {
+            snackbarHostState.showError(coroutineScope, effect.message)
+            viewModel.handleIntent(ClientServicesIntent.Reset)
+        }
+
+        is ClientServicesEffect.DeletedService -> {
+            viewModel.handleIntent(ClientServicesIntent.LoadServices)
+        }
+    }
+
     var onPositiveClicked: Boolean by remember { mutableStateOf(false) }
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = FitLadyaTheme.colors.primaryBackground
-    ) {
-        if (showDialog) {
-            ConfirmChangesDialog(
-                isPositive = onPositiveClicked,
-                onDismiss = {
-                    showDialog = false
-                },
-                onConfirm = { isPositive ->
-                    if (isPositive) {
-                        if (!isPayed) {
-                            isPayed = true
-                        } else {
-                            isClientApproved.value = true
-                        }
-                    } else {
-                        if (!isPayed) {
+    if (showDialog) {
+        ConfirmChangesDialog(
+            isPositive = onPositiveClicked,
+            onDismiss = {
+                showDialog = false
+            },
+            onConfirm = onDialogConfirm.value
+        )
+    }
 
-                        } else {
-                            isClientApproved.value = false
-                        }
-                    }
-                    showDialog = false
-                }
-            )
-        }
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+    Scaffold(
+        containerColor = FitLadyaTheme.colors.primaryBackground,
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { _ ->
+
+        Column(modifier = Modifier.fillMaxSize()) {
             NavUpWithTitleToolbar(
                 navController = navController,
                 title = stringResource(id = R.string.services)
             )
+            Spacer(modifier = Modifier.height(16.dp))
             LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                item {
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
-                item {
-                    ServiceCard(
-                        trainer = trainer,
-                        service = service,
-                        isClientApproved = isClientApproved.value,
-                        isPayed = isPayed,
-                        onClick = { isPositive ->
-                            onPositiveClicked = isPositive
-                            showDialog = true
+                services.value?.let { lazyItems ->
+                    items(lazyItems.itemCount) { index ->
+                        val service = lazyItems[index]
+                        service?.let {
+
+                            var isPayed: Boolean by remember { mutableStateOf(service.isPayed) }
+                            var isClientApproved: Boolean? by remember { mutableStateOf(service.isClientApproved) }
+                            ServiceCard(
+                                service = service,
+                                isClientApproved = isClientApproved,
+                                isPayed = isPayed,
+                                onClick = { status ->
+                                    onPositiveClicked = status
+                                    showDialog = true
+                                    onDialogConfirm.value = { s ->
+                                        if (isPayed) {
+                                            when (isClientApproved) {
+                                                null -> {
+                                                    viewModel.handleIntent(
+                                                        ClientServicesIntent.SetStatus(
+                                                            service.id,
+                                                            status,
+                                                            3
+                                                        )
+                                                    )
+                                                    isClientApproved = s
+                                                }
+
+                                                true -> {
+                                                    viewModel.handleIntent(
+                                                        ClientServicesIntent.SetStatus(
+                                                            service.id,
+                                                            false,
+                                                            3
+                                                        )
+                                                    )
+                                                    isClientApproved = false
+                                                }
+
+                                                else -> {
+                                                    viewModel.handleIntent(
+                                                        ClientServicesIntent.SetStatus(
+                                                            service.id,
+                                                            true,
+                                                            3
+                                                        )
+                                                    )
+                                                    isClientApproved = true
+                                                }
+                                            }
+                                        } else {
+                                            if (status) {
+                                                viewModel.handleIntent(
+                                                    ClientServicesIntent.SetStatus(
+                                                        service.id,
+                                                        true,
+                                                        1
+                                                    )
+                                                )
+                                                isPayed = true
+                                            }
+                                            else
+                                                viewModel.handleIntent(
+                                                    ClientServicesIntent.DeleteService(
+                                                        service.id
+                                                    )
+                                                )
+                                        }
+                                        showDialog = false
+                                    }
+                                }
+                            )
                         }
-                    )
+                    }
+                    item {
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
                 }
             }
         }
-
     }
 }
 
 @Composable
 fun ServiceCard(
-    trainer: TrainerCard,
-    service: PayedService,
+    service: ClientCustomService,
     isClientApproved: Boolean?,
     isPayed: Boolean,
     onClick: (isPositive: Boolean) -> Unit
@@ -133,9 +211,12 @@ fun ServiceCard(
             .padding(horizontal = 16.dp)
             .fillMaxWidth()
             .background(
-                color = FitLadyaTheme.colors.secondary,
+                color = if (service.isPayed && service.isTrainerApproved == true && service.isClientApproved == true)
+                    FitLadyaTheme.colors.secondary.copy(0.48f) else FitLadyaTheme.colors.secondary,
                 shape = RoundedCornerShape(16.dp)
             )
+            .alpha(if (service.isPayed && service.isTrainerApproved == true && service.isClientApproved == true) 0.48f else 1f)
+
             .padding(all = 16.dp)
     ) {
         Row(
@@ -144,14 +225,14 @@ fun ServiceCard(
         ) {
             UserAvatar(
                 size = 48.dp,
-                photo = trainer.photoUrl,
+                photo = service.trainer.photoUrl,
                 background = FitLadyaTheme.colors.primaryBackground,
                 padding = 4.dp
             )
             Spacer(modifier = Modifier.width(16.dp))
             Column {
                 Text(
-                    text = "${trainer.firstName} ${trainer.lastName}",
+                    text = "${service.trainer.firstName} ${service.trainer.lastName}",
                     color = FitLadyaTheme.colors.text,
                     overflow = TextOverflow.Ellipsis,
                     maxLines = 1,
@@ -161,7 +242,7 @@ fun ServiceCard(
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = trainer.roles.firstOrNull()?.name
+                    text = service.trainer.roles.firstOrNull()?.name
                         ?: stringResource(id = R.string.trainer),
                     color = FitLadyaTheme.colors.text.copy(alpha = 0.36f),
                     overflow = TextOverflow.Ellipsis,

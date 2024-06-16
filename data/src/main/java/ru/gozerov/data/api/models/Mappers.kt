@@ -11,6 +11,7 @@ import ru.gozerov.data.api.models.response.ChatMessageDTO
 import ru.gozerov.data.api.models.response.ClientCover
 import ru.gozerov.data.api.models.response.ClientProfileDTO
 import ru.gozerov.data.api.models.response.CreateTrainingResponse
+import ru.gozerov.data.api.models.response.CustomClientServiceDTO
 import ru.gozerov.data.api.models.response.CustomExerciseDTO
 import ru.gozerov.data.api.models.response.CustomServiceDTO
 import ru.gozerov.data.api.models.response.CustomTrainerTrainingDTO
@@ -27,6 +28,7 @@ import ru.gozerov.data.api.models.response.UserInfoResponse
 import ru.gozerov.domain.models.Achievement
 import ru.gozerov.domain.models.ChatCard
 import ru.gozerov.domain.models.ChatMessage
+import ru.gozerov.domain.models.ClientCustomService
 import ru.gozerov.domain.models.ClientInfo
 import ru.gozerov.domain.models.CreateExerciseModel
 import ru.gozerov.domain.models.CreateTrainerTrainingModel
@@ -235,6 +237,18 @@ fun ScheduledServiceDTO.toScheduledService() = ScheduleService(
     trainer_confirm,
     trainer_id,
     user.toUserCard(),
+    user_confirm,
+    user_id
+)
+
+fun CustomClientServiceDTO.toClientCustomService() = ClientCustomService(
+    id,
+    is_payed,
+    service,
+    service_id,
+    trainer_confirm,
+    trainer_id,
+    trainer.toTrainerCard(),
     user_confirm,
     user_id
 )

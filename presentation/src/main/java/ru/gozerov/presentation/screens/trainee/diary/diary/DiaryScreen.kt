@@ -1,7 +1,6 @@
 package ru.gozerov.presentation.screens.trainee.diary.diary
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -58,9 +57,9 @@ import io.github.boguszpawlowski.composecalendar.selection.SelectionMode
 import kotlinx.coroutines.launch
 import ru.gozerov.domain.models.CustomTraining
 import ru.gozerov.domain.models.ScheduledTraining
-import ru.gozerov.domain.models.TrainingCard
-import ru.gozerov.domain.models.TrainingPlan
+import ru.gozerov.domain.models.TrainingPlanCard
 import ru.gozerov.domain.utils.compareDates
+import ru.gozerov.domain.utils.convertDateToDDMMYYYYNullable
 import ru.gozerov.domain.utils.convertLocalDateDateToUTC
 import ru.gozerov.presentation.R
 import ru.gozerov.presentation.navigation.Screen
@@ -83,18 +82,7 @@ fun DiaryScreen(
 ) {
     val effect = viewModel.effect.collectAsState().value
 
-    val plans = remember {
-        mutableStateOf(
-            (0..2).map {
-                TrainingPlan(
-                    0,
-                    "Plan",
-                    "description",
-                    listOf(TrainingCard(0, "name", 1, "description"))
-                )
-            }
-        )
-    }
+    val plans = remember { mutableStateOf<List<TrainingPlanCard>>(emptyList()) }
 
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
@@ -116,6 +104,7 @@ fun DiaryScreen(
     val todayDateBackground = FitLadyaTheme.colors.secondary
     val todayDateBackgroundState = remember { mutableStateOf(todayDateBackground) }
     val selectedDay = rememberSaveable { mutableIntStateOf(-1) }
+    val selectedDate = remember { mutableStateOf<LocalDate?>(null) }
 
     val dayTrainings = rememberSaveable { mutableStateOf<List<CustomTraining>>(emptyList()) }
     val scheduledTrainings = remember { mutableStateOf<List<ScheduledTraining>>(emptyList()) }
@@ -132,13 +121,17 @@ fun DiaryScreen(
     when (effect) {
         is DiaryEffect.None -> {}
         is DiaryEffect.LoadedTrainings -> {
-            Log.e("AAAA", effect.trainings.toString())
             dayTrainings.value = effect.trainings
             viewModel.handleIntent(DiaryIntent.Reset)
         }
 
         is DiaryEffect.LoadedSchedule -> {
             scheduledTrainings.value = effect.trainings
+            viewModel.handleIntent(DiaryIntent.GetPlans)
+        }
+
+        is DiaryEffect.LoadedPlans -> {
+            plans.value = effect.plans
             viewModel.handleIntent(DiaryIntent.Reset)
         }
 
@@ -345,6 +338,7 @@ fun DiaryScreen(
                                                 interactionSource = remember { MutableInteractionSource() }) {
                                                 if (dayState.date.month == monthState.value.currentMonth.month) {
                                                     selectedDay.intValue = dayState.date.dayOfMonth
+                                                    selectedDate.value = dayState.date
                                                     todayDateBackgroundState.value = primaryColor
                                                     val date =
                                                         convertLocalDateDateToUTC(dayState.date)
@@ -415,6 +409,7 @@ fun DiaryScreen(
                                                 indication = null,
                                                 interactionSource = remember { MutableInteractionSource() }) {
                                                 if (dayState.date.month == monthState.value.currentMonth.month) {
+                                                    selectedDate.value = dayState.date
                                                     selectedDay.intValue = dayState.date.dayOfMonth
                                                     val date =
                                                         convertLocalDateDateToUTC(dayState.date)
@@ -517,6 +512,10 @@ fun DiaryScreen(
                                         .height(40.dp),
                                     colors = ButtonDefaults.buttonColors(containerColor = FitLadyaTheme.colors.primary),
                                     onClick = {
+                                        navController.currentBackStackEntry?.savedStateHandle?.set(
+                                            "date",
+                                            convertDateToDDMMYYYYNullable(selectedDate.value)
+                                        )
                                         navController.navigate(Screen.FindTraining.route)
                                     }
                                 ) {
@@ -544,6 +543,10 @@ fun DiaryScreen(
                                             .height(40.dp),
                                         colors = ButtonDefaults.buttonColors(containerColor = FitLadyaTheme.colors.primary),
                                         onClick = {
+                                            navController.currentBackStackEntry?.savedStateHandle?.set(
+                                                "date",
+                                                convertDateToDDMMYYYYNullable(selectedDate.value)
+                                            )
                                             navController.navigate(Screen.FindTraining.route)
                                         }
                                     ) {
@@ -574,6 +577,10 @@ fun DiaryScreen(
                                 navController.currentBackStackEntry?.savedStateHandle?.set(
                                     "plan",
                                     plans.value[index]
+                                )
+                                navController.currentBackStackEntry?.savedStateHandle?.set(
+                                    "trainings",
+                                    scheduledTrainings.value
                                 )
                                 navController.navigate(Screen.SchedulePlan.route)
                             })

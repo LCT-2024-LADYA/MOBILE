@@ -17,6 +17,7 @@ import ru.gozerov.data.api.models.response.CreateTrainingResponse
 import ru.gozerov.data.api.models.response.CustomTrainerTrainingDTO
 import ru.gozerov.data.api.models.response.CustomTrainingDTO
 import ru.gozerov.data.api.models.response.GetExercisesResponse
+import ru.gozerov.data.api.models.response.GetProgressResponse
 import ru.gozerov.data.api.models.response.GetScheduleResponse
 import ru.gozerov.data.api.models.response.GetTrainerTrainingsResponse
 import ru.gozerov.data.api.models.response.GetTrainingsResponse
@@ -131,5 +132,14 @@ interface TrainingApi {
 
     @GET("api/training/plan/user")
     suspend fun getPlanCovers(@Header("access_token") token: String): List<TrainingPlanCard>
+
+    @GET("api/training/progress")
+    suspend fun getProgress(
+        @Header("access_token") token: String,
+        @Query("search") query: String,
+        @Query("date_start") dateStart: String,
+        @Query("date_end") dateEnd: String,
+        @Query("page") page: Int
+    ): GetProgressResponse
 
 }

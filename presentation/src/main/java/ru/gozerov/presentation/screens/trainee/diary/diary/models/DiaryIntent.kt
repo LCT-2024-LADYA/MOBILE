@@ -16,4 +16,6 @@ sealed interface DiaryIntent {
         val trainingId: Int
     ) : DiaryIntent
 
+    object GetPlans : DiaryIntent
+
 }

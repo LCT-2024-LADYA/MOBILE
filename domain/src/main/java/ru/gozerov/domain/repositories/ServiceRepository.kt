@@ -2,6 +2,7 @@ package ru.gozerov.domain.repositories
 
 import androidx.paging.PagingData
 import kotlinx.coroutines.flow.Flow
+import ru.gozerov.domain.models.ClientCustomService
 import ru.gozerov.domain.models.CustomService
 import ru.gozerov.domain.models.IdResponse
 import ru.gozerov.domain.models.ScheduleService
@@ -31,7 +32,7 @@ interface ServiceRepository {
 
     suspend fun getTrainerServices(): Flow<PagingData<CustomService>>
 
-    suspend fun getUserServices(): Flow<PagingData<CustomService>>
+    suspend fun getUserServices(): Flow<PagingData<ClientCustomService>>
 
     suspend fun getServiceById(serviceId: Int): TrainerService
 

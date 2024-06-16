@@ -12,6 +12,7 @@ import ru.gozerov.data.api.models.request.CreateCustomServiceRequestBody
 import ru.gozerov.data.api.models.request.ScheduleServiceRequestBody
 import ru.gozerov.data.api.models.request.ServiceStatus
 import ru.gozerov.data.api.models.response.CustomServiceDTO
+import ru.gozerov.data.api.models.response.GetClientServicesPagination
 import ru.gozerov.data.api.models.response.GetScheduleResponse
 import ru.gozerov.data.api.models.response.GetServicesPagination
 import ru.gozerov.data.api.models.response.ScheduledServiceDTO
@@ -54,7 +55,7 @@ interface ServiceApi {
     suspend fun getUserServices(
         @Header("access_token") token: String,
         @Query("cursor") cursor: Int
-    ): GetServicesPagination
+    ): GetClientServicesPagination
 
     @GET("api/service/{id}")
     suspend fun getServiceById(@Path("id") serviceId: Int): TrainerService
